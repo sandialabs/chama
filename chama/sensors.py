@@ -139,11 +139,3 @@ def _integrate_detected_signal(detected):
     # Other integration methods are possible.  This one just uses sum
     integrated_detection = detected.groupby(level=0).sum()
     return integrated_detection
-
-def _integrate_detected_signal2(detected, txyz_names=['T', 'X', 'Y', 'Z']):
-    # Other integration methods are possible.  This one just uses sum
-    integrated_detection = detected.groupby(by=txyz_names[0]).sum()
-    del integrated_detection[txyz_names[1]]
-    del integrated_detection[txyz_names[2]]
-    del integrated_detection[txyz_names[3]]
-    return integrated_detection

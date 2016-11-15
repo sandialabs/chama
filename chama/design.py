@@ -43,6 +43,10 @@ class PyomoDesignSolver:
                 * selected_sensors : a list of the sensor names that were selected as part of the optimization
                 * objective_value : the value of the objective at the optimal point (float)
         """
+        
+        # Right now, this function expects a multiindex, but that will change....
+        impact = impact.set_index(['Scenario', 'Sensor'])
+
         model = self._create_pyomo_model(impact, sensor_dict, sensor_budget)
         self._solve_pyomo_model(model, tee=tee, keepfiles=keepfiles)
 

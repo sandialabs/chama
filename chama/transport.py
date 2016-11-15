@@ -123,17 +123,17 @@ def main():
     return plume_results
     
     
-plume_results = main()
-plume_results['high_conc_bool'] = plume_results['conc'] > 0.001
-plume_results['high_conc'] = plume_results['high_conc_bool'] * plume_results['conc']
-plume_results['high_conc'].replace(to_replace=0, value=np.nan, inplace=True)
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(plume_results.x, plume_results.y, plume_results.z, c=plume_results.high_conc, marker='o')
-
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
-
-plt.show()
+#plume_results = main()
+#plume_results['high_conc_bool'] = plume_results['conc'] > 0.001
+#plume_results['high_conc'] = plume_results['high_conc_bool'] * plume_results['conc']
+#plume_results['high_conc'].replace(to_replace=0, value=np.nan, inplace=True)
+#
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#ax.scatter(plume_results.x, plume_results.y, plume_results.z, c=plume_results.high_conc, marker='o')
+#
+#ax.set_xlabel('X Label')
+#ax.set_ylabel('Y Label')
+#ax.set_zlabel('Z Label')
+#
+#plt.show()

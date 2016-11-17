@@ -27,7 +27,8 @@ def interpolate(df, sample_points, method='nearest'):
         
     """
     # Find points that are in sample points that are NOT in the df index
-    new_points = list(set(sample_points) - set(df.index))
+    all_sample_points = sum(sample_points.values(), [])
+    new_points = list(set(all_sample_points) - set(df.index))
     
     if len(new_points) > 0:
         multiindex = pd.MultiIndex.from_tuples(new_points, names=df.index.names)
@@ -42,17 +43,6 @@ def interpolate(df, sample_points, method='nearest'):
     
     return df
     
-def gather_sample_points(sensors):
-    # Gather sample points
-    all_sample_points = []
-    sample_points = {}
-    for (name, sensor) in sensors.items(): # loop over sensors
-        sample_points[name] = sensor.get_sample_points()
-        all_sample_points = all_sample_points + sample_points[name]
-    all_sample_points = list(set(all_sample_points))
-    
-    return all_sample_points, sample_points
-    
 def extract(signal, sensors, metric='Min Time', txyz_names=['T', 'X', 'Y', 'Z']):
     """
     Extract the impact metric from a signal profile and sensors
@@ -62,13 +52,15 @@ def extract(signal, sensors, metric='Min Time', txyz_names=['T', 'X', 'Y', 'Z'])
     
     print("    Get sample points")
     t0 = time.time()
-    all_sample_points, sample_points = gather_sample_points(sensors)
+    sample_points = {}
+    for (name, sensor) in sensors.items(): # loop over sensors
+        sample_points[name] = sensor.get_sample_points()
     print(time.time() - t0)
     
     # Interpolate signal (if needed)
 #    print("    Interpolate")
 #    t0 = time.time()
-#    signal = interpolate(signal, all_sample_points)
+#    signal = interpolate(signal, sample_points)
 #    print(time.time() - t0)
     
     impact = pd.DataFrame(columns=['Scenario', 'Sensor', 'Impact'])

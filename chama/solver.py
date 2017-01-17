@@ -1,9 +1,10 @@
 """
-Pyomo-based sensor placement solver using the vanilla SP formulation 
-from:
+This module contains the high-level solvers for the sensor placement problem.
 
-Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., Laird, C.D., "A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations", Computers & Chemical Engineering, Volume 47, December 2012, Pages 194-201.
+It includes:
+* SPSensorPlacementSolver: Pyomo-based solver using a basic stochastic programming formulation
 
+See the documentation for individual classes below for more details.
 """
 import pyomo.environ as pe
 import chama.utils as cu
@@ -12,14 +13,20 @@ import pandas as pd
 
 class SPSensorPlacementSolver:
     """
-    This class implements a sensor placement solver using the vanilla SP formulation from:
-    
-    Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., Laird, C.D., "A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations", Computers & Chemical Engineering, Volume 47, December 2012, Pages 194-201.
+    This class implements a Pyomo-based sensor placement solver using the stochastic programming formulation
+    from:
+
+        Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., Laird, C.D., "A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations", Computers & Chemical Engineering, Volume 47, December 2012, Pages 194-201.
 
     Examples
     --------
-    >>> sps = SPSensorPlacementSolver()
-    >>> results = sps.solve(df_sensor, df_scenario, df_impact)    
+    >>> # read the data into appropriate pandas DataFrame objects
+    >>> ...
+    >>> # create and call the solver
+    >>> spsolver = SPSensorPlacementSolver()
+    >>> results = spsolver.solve(df_sensor, df_scenario, df_impact, 5)
+    >>> # output the key results, e.g.,
+    >>> print(results['selected_sensors'])
     """
 
     def __init__(self):
@@ -35,17 +42,18 @@ class SPSensorPlacementSolver:
         Parameters
         ----------
         df_sensor : pandas.DataFrame
-            This is a pandas dataframe with columns "Sensor" and "Cost", where "Sensor" specifies the name of the
-            sensor, and "Cost" gives the cost as a floating point number. For a simple sensor budget of N sensors,
-            set the sensor_budget to N and specify the cost as 1.0 for each sensor.
+            This is a pandas dataframe with columns "Sensor" (of type str) and "Cost" (of type float), where "Sensor"
+            specifies the name of the sensor, and "Cost" gives the cost as a floating point number. For a simple sensor
+            budget of N sensors, set the sensor_budget to N and specify the cost as 1.0 for each sensor.
         df_scenario : pandas.DataFrame
-            This is a pandas dataframe with the columns "Scenario" and "Undetected Impact", where "Scenario" specifies
-            the scenario name, and "Undetected Impact" specifies the impact that will be realized if this scenario is
-            not detected by any selected sensor.
+            This is a pandas dataframe with the columns "Scenario" (of type str) and "Undetected Impact" (of type float),
+            where "Scenario" specifies the scenario name, and "Undetected Impact" specifies the impact that
+            will be realized if this scenario is not detected by any selected sensor.
         df_impact : pandas.DataFrame
-           This is a pandas dataframe with the columns "Scenario", "Sensor", and "Impact". It is a sparse representation
-           of an impact matrix where "Scenario" is the name of the scenario, "Sensor" is the name of the sensor, and "Impact"
-           is the impact that will be realized if the particular scenario is detected FIRST by the particular sensor.
+           This is a pandas dataframe with the columns "Scenario" (of type str), "Sensor" (of type str),
+           and "Impact" (of type float). It is a sparse representation of an impact matrix where "Scenario" is
+           the name of the scenario, "Sensor" is the name of the sensor, and "Impact" is the impact that will be
+           realized if the particular scenario is detected FIRST by the particular sensor.
         sensor_budget : float
             The total budget available for purchase/installation of sensors. Solution will select a family of sensors
             whose combined cost is below the sensor_budget. For a simple sensor budget of N sensors, set this
@@ -215,4 +223,3 @@ class SPSensorPlacementSolver:
         """
         opt = pe.SolverFactory(mip_solver_name)
         return opt.solve(model, **pyomo_solver_options)
-

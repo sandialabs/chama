@@ -2,7 +2,7 @@ from chama import transport
 from chama import sensors
 from chama import scenarios
 from chama import impact
-from chama import design
+from chama import solver
 
 __version__ = '0.1.0'
 

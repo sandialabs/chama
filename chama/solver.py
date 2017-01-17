@@ -139,10 +139,16 @@ class SPSensorPlacementSolver:
 
         # Add in the data for the dummy sensor to account for a scenario that is undetected
         sensor_list.append('__DUMMY_SENSOR_UNDETECTED__')
+
         df_dummy = pd.DataFrame(scenario_list, columns=['Scenario'])
+        df_dummy = df_dummy.set_index(['Scenario'])
+
+        df_scenario = df_scenario.set_index(['Scenario'])
         df_dummy['Impact'] = df_scenario['Undetected Impact']
+        df_scenario.reset_index(level=0, inplace=True)
+
         df_dummy['Sensor'] = '__DUMMY_SENSOR_UNDETECTED__'
-        df_dummy = df_dummy.set_index(['Scenario', 'Sensor'])
+        df_dummy = df_dummy.reset_index().set_index(['Scenario', 'Sensor'])
         df_impact = df_impact.append(df_dummy)
         sensor_cost['__DUMMY_SENSOR_UNDETECTED__'] = 0
 

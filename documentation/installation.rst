@@ -14,18 +14,16 @@ To build Chama from source using git::
 
 Python package dependencies include:
 
-* Pyomo [Hart2012]_: optimization modeling language and optimization capabilities, 
+* Pyomo [HLWW12]_: optimization modeling language and optimization capabilities, 
   https://github.com/pyomo. 
-* Pandas [McKinney2013]_: analyze and store databases, 
+* Pandas [Mcki13]_: analyze and store databases, 
   http://pandas.pydata.org.
-* Numpy [vanderWalt2011]_: support large, multi-dimensional arrays and matrices, 
+* Numpy [VaCV11]_: support large, multi-dimensional arrays and matrices, 
   http://www.numpy.org.
 
 Optional python packages include:
 
-* Matplotlib [Hunter2007]_: produce figures, 
+* Matplotlib [Hunt07]_: produce figures, 
   http://matplotlib.org.
-* Folium [Story2016]_: produce maps,
-  https://github.com/python-visualization/folium.
   
 	

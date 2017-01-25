@@ -22,7 +22,7 @@ Each scenario can be assigned a probability of occurrence, :math:`\alpha`.
 The variables :math:`s_i` is a binary variable that will be 1 if location i is selected, and 0 otherwise. 
 The parameter :math:`p` is the total number of sensors that are allowed in the optimal placement. 
 
-This formulation has been used to place sensors in large water networks [USEPA2012]_ and [USEPA2014]_.  
+This formulation has been used to place sensors in large water networks [USEPA12]_ and [USEPA15]_.  
 It is remarkably efficient for large problems since, although :math:`x_{ai}` is binary 
 indicator variable, it can be relaxed to be a continuous variable between 0 and 
 1, and yet it will always converge to a value of 0 or 1. Therefore, the number 

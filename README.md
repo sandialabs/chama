@@ -3,7 +3,7 @@ Chama
 
 Continuous or regularly scheduled monitoring has the potential to quickly 
 identify changes in the environment.  However, even with low-cost sensors, only 
-a limited number of sensors can be used.  
+a limited number of sensors can be used. 
 The physical placement of these sensors and the sensor technology used can have 
 a large impact on the performance of a monitoring strategy.  
 
@@ -26,7 +26,6 @@ Directories
   * chama - python package
   * ci - continuous integration
   * documentation - user manual
-  * examples - examples
 
 Contact
 -------

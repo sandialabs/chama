@@ -1,5 +1,5 @@
 Methane emissions example
-==================
+===========================
 
 The following example demonstrates how to determine optimal sensor design to detect methane emissions from a wellpad.
 The example outlines how to perform the following steps:
@@ -16,4 +16,3 @@ The example outlines how to perform the following steps:
 
 * **Visualize results**, including tradoff curves and maps of the sensor layout.
 
-.. literalinclude:: ../examples/methane_example.py

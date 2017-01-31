@@ -141,6 +141,7 @@ class SPSensorPlacementSolver:
         df_sensor = df_sensor.set_index('Sensor')
         assert(df_sensor.index.names[0] == 'Sensor')
 
+        # Python set will extract the unique Scenario and Sensor values
         scenario_list = sorted(set(df_impact.index.get_level_values('Scenario')))
         sensor_list = sorted(set(df_impact.index.get_level_values('Sensor')))
         sensor_cost = df_sensor['Cost']
@@ -187,6 +188,7 @@ class SPSensorPlacementSolver:
         model.y = pe.Var(model.sensor_set, within=pe.Binary)
 
         # objective function minimize the sum impact across all scenarios
+        # in current formulation all scenarios are equally probable 
         def obj_rule(m):
             return 1.0/float(len(scenario_list))*sum(float(df_impact.loc[a,i])*m.x[a,i] for (a,i) in scenario_sensor_pairs)
         model.obj = pe.Objective(rule=obj_rule)

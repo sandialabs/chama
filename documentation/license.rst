@@ -1,17 +1,22 @@
 Copyright and license
 ==========================
 
-Copyright 2016 Sandia Corporation. 
-Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation, 
-the U.S. Government retains certain rights in this software.
-
-This software is distributed under the Revised BSD License.
+Chama is copyright through Sandia National Laboratories.
+The software is distributed under the Revised BSD License.
 Chama also leverages a variety of third-party software packages, which
 have separate licensing policies. 
 
-::
+Copyright
+------------
+.. code-block:: none 
 
-	Revised BSD License
+	Copyright 2016 Sandia Corporation. 
+	Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation, 
+	the U.S. Government retains certain rights in this software.
+
+Revised BSD license
+-------------------------
+.. code-block:: none 
 
 	Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions

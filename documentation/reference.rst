@@ -1,18 +1,29 @@
-References
-==============
+Reference
+====================
+..
+	Citations begins with 4 letters:
+		one author: first 4 letters of name
+		two authors: first 2 letters of author1, first 2 letters of author 2
+		three authors: first 2 letters of author1, first letter of author 2, first letter of author 3
+		four authors: first letter of each author
+		more than four authors: first letter of first four authors
+	
+	The next two digits are the year (century ignored)
+	
+	If the 6 digits match another citation, add a lower case letter (a, b, ...)
+	
+	* Exception made USEPA
+	
+.. [HLWW12] Hart, W.E., Laird, C, Watson, J.P., & Woodruff D.L. (2012). Pyomo -- Optimization Modeling in Python, Volume 67 of Springer Optimization and Its Applications, Springer Science & Business Media.
 
-.. [Hart2012] W. Hart, C. Laird, J.P. Watson, D.L. Woodruff Pyomo -- Optimization Modeling in Python, Volume 67 of Springer Optimization and Its Applications, Springer Science & Business Media, 2012.
+.. [Hunt07] Hunter, J.D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 3(9), 90-95.
 
-.. [Hunter2007] J.D. Hunter, Matplotlib: A 2D Graphics Environment, Computing in Science & Engineering, 9, 90-95, 2007.
+.. [Mcki13] McKinney W. (2013). Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython. O'Reilly Media, 1 edition, 466P.
 
-.. [McKinney2013] W. McKinney, Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython, 2013.
+.. [Ross00] Rossman, L.A. (2000). EPANET 2 Users Manual. U. S. Environmental Protection Agency Technical Report, EPA/600/R--00/057, 200p.
 
-.. [Rossman2000] L.A. Rossman, EPANET 2 Users Manual. Technical report, Cincinnati, OH: U. S. Environmental Protection Agency. EPA/600/R--00/057, 2000.
+.. [USEPA12] United States Environmental Protection Agency. (2012). TEVA-SPOT Toolkit User Manual, U. S. Environmental Protection Agency Technical Report, EPA/600/R-08/041B.
 
-.. [Story2016] R. Story, Folium Documentation Release 0.2.0, https://media.readthedocs.org/pdf/folium/latest/folium.pdf, 2016.
+.. [USEPA15] United States Environmental Protection Agency. (2015). Water Security Toolkit User Manual, U. S. Environmental Protection Agency Technical Report, EPA/600/R-14/338, 187p.
 
-.. [USEPA2012] United States Environmental Protection Agency, TEVA-SPOT Toolkit User Manual, EPA/600/R-08/041B, 2012.
-
-.. [USEPA2014] United States Environmental Protection Agency, Water Security Toolkit User Manual, EPA/600/R-14/338, 2015.
-
-.. [vanderWalt2011] S. van der Walt, S.C. Colbert and G. Varoquaux, The NumPy Array: A Structure for Efficient Numerical Computation, Computing in Science & Engineering, 13, 22-30, 2011.
+.. [VaCV11] van der Walt, S., Colbert, S.C., & Varoquaux, G. (2011). The NumPy array: A structure for efficient numerical computation. Computing in Science & Engineering, 13, 22-30.

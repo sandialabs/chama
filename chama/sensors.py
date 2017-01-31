@@ -6,23 +6,30 @@ import numpy as np
 
 class _Base(object):
     def __init__(self):
-        self.cost = 1.0
-        self.failure_rate = 0.0
         self.threshold = 0
         self.sampling_times = []
         self.camera = None
         
-class Point(_Base):
+class Stationary(_Base):
     """
-    Point (or Stationary?) sensor class.  
-    A stationary sensor returns a measurment at a single point or includes a 
-    camera and returns measurements which include a field of view.  
+    Stationary sensor class.  
+    A stationary sensor is fixed at a single location. 
+    Sensor measurements are captured at set sampling times.
+    The sensor returns measurements at a single point or includes a 
+    camera and returns measurements which include a field of view. 
     """
     def __init__(self, location = None):
-        super(Point,self).__init__()
+        super(Stationary,self).__init__()
         self.location = location
 
     def get_sample_points(self):
+        """
+        Return sample points from a stationary sensor
+        
+        Returns
+        --------
+        A list of tuples in the format (t,x,y,z)
+        """
         sample_points = []
         # Gather field of view from a camera
         if self.camera is not None:
@@ -36,50 +43,39 @@ class Point(_Base):
         return sample_points
     
     def integrate_detected_signal(self, detected):
+        """
+        Return integrated signal from a stationary sensor.
+        
+        Returns
+        --------
+        Integrated signal
+        """
         return _integrate_detected_signal(detected)
         
-#class Line(_Base):
-#
-#    def __init__(self, locations=None, discretize=1):
-#        super(Line,self).__init__()
-#        self.locations = locations
-#        self.discretize = discretize
-#        
-#    def get_sample_points(self):
-#        sample_points = []
-#        for i in range(len(self.locations)-1):
-#            a = np.array(self.locations[i])
-#            b = np.array(self.locations[i+1])
-#            dist = np.linalg.norm(a-b)
-#            inc = float(self.discretize)/dist
-#            for t in self.sampling_times:
-#                for i in np.arange(0,1,inc):
-#                    location = a + (b-a)*i
-#                    locations = [location]
-#                    # Append sample points 
-#                    for loc in locations:
-#                        sample_points.append((t, loc[0], loc[1], loc[2]))
-#        return sample_points
-#    
-#    def integrate_detected_signal(self, detected):
-#        return _integrate_detected_signal(detected)
-        
-class Path(_Base):
+class Mobile(_Base):
     """
-    Path (or Mobile?) sensor class.  
-    A mobile sensor moves according to a defined path and speed.  
-    Measurments are captured at set sampling times.  
+    Mobile sensor class.  
+    A mobile sensor moves according to defined waypoints and speed.  
+    Sensor measurements are captured at set sampling times.  
     The mobile sensor can be defined to repeat the path.
-    Based on the sensors location at a given time, the sensor returns measurments 
-    at a single point or includes a camera and returns measurments which include a field of view.  
+    Based on the sensor location at a given time, the sensor returns measurements 
+    at a single point or includes a camera and returns measurements which include 
+    a field of view.  
     """
     def __init__(self, locations=None, speed=1, repeat=False):
-        super(Path,self).__init__()
+        super(Mobile,self).__init__()
         self.locations = locations
         self.speed = speed
         self.repeat = repeat
     
     def get_sample_points(self):
+        """
+        Return sample points from a mobile sensor
+        
+        Returns
+        --------
+        A list of tuples in the format (t,x,y,z)
+        """
         # Sort sampling times
         self.sampling_times.sort()
         repeat = self.repeat

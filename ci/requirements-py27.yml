@@ -1,11 +1,12 @@
 name: test_env
 channels:
     - defaults
-    - http://conda.anaconda.org/pyomo
 dependencies:
     - python=2.7 
     - numpy
+    - scipy
     - pandas
+    - Pyomo
     - nose
     - matplotlib
     - pip:

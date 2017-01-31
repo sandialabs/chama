@@ -58,28 +58,13 @@ def extract(signal, sensors, metric='Min Time', txyz_names=['T', 'X', 'Y', 'Z'])
     print(time.time() - t0)
     
     # Interpolate signal (if needed)
-#    print("    Interpolate")
-#    t0 = time.time()
-#    signal = interpolate(signal, sample_points)
-#    print(time.time() - t0)
+    print("    Interpolate")
+    t0 = time.time()
+    signal = interpolate(signal, sample_points)
+    print(time.time() - t0)
     
     impact = pd.DataFrame(columns=['Scenario', 'Sensor', 'Impact'])
     
-    # All this will be removed    
-    if metric == 'Count':
-        sim_times = sorted(signal.index.get_level_values(txyz_names[0]).unique())
-        run_names = sorted(list(signal.columns.values))
-        scenarios = list(str(i) for i in itertools.product(sim_times, run_names))
-        d = {'Scenario': scenarios, 'Sensor': '_NotDetected', 'Impact': 1.0}
-        nondetected_impact = pd.DataFrame(d, columns=['Scenario', 'Sensor', 'Impact'])
-        impact = impact.append(nondetected_impact)
-    elif metric == 'Min Time':
-        sim_times = sorted(signal.index.get_level_values(txyz_names[0]).unique())
-        run_names = sorted(list(signal.columns.values))
-        d = {'Scenario': run_names, 'Sensor': '_NotDetected', 'Impact': max(sim_times)*2}
-        nondetected_impact = pd.DataFrame(d, columns=['Scenario', 'Sensor', 'Impact'])
-        impact = impact.append(nondetected_impact)
-        
     extract_time = 0
     integrate_time = 0 
     print("    Extract/Integrate")

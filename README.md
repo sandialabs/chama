@@ -2,7 +2,7 @@ Chama
 =======================================
 
 Continuous or regularly scheduled monitoring has the potential to quickly 
-identify changes in the environment.  However, even with low-cost sensors, only 
+identify changes in the environment. However, even with low-cost sensors, only 
 a limited number of sensors can be used. 
 The physical placement of these sensors and the sensor technology used can have 
 a large impact on the performance of a monitoring strategy.  
@@ -12,7 +12,7 @@ programming formulations to determine sensor locations and technology that maxim
 the effectiveness of the detection program. 
 The software was developed to design sensor networks for airborne pollutants, 
 but the methods are general and 
-can be applied to a wide range of transport models.
+can be applied to a wide range of applications.
 
 License
 ------------

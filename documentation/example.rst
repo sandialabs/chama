@@ -1,18 +1,30 @@
+.. raw:: latex
+
+    \newpage
+
 Methane emissions example
 ===========================
 
-The following example demonstrates how to determine optimal sensor design to detect methane emissions from a wellpad.
-The example outlines how to perform the following steps:
+The following example demonstrates how to determine optimal sensor placement to detect methane emissions from a wellpad.
 
-* **Define scenarios** which include uncertainty in wind speed and direction along with the rate of normal and abnormal emissions.
+**Transport simulation**
 
-* **Define sensors**, including fixed and mobile sensors as well as point and camera sensors.
+Include uncertainty in wind speed and direction along with the rate of normal and abnormal emissions.
+Run an air dispersion model and store concentration timeseries data.
 
-* **Run an air dispersion model** and store concentration timeseries data.
+**Sensor technology**
 
-* **Compute impact metrics**, including time to detection and volume lost.
+Including fixed and mobile sensors as well as point and camera sensors.
 
-* **Determine optimal sensor design** considering a range of sensor budgets.
+**Impact assessment**
 
-* **Visualize results**, including tradoff curves and maps of the sensor layout.
+Including time to detection and volume lost.
+
+**Optimization**
+
+Considering a range of sensor budgets.
+
+**Interpretation**
+
+Including tradoff curves and maps of the sensor layout.
 

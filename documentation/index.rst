@@ -1,4 +1,4 @@
-Sensor Design Optimization using Chama 
+Sensor Placement Optimization using Chama 
 ================================================================
 
 Continuous or regularly scheduled monitoring has the potential to quickly 
@@ -12,7 +12,7 @@ programming formulations to determine sensor locations and technology that maxim
 the effectiveness of the detection program. 
 The software was developed to design sensor networks for airborne pollutants, 
 but the methods are general and 
-can be applied to a wide range of transport models.
+can be applied to a wide range of applications.
 
 Contents
 ------------
@@ -21,12 +21,16 @@ Contents
 	
    overview
    installation
+   transport
+   sensors
+   impact
+   optimization
+   interpretation
    example
-   design
    license
    whatsnew
    developers
-   API documentation <apidoc/chama>
+   apidoc/chama
    reference
 
 Indices and tables
@@ -36,4 +40,6 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-
+Sandia National Laboratories is a multi-mission laboratory managed and operated by Sandia Corporation, a wholly 
+owned subsidiary of Lockheed Martin Corporation, for the U.S. Department of Energy's National Nuclear Security 
+Administration under contract DE-AC04-94AL85000.

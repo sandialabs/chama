@@ -1,5 +1,10 @@
-Reference
-====================
+.. raw:: latex
+
+    \newpage
+    \renewcommand{\bibname}{References}
+
+References
+============
 ..
 	Citations begins with 4 letters:
 		one author: first 4 letters of name
@@ -18,6 +23,10 @@ Reference
 
 .. [Hunt07] Hunter, J.D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 3(9), 90-95.
 
+.. [KeRB16] Kemp, C.E., Ravikumar, A.P., & Brandt, A.R. (2016). Comparing natural gas leakage detection technologies using an open-source “virtual gas field” simulator. Environmental Science & Technology. DOI: 10.1021/acs.est.5b06068
+
+.. [LBSW12] Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., & Laird, C.D. (2012) A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations, Computers & Chemical Engineering, Volume 47, Pages 194-201.
+
 .. [Mcki13] McKinney W. (2013). Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython. O'Reilly Media, 1 edition, 466P.
 
 .. [Ross00] Rossman, L.A. (2000). EPANET 2 Users Manual. U. S. Environmental Protection Agency Technical Report, EPA/600/R--00/057, 200p.
@@ -27,3 +36,4 @@ Reference
 .. [USEPA15] United States Environmental Protection Agency. (2015). Water Security Toolkit User Manual, U. S. Environmental Protection Agency Technical Report, EPA/600/R-14/338, 187p.
 
 .. [VaCV11] van der Walt, S., Colbert, S.C., & Varoquaux, G. (2011). The NumPy array: A structure for efficient numerical computation. Computing in Science & Engineering, 13, 22-30.
+

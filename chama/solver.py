@@ -1,10 +1,5 @@
 """
-This module contains the high-level solvers for the sensor placement problem.
-
-It includes:
-* SPSensorPlacementSolver: Pyomo-based solver using a basic stochastic programming formulation
-
-See the documentation for individual classes below for more details.
+The solver module contains high-level solvers for sensor placement optimization.
 """
 import pyomo.environ as pe
 import chama.utils as cu
@@ -14,9 +9,7 @@ import pandas as pd
 class SPSensorPlacementSolver:
     """
     This class implements a Pyomo-based sensor placement solver using the stochastic programming formulation
-    from:
-
-        Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., Laird, C.D., "A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations", Computers & Chemical Engineering, Volume 47, December 2012, Pages 194-201.
+    from [LBSW12]_.
 
     Examples
     --------
@@ -30,9 +23,6 @@ class SPSensorPlacementSolver:
     """
 
     def __init__(self):
-        """
-        Create an instance of the SPSensorPlacementSolver
-        """
         pass
 
     def solve(self, df_sensor, df_scenario, df_impact, sensor_budget, mip_solver_name='glpk', pyomo_solver_options={}):

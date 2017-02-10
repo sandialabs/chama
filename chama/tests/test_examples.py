@@ -45,7 +45,7 @@ def test_simple_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.solver.SPSensorPlacementSolver()
-    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget, pyomo_solver_options={'tee': True})
+    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget, pyomo_solver_options={'tee': False})
     
     expected_selected_sensors = ['Point Sensor 111', 'Point Sensor 88', 'Point Sensor 89', 'Point Sensor 90', 'Point Sensor 99']
     assert_list_equal(results['selected_sensors'], expected_selected_sensors)
@@ -76,7 +76,7 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.solver.SPSensorPlacementSolver()
-    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget, pyomo_solver_options={'tee': True})
+    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget, pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
     error = abs((results['objective_value'] - expected_objective_value)/expected_objective_value)

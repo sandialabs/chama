@@ -29,11 +29,12 @@ class SPSensorPlacementSolver:
     >>> print(results['selected_sensors'])
     """
 
-    def __init__(self):
+    def __init__(self, **kwds):
         """
         Create an instance of the SPSensorPlacementSolver
         """
-        pass
+        self.scenario_prob = kwds.pop('scenario_prob',False)
+        
 
     def solve(self, df_sensor, df_scenario, df_impact, sensor_budget, mip_solver_name='glpk', pyomo_solver_options={}):
         """
@@ -81,6 +82,10 @@ class SPSensorPlacementSolver:
         cu.df_nans_not_allowed('df_scenario', df_scenario)
         cu.df_columns_required('df_impact', df_impact, {'Scenario': np.object, 'Sensor': np.object, 'Impact': np.float64})
         cu.df_nans_not_allowed('df_impact', df_impact)
+
+        # validate optional columns in pandas dataframe input
+        if self.scenario_prob:
+            cu.df_columns_required('df_scenario',df_scenario, {'Probability':np.float64})
 
         model = self._create_pyomo_model(df_sensor, df_scenario, df_impact, sensor_budget)
 
@@ -175,6 +180,7 @@ class SPSensorPlacementSolver:
 
         # create the model container
         model = pe.ConcreteModel()
+        model._scenario_sensors = scenario_sensors
 
         # Pyomo does not create an ordered dummy set when passed a list - do this for now as a workaround
         model.scenario_set = pe.Set(initialize=scenario_list, ordered=True)
@@ -191,6 +197,13 @@ class SPSensorPlacementSolver:
         # in current formulation all scenarios are equally probable 
         def obj_rule(m):
             return 1.0/float(len(scenario_list))*sum(float(df_impact.loc[a,i])*m.x[a,i] for (a,i) in scenario_sensor_pairs)
+
+        # Modify the objective function to include scenario probabilities
+        if self.scenario_prob:
+            df_scenario.set_index(['Scenario'], inplace=True)
+            def obj_rule(m):
+                return sum(float(df_scenario.loc[a,'Probability'])*float(df_impact.loc[a,i])*m.x[a,i] for (a,i) in scenario_sensor_pairs)
+
         model.obj = pe.Objective(rule=obj_rule)
 
         # constrain the problem to have only one x value for each scenario
@@ -225,3 +238,12 @@ class SPSensorPlacementSolver:
         """
         opt = pe.SolverFactory(mip_solver_name)
         return opt.solve(model, **pyomo_solver_options)
+
+class SPSensorPlacementSolver_ScenarioProbability(SPSensorPlacementSolver):
+    """
+    A SPSensorPlacementSolver that includes scenario probabilities in the formulation.
+    """
+
+    def __init__(self, *args, **kwds):
+        kwds['scenario-prob'] = True
+        SPSensorPlacementSolver.__init__(self, *args, **kwds)

@@ -1,5 +1,6 @@
 """
-Impact assessment .
+The impact module contains methods to extract the impact of detecting transport 
+simulations given a set of defined sensor techninologies.
 """
 import pandas as pd
 from scipy.interpolate import griddata
@@ -43,7 +44,7 @@ def interpolate(df, sample_points, method='nearest'):
     
     return df
     
-def extract(signal, sensors, metric='Min Time', txyz_names=['T', 'X', 'Y', 'Z']):
+def extract(signal, sensors, metric='Time', txyz_names=['T', 'X', 'Y', 'Z']):
     """
     Extract the impact metric from a signal profile and sensors
     """  
@@ -93,7 +94,7 @@ def extract(signal, sensors, metric='Min Time', txyz_names=['T', 'X', 'Y', 'Z'])
                     col = str(detected.index[row])
                     val = 0
                     impact = impact.append({'Scenario': col, 'Sensor': name, 'Impact': val}, ignore_index=True)
-            elif metric == 'Min Time':
+            elif metric == 'Time':
                 for col in set(detected.index.get_level_values(1)):
                     temp = detected.loc[:,col] # this returns a series
                     val = temp.index.min()

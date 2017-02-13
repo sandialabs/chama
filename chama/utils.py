@@ -1,5 +1,5 @@
 """
-A collection of utility functions for chama
+The utils module contains a collection of utility functions.
 """
 
 def df_columns_required(df_name, df, col_type_dict):

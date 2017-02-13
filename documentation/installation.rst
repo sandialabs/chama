@@ -1,7 +1,11 @@
+.. raw:: latex
+
+    \newpage
+
 Installation
 ======================================
 
-Chama requires Python 2.7 along with several python package dependencies.  
+Chama requires Python (2.7, 3.4, or 3.5) along with several python package dependencies.  
 Information on installing and using python can be found at 
 https://www.python.org/.  
 Python distributions, such as Anaconda, are recommended to manage the Python interface.  

@@ -1,5 +1,9 @@
-chama package
-=============
+.. raw:: latex
+
+    \newpage
+
+API documentation
+===================
 
 .. automodule:: chama
     :members:
@@ -11,10 +15,10 @@ Submodules
 
 .. toctree::
 
-   chama.impact
-   chama.scenarios
-   chama.sensors
-   chama.solver
    chama.transport
+   chama.sensors
+   chama.impact
+   chama.solver
+   chama.graphics
    chama.utils
 

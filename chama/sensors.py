@@ -1,5 +1,6 @@
 """
-Sensor properties
+The sensor module contains methods to define stationary and mobile 
+sensors along with camera properties.
 """
 import pandas as pd
 import numpy as np

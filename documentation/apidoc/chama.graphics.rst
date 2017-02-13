@@ -1,7 +1,7 @@
-chama.scenarios module
+chama.graphics module
 ======================
 
-.. automodule:: chama.scenarios
+.. automodule:: chama.graphics
     :members:
     :undoc-members:
     :show-inheritance:

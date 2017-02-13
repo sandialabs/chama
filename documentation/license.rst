@@ -1,3 +1,7 @@
+.. raw:: latex
+
+    \newpage
+
 Copyright and license
 ==========================
 

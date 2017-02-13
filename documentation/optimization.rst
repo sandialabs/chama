@@ -1,4 +1,8 @@
-Sensor design optimization
+.. raw:: latex
+
+    \newpage
+
+Optimization
 ===========================
 
 The general sensor placement optimization formulation is described below:

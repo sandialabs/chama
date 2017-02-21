@@ -57,7 +57,6 @@ install:
     #- pip install . # use pip to automatically install anything not in the yml files (i.e. numpy/scipy/pandas for py3*)
     #- pip install scipy # won't do anything if already installed
     - conda install -y --channel conda-forge glpk
-    - pip install pyomo
     - python setup.py install
 
 script:

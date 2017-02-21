@@ -1,4 +1,5 @@
 from nose.tools import *
+from nose.plugins.skip import SkipTest
 from os.path import abspath, dirname, join
 import chama
 import pandas as pd
@@ -7,7 +8,13 @@ import numpy as np
 testdir = dirname(abspath(__file__))
 datadir = join(testdir,'data')
 
+
 def test_simple_example():
+
+    # Skipping this test until it can be replaced with a realistic
+    # example
+    raise SkipTest
+
     # Read signal and metrics file (generated from simualtions)
     signal_file = join(datadir, 'signals.csv')
     signal = pd.read_csv(signal_file)

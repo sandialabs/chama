@@ -6,7 +6,7 @@ import chama.utils as cu
 import numpy as np
 import pandas as pd
 
-class SPSensorPlacementSolver:
+class SensorPlacement:
     """
     This class implements a Pyomo-based sensor placement solver using the stochastic programming formulation
     from [LBSW12]_.
@@ -16,7 +16,7 @@ class SPSensorPlacementSolver:
     >>> # read the data into appropriate pandas DataFrame objects
     >>> ...
     >>> # create and call the solver
-    >>> spsolver = SPSensorPlacementSolver()
+    >>> spsolver = SensorPlacement()
     >>> results = spsolver.solve(df_sensor, df_scenario, df_impact, 5)
     >>> # output the key results, e.g.,
     >>> print(results['selected_sensors'])
@@ -24,7 +24,7 @@ class SPSensorPlacementSolver:
 
     def __init__(self, **kwds):
         """
-        Create an instance of the SPSensorPlacementSolver
+        Create an instance of the SensorPlacement
         """
         self.scenario_prob = kwds.pop('scenario_prob',False)
         
@@ -98,7 +98,7 @@ class SPSensorPlacementSolver:
 
         Returns
         -------
-            dict : returns a dictionary object specified by :func:`~solver.SPSensorPlacementSolver.solve`
+            dict : returns a dictionary object specified by :func:`~solver.SensorPlacement.solve`
         """
         selected_sensors = []
         for key in model.y:
@@ -122,10 +122,10 @@ class SPSensorPlacementSolver:
 
         Parameters
         ----------
-        df_sensor : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        df_scenario : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        df_impact : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        sensor_budget : float - see :func:`~solver.SPSensorPlacementSolver.solve`
+        df_sensor : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        df_scenario : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        df_impact : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        sensor_budget : float - see :func:`~solver.SensorPlacement.solve`
 
         Returns
         -------
@@ -231,11 +231,11 @@ class SPSensorPlacementSolver:
         opt = pe.SolverFactory(mip_solver_name)
         return opt.solve(model, **pyomo_solver_options)
 
-class SPSensorPlacementSolver_ScenarioProbability(SPSensorPlacementSolver):
+class SensorPlacement_ScenarioProbability(SensorPlacement):
     """
-    A SPSensorPlacementSolver that includes scenario probabilities in the formulation.
+    A SensorPlacement that includes scenario probabilities in the formulation.
     """
 
     def __init__(self, *args, **kwds):
         kwds['scenario-prob'] = True
-        SPSensorPlacementSolver.__init__(self, *args, **kwds)
+        SensorPlacement.__init__(self, *args, **kwds)

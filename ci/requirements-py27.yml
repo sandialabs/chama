@@ -6,7 +6,6 @@ dependencies:
     - numpy
     - scipy
     - pandas
-    - Pyomo
     - nose
     - matplotlib
     - pip:

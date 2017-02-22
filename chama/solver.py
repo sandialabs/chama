@@ -6,7 +6,7 @@ import chama.utils as cu
 import numpy as np
 import pandas as pd
 
-class SPSensorPlacementSolver:
+class SensorPlacement:
     """
     This class implements a Pyomo-based sensor placement solver using the stochastic programming formulation
     from [LBSW12]_.
@@ -16,15 +16,18 @@ class SPSensorPlacementSolver:
     >>> # read the data into appropriate pandas DataFrame objects
     >>> ...
     >>> # create and call the solver
-    >>> spsolver = SPSensorPlacementSolver()
+    >>> spsolver = SensorPlacement()
     >>> results = spsolver.solve(df_sensor, df_scenario, df_impact, 5)
     >>> # output the key results, e.g.,
     >>> print(results['selected_sensors'])
     """
 
-    def __init__(self):
-        pass
-
+    def __init__(self, **kwds):
+        """
+        Create an instance of the SensorPlacement
+        """
+        self.scenario_prob = kwds.pop('scenario_prob',False)
+        
     def solve(self, df_sensor, df_scenario, df_impact, sensor_budget, mip_solver_name='glpk', pyomo_solver_options={}):
         """
         Call this method to solve the sensor placement problem using Pyomo.
@@ -72,6 +75,10 @@ class SPSensorPlacementSolver:
         cu.df_columns_required('df_impact', df_impact, {'Scenario': np.object, 'Sensor': np.object, 'Impact': np.float64})
         cu.df_nans_not_allowed('df_impact', df_impact)
 
+        # validate optional columns in pandas dataframe input
+        if self.scenario_prob:
+            cu.df_columns_required('df_scenario',df_scenario, {'Probability':np.float64})
+
         model = self._create_pyomo_model(df_sensor, df_scenario, df_impact, sensor_budget)
 
         self._solve_pyomo_model(model, mip_solver_name, pyomo_solver_options)
@@ -91,7 +98,7 @@ class SPSensorPlacementSolver:
 
         Returns
         -------
-            dict : returns a dictionary object specified by :func:`~solver.SPSensorPlacementSolver.solve`
+            dict : returns a dictionary object specified by :func:`~solver.SensorPlacement.solve`
         """
         selected_sensors = []
         for key in model.y:
@@ -115,10 +122,10 @@ class SPSensorPlacementSolver:
 
         Parameters
         ----------
-        df_sensor : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        df_scenario : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        df_impact : Pandas dataframe - see :func:`~solver.SPSensorPlacementSolver.solve`
-        sensor_budget : float - see :func:`~solver.SPSensorPlacementSolver.solve`
+        df_sensor : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        df_scenario : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        df_impact : Pandas dataframe - see :func:`~solver.SensorPlacement.solve`
+        sensor_budget : float - see :func:`~solver.SensorPlacement.solve`
 
         Returns
         -------
@@ -131,6 +138,7 @@ class SPSensorPlacementSolver:
         df_sensor = df_sensor.set_index('Sensor')
         assert(df_sensor.index.names[0] == 'Sensor')
 
+        # Python set will extract the unique Scenario and Sensor values
         scenario_list = sorted(set(df_impact.index.get_level_values('Scenario')))
         sensor_list = sorted(set(df_impact.index.get_level_values('Sensor')))
         sensor_cost = df_sensor['Cost']
@@ -164,6 +172,7 @@ class SPSensorPlacementSolver:
 
         # create the model container
         model = pe.ConcreteModel()
+        model._scenario_sensors = scenario_sensors
 
         # Pyomo does not create an ordered dummy set when passed a list - do this for now as a workaround
         model.scenario_set = pe.Set(initialize=scenario_list, ordered=True)
@@ -177,8 +186,16 @@ class SPSensorPlacementSolver:
         model.y = pe.Var(model.sensor_set, within=pe.Binary)
 
         # objective function minimize the sum impact across all scenarios
+        # in current formulation all scenarios are equally probable 
         def obj_rule(m):
             return 1.0/float(len(scenario_list))*sum(float(df_impact.loc[a,i])*m.x[a,i] for (a,i) in scenario_sensor_pairs)
+
+        # Modify the objective function to include scenario probabilities
+        if self.scenario_prob:
+            df_scenario.set_index(['Scenario'], inplace=True)
+            def obj_rule(m):
+                return sum(float(df_scenario.loc[a,'Probability'])*float(df_impact.loc[a,i])*m.x[a,i] for (a,i) in scenario_sensor_pairs)
+
         model.obj = pe.Objective(rule=obj_rule)
 
         # constrain the problem to have only one x value for each scenario
@@ -213,3 +230,12 @@ class SPSensorPlacementSolver:
         """
         opt = pe.SolverFactory(mip_solver_name)
         return opt.solve(model, **pyomo_solver_options)
+
+class SensorPlacement_ScenarioProbability(SensorPlacement):
+    """
+    A SensorPlacement that includes scenario probabilities in the formulation.
+    """
+
+    def __init__(self, *args, **kwds):
+        kwds['scenario-prob'] = True
+        SensorPlacement.__init__(self, *args, **kwds)

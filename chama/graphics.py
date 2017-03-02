@@ -58,7 +58,8 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
 
 def signal_xsection(signal, scenarios, threshold = None, timesteps=None, 
                         x_value=None, y_value=None, z_value=None, log_flag = False,
-                        colormap=plt.cm.viridis, txyz_names=['T', 'X', 'Y', 'Z'], 
+                        colormap=plt.cm.viridis, alpha = 0.7, V = 10,
+                        txyz_names=['T', 'X', 'Y', 'Z'], 
                         x_range=(None, None), y_range=(None, None), z_range=(None, None)):
         
     t_col = txyz_names[0]
@@ -96,9 +97,9 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
     if z_value:
         temp = data.xs(z_value,level=2).mean(axis=1)
     else:
-        temp = data.groupby(level=[0,1]).mean().mean(axis=1)
+        temp = data.groupby(level=[0,1]).mean().sum(axis=1)
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax1.contourf(Yi, Xi, Z, alpha=0.7, cmap=plt.cm.jet)
+    ax1.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
     ax1.set_xlim(x_range[0],x_range[1])
     ax1.set_ylim(y_range[0],y_range[1])
     ax1.set_xlabel(x_col)
@@ -107,9 +108,9 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
     if y_value:
         temp = data.xs(y_value,level=1).mean(axis=1)
     else:
-        temp = data.groupby(level=[0,2]).mean().mean(axis=1)
+        temp = data.groupby(level=[0,2]).mean().sum(axis=1)
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax2.contourf(Yi, Xi, Z, alpha=0.7, cmap=plt.cm.jet)
+    ax2.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
     ax2.set_xlim(x_range[0],x_range[1])
     ax2.set_ylim(z_range[0],z_range[1])
     ax2.set_xlabel(x_col)
@@ -118,9 +119,9 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
     if x_value:
         temp = data.xs(x_value,level=0).mean(axis=1)
     else:
-        temp = data.groupby(level=[1,2]).mean().mean(axis=1)
+        temp = data.groupby(level=[1,2]).mean().sum(axis=1)
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax3.contourf(Yi, Xi, Z, alpha=0.7, cmap=plt.cm.jet)
+    ax3.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
     ax3.set_xlim(y_range[0],y_range[1])
     ax3.set_ylim(z_range[0],z_range[1])
     ax3.set_xlabel(y_col)

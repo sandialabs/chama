@@ -3,16 +3,15 @@ Contents
 .. toctree::
    :maxdepth: 1
 	
+   acknowledgements
    overview
    installation
    transport
    sensors
    impact
    optimization
-   interpretation
+   graphics
    example
    license
-   developers
-   apidoc/chama
    reference
 

@@ -24,7 +24,7 @@ Including time to detection and volume lost.
 
 Considering a range of sensor budgets.
 
-**Interpretation**
+**Graphics**
 
-Including tradoff curves and maps of the sensor layout.
+Including tradeoff curves and maps of the sensor layout.
 

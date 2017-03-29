@@ -89,7 +89,7 @@ def extract(signal, sensors, metric='Time', txyz_names=['T', 'X', 'Y', 'Z']):
         
         # If the sensor detected something
         if detected.shape[0] > 0:
-            if metric == 'Count':
+            if metric == 'Coverage':
                 for row in range(detected.shape[0]):
                     col = str(detected.index[row])
                     val = 0

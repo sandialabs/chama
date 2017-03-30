@@ -2,6 +2,7 @@
 The graphics module contains ...
 """
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial import ConvexHull  
 import numpy as np
@@ -69,6 +70,11 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
 
     if timesteps is None:
         timesteps = sorted(set(signal.loc[:,t_col]))
+
+    if log_flag:
+        log_flag = ticker.LogLocator()
+    else:
+        log_flag = ticker.MaxNLocator()
       
     fig = plt.figure(figsize=(20,5))
     plt.set_cmap(colormap)
@@ -77,52 +83,64 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
     ax3 = fig.add_subplot(1,3,3)
     
     signal_t = signal[signal[t_col].isin(timesteps)]
-    signal_t = signal_t.groupby([x_col, y_col, z_col]).mean()
+    signal_t = signal_t.groupby([x_col, y_col, z_col]).sum()
     data = signal_t[scenarios]
-    
+
     def contour_data(temp, threshold, log_flag):
-        temp = temp.reset_index()
-        temp.columns = ['X', 'Y', 'value']
-        temp = temp.pivot('X', 'Y')
-        X = temp.columns.levels[1].values
-        Y = temp.index.values
+        temp = temp.unstack()
+        X = temp.index.values
+        Y = temp.columns.values
         Z = temp.values
-        Xi,Yi = np.meshgrid(X, Y)
+
         if threshold:
             Z[Z<=threshold] = threshold
-        if log_flag:
-            Z = np.log10(Z)
-        return Xi, Yi, Z
+        Z = np.transpose(Z)
+        return X, Y, Z
     
+    temp = data.reset_index()
     if z_value:
-        temp = data.xs(z_value,level=2).mean(axis=1)
-    else:
-        temp = data.groupby(level=[0,1]).mean().sum(axis=1)
+        if type(z_value) is not list:
+            z_value = [z_value]
+        temp = temp[temp[z_col].isin(z_value)]
+    temp = temp.groupby([x_col,y_col])['C'].mean()
+    
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax1.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
+    cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
     ax1.set_xlim(x_range[0],x_range[1])
     ax1.set_ylim(y_range[0],y_range[1])
     ax1.set_xlabel(x_col)
     ax1.set_ylabel(y_col)
-    
+
+    temp = data.reset_index()
     if y_value:
-        temp = data.xs(y_value,level=1).mean(axis=1)
-    else:
-        temp = data.groupby(level=[0,2]).mean().sum(axis=1)
+        if type(y_value) is not list:
+            y_value = [y_value]
+        temp = temp[temp[y_col].isin(y_value)]
+    temp = temp.groupby([x_col,z_col])['C'].mean()
+    
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax2.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
+    cplot2 = ax2.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
     ax2.set_xlim(x_range[0],x_range[1])
     ax2.set_ylim(z_range[0],z_range[1])
     ax2.set_xlabel(x_col)
     ax2.set_ylabel(z_col)
-    
+
+    temp = data.reset_index()
     if x_value:
-        temp = data.xs(x_value,level=0).mean(axis=1)
-    else:
-        temp = data.groupby(level=[1,2]).mean().sum(axis=1)
+        if type(x_value) is not list:
+            x_value = [x_value]
+        temp = temp[temp[x_col].isin(x_value)]
+    temp = temp.groupby([y_col,z_col])['C'].mean()
+    
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    ax3.contourf(Yi, Xi, Z, V, alpha=alpha, cmap=colormap)
+    cplot3 = ax3.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
     ax3.set_xlim(y_range[0],y_range[1])
     ax3.set_ylim(z_range[0],z_range[1])
     ax3.set_xlabel(y_col)
     ax3.set_ylabel(z_col)
+
+    fig.colorbar(cplot1,ax=ax1)
+    fig.colorbar(cplot2,ax=ax2)
+    fig.colorbar(cplot3,ax=ax3)
+
+    fig.show()

@@ -27,9 +27,17 @@ References
 
 .. [LBSW12] Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., & Laird, C.D. (2012) A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations, Computers & Chemical Engineering, Volume 47, Pages 194-201.
 
+.. [Makh10] Makhorin, A. (2010). GNU Linear Programming Kit Reference Manual for GLPK Version 4.45, Department for Applied Informatics, Moscow Aviation Institute, Moscow, Russia.
+
+.. [McHa88] McDonald, M.G., & Harbaugh, A.W. (1988). A Modular Three-dimensional Finite-Difference Groundwater Flow Model: U.S. Geological Survey Techniques of Water-Resources Investigations, Book 6, Chap. A1, 586p.
+
 .. [Mcki13] McKinney W. (2013). Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython. O'Reilly Media, 1 edition, 466P.
 
 .. [Ross00] Rossman, L.A. (2000). EPANET 2 Users Manual. U. S. Environmental Protection Agency Technical Report, EPA/600/R--00/057, 200p.
+
+.. [ScSY00] Scire, J., Strimaitis, D.G., & Yamartino, R.J. (2000). A User's Guide for the CALPUFF Dispersion Model (Version 5), Earth Tech, Inc.
+
+.. [USEPA04] United States Environmental Protection Agency. (2004). User's Guide for the AMS/EPA Regulatory Model - AERMOD, U. S. Environmental Protection Agency Technical Report, EPA-454/B-03-001.
 
 .. [USEPA12] United States Environmental Protection Agency. (2012). TEVA-SPOT Toolkit User Manual, U. S. Environmental Protection Agency Technical Report, EPA/600/R-08/041B.
 

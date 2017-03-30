@@ -252,10 +252,11 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '''
-        \\pagestyle{plain}
-        \\pagenumbering{arabic}
-        \\renewcommand{\\refname}{References}
+'preamble':  '''%
+  \pagestyle{plain}
+  \pagenumbering{arabic}
+  \\renewcommand{\\refname}{References}
+  \\raggedright
 ''',
 
 # Latex figure (float) alignment

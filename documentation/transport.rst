@@ -30,7 +30,7 @@ Chama uses Pandas DataFrames [Mcki13]_ to store the signal data.
 Pandas includes many functions to easily populate DataFrames from a wide range of file formats. 
 For example, DataFrames can be generated from Excel, CSV, and SQL.
 The format of a signal DataFrame is shown in :numref:`fig-signal-format`, where 
-X, Y, and Z describe the location, T is the simulation time, and S :subscript:`n` is scenario n.
+X, Y, and Z describe the location, T is the simulation time, and Sn is scenario n.
 
 .. _fig-signal-format:
 .. figure:: figures/signalformat.png
@@ -45,15 +45,12 @@ Chama includes methods to run simple Gaussian plume and Gaussian puff air disper
 Both models assume that air dispersion follows a Gaussian distribution.  
 Gaussian plume models are used to model continuous sources, while 
 Gaussian puff models are used to model non-continuous or variable sources.
-These methods are described in more detail in the API documentation under 
-:meth:`~chama.transport.gaussian_plume` and 
-:meth:`~chama.transport.gaussian_puff`.
+The :mod:`chama.transport` module has additional information on running the Gaussian plume and Gaussian puff models.
 
 External simulation engines
 ------------------------------
 The transport simulations can be generated from a wide range of external simulation engines, for example,
-air dispersion can be simulated using AERMOD or CALPUFF, 
-transport in pipe networks can be simulated using EPANET, 
-groundwater transport can be simulated using MODFLOW, and 
-seismic wave propagation can be simulated using XXX.
+air dispersion can be simulated using AERMOD [USEPA04]_ or CALPUFF [ScSY00]_, 
+transport in pipe networks can be simulated using EPANET [Ross00]_, and
+groundwater transport can be simulated using MODFLOW [McHa88]_.
 Output from external simulation engines can be easily formatted and imported into Chama.

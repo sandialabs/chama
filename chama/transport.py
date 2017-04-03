@@ -173,7 +173,7 @@ class GaussianPlume():
         
 class GaussianPuff():
     
-    def __init__(self, grid=None, source=None, atm=None, tpuff=1, tend=None, tstep=None,
+    def __init__(self, grid=None, source=None, atm=None, tpuff=1, tend=None, tstep=10,
                  gravity=9.81, density_eff=0.769, density_air=1.225):
         """
         Guassian puff model.  
@@ -202,13 +202,14 @@ class GaussianPuff():
         self.atm = atm
         self.tpuff = tpuff
         self.tend = tend
+        self.tstep = tstep
         self.gravity = gravity
         self.density_eff = density_eff
         self.density_air = density_air
         self._make_and_track_puffs()
 
         if self.grid is not None and self.source is not None:
-            self.run(grid=grid, tstep=10)
+            self.run(grid, tstep)
 
     def _make_and_track_puffs(self):
 
@@ -222,13 +223,14 @@ class GaussianPuff():
                             'Z':self.source.z, 'D':0, 'Puff_ID':0},
                            ignore_index=True)
 
+        tprev = 0
         # This will only work when tend is divisible by tpuff
         for t in np.linspace(tpuff, tend, num=tend/tpuff,endpoint=True): 
             
             if t-tpuff in self.atm.index:
-                wind_direction = self.atm.loc[t-tpuff,'Wind Direction']
-                wind_speed = self.atm.loc[t-tpuff,'Wind Speed']
-                stability_class = self.atm.loc[t-tpuff, 'Stability Class']
+                wind_direction = self.atm.loc[int(t-tpuff),'Wind Direction']
+                wind_speed = self.atm.loc[int(t-tpuff),'Wind Speed']
+                stability_class = self.atm.loc[int(t-tpuff), 'Stability Class']
                 
             # Update distances
             angle_rad = wind_direction/180.0 *np.pi   
@@ -240,7 +242,7 @@ class GaussianPuff():
             if abs(x) < 1E-5 : x = 0.0
             if abs(y) < 1E-5 : y = 0.0
 
-            temp = puff.loc[puff['T']==t-1].copy()
+            temp = puff.loc[puff['T']==tprev].copy()
             temp['X'] = temp['X'] + x
             temp['Y'] = temp['Y'] + y
             temp['D'] = temp['D'] + r
@@ -251,6 +253,7 @@ class GaussianPuff():
             puff = puff.append({'T':t, 'X':self.source.x,
                                 'Y':self.source.y, 'Z':self.source.z,
                                 'D':0, 'Puff_ID':t}, ignore_index=True)
+            tprev = t
 
         sigmay, sigmaz = _calculate_sigma(puff['D'], stability_class)
         puff['sigmaY'] = sigmay
@@ -263,54 +266,47 @@ class GaussianPuff():
         """
         Computes the concentrations of a gaussian puff model.
         """
-        pass
-
-
-        # for t in atm.index:
-        #     conc_at_t = np.zeros_like(self.grid.x,dtype=float)
-            
-        #     wind_direction = atm.loc[t,'Wind Direction']
-        #     wind_speed = atm.loc[t,'Wind Speed']
-        #     stability_class = atm.loc[t, 'Stability Class']
-
-        #     print('running for: ',wind_direction, wind_speed)
-
-        #     X2, Y2, h = self._modify_grid(wind_direction, wind_speed)
-        #     sigmayX2, sigmazX2 = self._calculate_sigma(X2, stability_class)
         
-        #     # Transport previous puffs
-        #     for source in previous_sources.index:
-        #         pass
+        self.grid = grid
+        self.tstep = tstep
 
-        #         # Rotate/Translate those sources
-        #         # Something like this? but with each previous source
-        #         #angle_rad = wind_direction/180.0 *np.pi   
-        #         #gridx = (self.grid.x - self.source.x)*np.sin(angle_rad) + (self.grid.y - self.source.y)*np.cos(angle_rad)
-        #         #gridy = (self.grid.x - self.source.x)*np.cos(angle_rad) - (self.grid.y - self.source.y)*np.sin(angle_rad) 
-        
-        #         # Run Gaussian dispersion model for previous sources, rate = 0?
-        #         # Something like this?
-        #         #a = self.source.rate / (2 * np.pi * wind_speed * sigmayX2 * sigmazX2) 
-        #         #b = np.exp(-Y2**2/(2*sigmayX2**2))
-        #         #c = np.exp(-(self.grid.z-h)**2/(2*sigmazX2**2)) + np.exp(-(self.grid.z+h)**2/(2*sigmazX2**2))
-        #         #conc_at_t += a*b*c
+        times = [i*tstep for i in range(int(self.tend/tstep)+1)]
+
+        conc = pd.DataFrame()
+
+        for t in times:
+            print('Calculating for time: ',t)
+            # Extract the puff data at time t
+            mask = (self.puff['T']>=t-0.1*self.tpuff) & (self.puff['T']<=t+0.1*self.tpuff)
+            temp = self.puff.loc[mask].copy()  
+            temp = temp.reset_index()
+            print len(temp)
+            conc_at_t = np.zeros(grid.x.shape)
+
+            for i in temp.index:
+                xk = temp.iloc[i].X
+                yk = temp.iloc[i].Y
+                zk = temp.iloc[i].Z
+                sigmay = temp.iloc[i].sigmaY
+                sigmaz = temp.iloc[i].sigmaZ
+                if sigmay==0 or sigmaz==0:
+                    continue
                 
-        #         # This loop should be vectorized
-            
-        #     # Transport current puff
-        #     a = self.source.rate / (2 * np.pi * wind_speed * sigmayX2 * sigmazX2)
-        #     b = np.exp(-Y2**2/(2*sigmayX2**2))
-        #     c = np.exp(-(self.grid.z-h)**2/(2*sigmazX2**2)) + np.exp(-(self.grid.z+h)**2/(2*sigmazX2**2))  
-        #     conc_at_t += a*b*c
-            
-        #     conc_at_t[np.isnan(conc_at_t)] = 0
-        #     conc_at_t = pd.DataFrame(data=np.transpose([self.grid.x.ravel(),
-        #         self.grid.y.ravel(), self.grid.z.ravel(), conc_at_t.ravel()]), 
-        #         columns=['X', 'Y', 'Z', 'C'])
-        #     conc_at_t['T'] = t
-            
-        #     previous_sources = conc_at_t[conc_at_t['C'] > 0]
-    
-        #     conc = conc.append(conc_at_t, ignore_index=True)
+                if sigmay >=8 or sigmaz >= 8:
+                    continue
 
-        # return conc
+                x_part = np.exp(-(xk-grid.x)**2/(2*sigmay**2))
+                y_part = np.exp(-(yk-grid.y)**2/(2*sigmay**2))
+                z_part = np.exp(-(zk-grid.z)**2/(2*sigmaz**2))
+
+                conc_at_t = conc_at_t + 1/(sigmay**2*sigmaz)*x_part*y_part*z_part
+
+            conc_at_t = conc_at_t * 2 * self.Q / ( (2*np.pi)**1.5)
+            conc_at_t = pd.DataFrame(data=np.transpose([self.grid.x.ravel(),
+                    self.grid.y.ravel(), self.grid.z.ravel(), conc_at_t.ravel()]), 
+                    columns=['X', 'Y', 'Z', 'C'])
+            conc_at_t['T'] = t
+            conc = conc.append(conc_at_t, ignore_index=True)
+
+        self.conc = conc
+                

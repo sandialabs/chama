@@ -280,7 +280,6 @@ class GaussianPuff():
             mask = (self.puff['T']>=t-0.1*self.tpuff) & (self.puff['T']<=t+0.1*self.tpuff)
             temp = self.puff.loc[mask].copy()  
             temp = temp.reset_index()
-            print len(temp)
             conc_at_t = np.zeros(grid.x.shape)
 
             for i in temp.index:

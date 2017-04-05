@@ -61,11 +61,52 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     ax.set_ylim3d(y_range[0],y_range[1])
     ax.set_zlim3d(z_range[0],z_range[1])
 
-def signal_xsection(signal, scenarios, threshold = None, timesteps=None, 
-                        x_value=None, y_value=None, z_value=None, log_flag = False,
-                        colormap=plt.cm.viridis, alpha = 0.7, V = 10,
+def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
+                        x_value=None, y_value=None, z_value=None, log_flag=False,
+                        colormap=plt.cm.viridis, alpha=0.7, N=5,
                         txyz_names=['T', 'X', 'Y', 'Z'], 
                         x_range=(None, None), y_range=(None, None), z_range=(None, None)):
+    """
+    Creates x-y, x-z, and y-z cross section contour plots. The signal is
+    summed over all desired time steps and summed across the axis not
+    included in the plot unless a value for the third access is specified.
+
+    Parameters 
+    -------------- 
+    signal: Pandas DataFrame A Pandas
+        DataFrame containing columns for time, xyz position, scenario,
+        and a signal to be plotted
+    signal_name: string
+        Column name for the signal to be plotted
+    threshold: float
+        The minimum value of the signal to be plotted
+    timesteps: list
+        List of the time steps to include in the plot
+    x_value: list
+        List of the x locations to include in the plot
+    y_value: list
+        List of the y locations to include in the plot
+    z_value: list
+        List of the z locations to include in the plot
+    log_flag: boolean
+        Flag specifying whether the signal should be plotted on a log scale
+    colormap: matplotlib.pyplot ColorMap
+        A ColorMap object sent to the contourf function
+    alpha: float
+        Value between 0 and 1 representing the alpha blending value
+        passed to the contourf function
+    N: int
+        The number of levels to include in the plot, passed to the
+        contourf function
+    txyz_names: list
+        Column names for time and the x, y, and z axis locations
+    x_range: tuple
+        The x-axis limits for the plot
+    y_range: tuple
+        The y-axis limits for the plot
+    z_range: tuple
+        The z-axis limits for the plot
+    """
         
     t_col = txyz_names[0]
     x_col = txyz_names[1]
@@ -88,7 +129,7 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
     
     signal_t = signal[signal[t_col].isin(timesteps)]
     signal_t = signal_t.groupby([x_col, y_col, z_col]).sum()
-    data = signal_t[scenarios]
+    data = signal_t[signal_name]
 
     def contour_data(temp, threshold, log_flag):
         temp = temp.unstack()
@@ -97,7 +138,7 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
         Z = temp.values
 
         if threshold:
-            Z[Z<=threshold] = threshold
+            Z[Z<=threshold] = 0
         Z = np.transpose(Z)
         return X, Y, Z
     
@@ -106,10 +147,10 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
         if type(z_value) is not list:
             z_value = [z_value]
         temp = temp[temp[z_col].isin(z_value)]
-    temp = temp.groupby([x_col,y_col])['C'].mean()
+    temp = temp.groupby([x_col,y_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
+    cplot1 = ax1.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
     ax1.set_xlim(x_range[0],x_range[1])
     ax1.set_ylim(y_range[0],y_range[1])
     ax1.set_xlabel(x_col)
@@ -120,10 +161,10 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
         if type(y_value) is not list:
             y_value = [y_value]
         temp = temp[temp[y_col].isin(y_value)]
-    temp = temp.groupby([x_col,z_col])['C'].mean()
+    temp = temp.groupby([x_col,z_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot2 = ax2.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
+    cplot2 = ax2.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
     ax2.set_xlim(x_range[0],x_range[1])
     ax2.set_ylim(z_range[0],z_range[1])
     ax2.set_xlabel(x_col)
@@ -134,10 +175,10 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
         if type(x_value) is not list:
             x_value = [x_value]
         temp = temp[temp[x_col].isin(x_value)]
-    temp = temp.groupby([y_col,z_col])['C'].mean()
+    temp = temp.groupby([y_col,z_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot3 = ax3.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
+    cplot3 = ax3.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
     ax3.set_xlim(y_range[0],y_range[1])
     ax3.set_ylim(z_range[0],z_range[1])
     ax3.set_xlabel(y_col)
@@ -149,7 +190,25 @@ def signal_xsection(signal, scenarios, threshold = None, timesteps=None,
 
     fig.show()
 
-def animate_puffs(puff, x_range=(None, None), y_range=(None, None), z_range=(None, None)):
+def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
+    """
+    Plot the horizontal movement of puffs from a GaussianPuff simulation
+    over time. Each puff is represented as a circle centered at the puff
+    center location with radius equal to the standard deviation in the
+    horizontal direction (sigmaY).
+
+    Parameters
+    ------------------
+    puff: Pandas DataFrame
+        The puff dataframe created by a GaussianPuff object
+
+    x_range: tuple (xmin, xmax)
+        The x-axis limits for the plot
+
+    y_range: tuple (ymin, ymax)
+        The y-axis limits for the plot
+    
+    """
 
     def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
         """

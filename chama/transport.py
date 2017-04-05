@@ -83,15 +83,14 @@ def _calculate_z_with_buoyancy(model, x, wind_speed):
     Parameters
     ---------------
     model: either a GaussianPlume or GaussianPuff object
-    x: array-like object
-        either a numpy array or pandas series containing distance in the downwind direction from the source (m)
+    x: numpy array
+        distance in the downwind direction from the source (m)
     wind_speed: float
         wind speed (m/s)
 
     Returns
     -----------
-    z: array-like object
-        object matching the type of x containing the z values (m)
+    z: numpy array
 
     """
     buoyancy_parameter = (model.gravity*model.source.rate/np.pi)*(1.0/model.density_eff-1.0/model.density_air) #[m^4/s^3]

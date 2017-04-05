@@ -14,6 +14,31 @@ from matplotlib.animation import FuncAnimation
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
                    colormap=plt.cm.viridis, txyz_names=['T', 'X', 'Y', 'Z'], 
                    x_range=(None, None), y_range=(None, None), z_range=(None, None)):
+    """
+    Creates a 3D plot of the convex hull of the signal
+
+    Parameters 
+    -------------- 
+    signal: Pandas DataFrame A Pandas
+        DataFrame containing columns for time, xyz position, scenario,
+        and a signal to be plotted
+    scenarios: list
+        Column names for the scenarios to be plotted
+    threshold: float
+        The minimum value of the signal to be included
+    timesteps: list
+        List of the time steps to include in the plot
+    colormap: matplotlib.pyplot ColorMap
+        A ColorMap object sent to the contourf function
+    txyz_names: list
+        Column names for time and the x, y, and z axis locations
+    x_range: tuple
+        The x-axis limits for the plot
+    y_range: tuple
+        The y-axis limits for the plot
+    z_range: tuple
+        The z-axis limits for the plot
+    """
     
     t_col = txyz_names[0]
     x_col = txyz_names[1]
@@ -60,6 +85,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     ax.set_xlim3d(x_range[0],x_range[1])
     ax.set_ylim3d(y_range[0],y_range[1])
     ax.set_zlim3d(z_range[0],z_range[1])
+    plt.show()
 
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
                         x_value=None, y_value=None, z_value=None, log_flag=False,
@@ -155,6 +181,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     ax1.set_ylim(y_range[0],y_range[1])
     ax1.set_xlabel(x_col)
     ax1.set_ylabel(y_col)
+    ax1.set_title(signal_name)
 
     temp = data.reset_index()
     if y_value:
@@ -169,6 +196,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     ax2.set_ylim(z_range[0],z_range[1])
     ax2.set_xlabel(x_col)
     ax2.set_ylabel(z_col)
+    ax2.set_title(signal_name)
 
     temp = data.reset_index()
     if x_value:
@@ -183,6 +211,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     ax3.set_ylim(z_range[0],z_range[1])
     ax3.set_xlabel(y_col)
     ax3.set_ylabel(z_col)
+    ax3.set_title(signal_name)
 
     fig.colorbar(cplot1,ax=ax1)
     fig.colorbar(cplot2,ax=ax2)

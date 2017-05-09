@@ -63,9 +63,9 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
                 conc_filter = signal_t[scenario] > threshold
                 
                 # plot points
-                #data = signal_t[[x_col,y_col,z_col,scenario]][conc_filter]
-                #data = data.as_matrix()
-                #ax.scatter(data[:,0], data[:,1], data[:,2], c=data[:,3],s=30)
+                # data = signal_t[[x_col,y_col,z_col,scenario]][conc_filter]
+                # data = data.as_matrix()
+                # ax.scatter(data[:,0], data[:,1], data[:,2], c=data[:,3],s=30)
                 
                 data = signal_t[[x_col,y_col,z_col]][conc_filter]
                 data = data.as_matrix()
@@ -176,7 +176,13 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     temp = temp.groupby([x_col,y_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot1 = ax1.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
+
+    # if log_flag:
+    #     print('here')
+    #     #Z = np.ma.array(Z, mask= Z<=0)
+    #     print(Z)
+    #     print(Z.min(), Z.max())
+    cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
     ax1.set_xlim(x_range[0],x_range[1])
     ax1.set_ylim(y_range[0],y_range[1])
     ax1.set_xlabel(x_col)

@@ -6,14 +6,16 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial.distance import cdist
-import time
+from scipy import integrate
+from scipy import ndimage as sn
+import time as tme
 
 
 class Sensor(object):
 
     @classmethod
     def CameraSensor(cls, **kwds):
-        return Sensor(sensor_type=Camera(), **kwds)
+        return Sensor(detector=Camera(), **kwds)
 
     @classmethod
     def MobileSensor(cls, **kwds):
@@ -21,9 +23,9 @@ class Sensor(object):
 
     @classmethod
     def MobileCameraSensor(cls, **kwds):
-        return Sensor(position=Mobile(), sensor_type=Camera(), **kwds)
+        return Sensor(position=Mobile(), detector=Camera(), **kwds)
 
-    def __init__(self, position=None, sensor_type=None, sample_times=None,
+    def __init__(self, position=None, detector=None, sample_times=None,
                  location=None, threshold=None):
 
         self.name = None
@@ -35,17 +37,19 @@ class Sensor(object):
         else:
             self.position = Position(location=location)
 
-        if sensor_type:
-            self.sensor_type = sensor_type
+        if detector:
+            self.detector = detector
             if sample_times:
-                self.sensor_type.sample_times = sample_times
+                self.detector.sample_times = sample_times
         else:
-            self.sensor_type = SimpleSensor(sample_times=sample_times,
+            self.detector = SimpleSensor(sample_times=sample_times,
                                             threshold=threshold)
 
-    def get_detected_signal(self, signal):
+    def get_detected_signal(self, signal, interp_method='linear',
+                            min_distance=10.0):
 
-        return self.sensor_type.get_detected_signal(signal, self.position)
+        return self.detector.get_detected_signal(signal, self.position,
+                                                 interp_method, min_distance)
 
 
 class Position(object):
@@ -133,18 +137,21 @@ class SimpleSensor(object):
                                   self.sample_times]
         return self.sample_points
 
-    def get_detected_signal(self, signal, position):
+    def get_detected_signal(self, signal, position, interp_method,
+                            min_distance):
         # Given a signal dataframe with index (T, X, Y, Z)
         # Return the detected scenarios at each sample time
 
         pts = self.get_sample_points(position)
 
-        signal_sample = self._get_signal_at_sample_points(signal, pts)
+        signal_sample = self._get_signal_at_sample_points(signal, pts,
+                                                          interp_method,
+                                                          min_distance)
 
         # Reset the index
         signal_sample = signal_sample.reset_index()
 
-        # At this point we don't need the X,Y,X columns
+        # At this point we don't need the X,Y,Z columns
         signal_sample.drop(['X', 'Y', 'Z'], inplace=True, axis=1)
 
         # Set T as the index
@@ -156,7 +163,8 @@ class SimpleSensor(object):
         # Drop Nan and stack by index
         return signal_sample.stack()
 
-    def _get_signal_at_sample_points(self, signal, sample_points):
+    def _get_signal_at_sample_points(self, signal, sample_points,
+                                     interp_method, min_distance):
         """
         Extract the signal at the sensor sample points. If a sample point
         does not exist in the signal DataFrame then interpolate the signal
@@ -166,6 +174,16 @@ class SimpleSensor(object):
         signal : pd.DataFrame
 
         sample_points : list of tuples
+
+        interp_method : 'linear' or 'nearest'
+            A value of 'linear' will use griddata to interpolate missing
+            sample points. A value of 'nearest' will set the sample point to
+            the nearest signal point within a minimum distance of min_distance.
+            If there are no signal points within this distance then the
+            signal will be set to zero at the sample point
+
+        min_distance : float
+            The minimum distance when using the 'nearest' interp_method
 
         Returns
         ---------
@@ -185,11 +203,12 @@ class SimpleSensor(object):
             return signal_subset
 
         print('Interpolation required for ', len(interp_points), ' points')
-        t0 = time.time()
+        t0 = tme.time()
         # TODO: Revisit the distance calculation.
         # Scaling issue by including both time and xyz location in distance
         # calculation. Manually select the signal times bordering
-        # interp_point times BEFORE calculating the distance?
+        # interp_point times BEFORE calculating the distance? Or include a
+        # time scaling parameter as an additional input?
 
         # get the distance between the signal points and the interp_points
         signal_points = list(signal.index)
@@ -198,29 +217,64 @@ class SimpleSensor(object):
         # Might not want to build this data frame when signal is very large
         dist = pd.DataFrame(data=distdata, index=signal.index)
 
-        # Loop over interp_points
-        for i in range(len(dist.columns)):
-            temp = dist.iloc[:, i]
-            # Get the rows within dist_factor of the minimum distance
-            dist_factor = 2
-            temp2 = temp[temp < temp.min() * dist_factor]
-            # Ensures that we get enough points to do the interpolation
-            while len(temp2) < 100:
-                dist_factor += 1
+        if interp_method == 'linear':
+            # print('Performing linear interpolation')
+
+            # Loop over interp_points
+            for i in range(len(dist.columns)):
+                temp = dist.iloc[:, i]
+
+                # Get the rows within dist_factor of the minimum distance
+                dist_factor = 2
                 temp2 = temp[temp < temp.min() * dist_factor]
-            temp_signal = signal.loc[temp2.index, :]
-            # print('   # points used in interpolation: ', len(temp_signal))
+                # Ensures that we get enough points to do the interpolation
+                while len(temp2) < 100:
+                    dist_factor += 1
+                    temp2 = temp[temp < temp.min() * dist_factor]
+                temp_signal = signal.loc[temp2.index, :]
 
-            # Loop over scenarios
-            for j in signal.columns:
+                # Loop over scenarios
+                for j in signal.columns:
 
-                interp_signal = griddata(list(temp_signal.index),
-                                         temp_signal.loc[:, j],
-                                         interp_points[i],
-                                         method='linear')
-                signal_subset.loc[interp_points[i], j] = interp_signal
+                    interp_signal = griddata(list(temp_signal.index),
+                                             list(temp_signal.loc[:, j]),
+                                             interp_points[i],
+                                             method=interp_method,
+                                             rescale=True)
+                    signal_subset.loc[interp_points[i], j] = interp_signal
 
-        print('   Interpolation time: ', time.time()-t0, ' sec')
+        elif interp_method == 'nearest':
+            # print('Performing nearest neighbor interpolation')
+
+            # Loop over interp_points
+            for i in range(len(dist.columns)):
+                temp = dist.iloc[:, i]
+
+                if temp.min() > min_distance:
+                    # Loop over scenarios
+                    for j in signal.columns:
+                        interp_signal = 0.0
+                        signal_subset.loc[interp_points[i], j] = interp_signal
+                else:
+                    temp2 = temp[temp < min_distance]
+                    temp_signal = signal.loc[temp2.index, :]
+
+                    # Loop over scenarios
+                    for j in signal.columns:
+
+                        interp_signal = griddata(list(temp_signal.index),
+                                                 list(temp_signal.loc[:, j]),
+                                                 interp_points[i],
+                                                 method=interp_method,
+                                                 rescale=True)
+
+                        signal_subset.loc[interp_points[i], j] = interp_signal
+        else:
+            raise ValueError('Unrecognized or unsupported interpolation method'
+                             ' "%s" was specified. Only "linear" or "nearest" '
+                             'interpolations are supported' % interp_method)
+
+        print('   Interpolation time: ', tme.time() - t0, ' sec')
 
         return signal_subset
 
@@ -229,6 +283,13 @@ class Camera(SimpleSensor):
     """
     Defines a camera sensor
     """
+
+    # Constants used in the camera model
+    NA = 6.02E23  # Avogadro's number
+    h = 6.626e-34  # Planck's constant [J-s]
+    SIGMA = 5.67e-8  # Stefan-Boltzmann constant [W/m^2-K^4]
+    c = 3e8  # Speed of light [m/s]
+    k = 1.38e-23  # Boltzmann's constant [J/K]
 
     def __init__(self, threshold=None, sample_times=None,
                  direction=(1, 1, 1), **kwds):
@@ -254,19 +315,39 @@ class Camera(SimpleSensor):
         self.fov1 = kwds.pop('fov1', 24 * np.pi / 180)
         self.fov2 = kwds.pop('fov2', 18 * np.pi / 180)
         self.a_d = kwds.pop('a_d', 9.0E-10)
+        self.Kav = kwds.pop('Kav', 2.191e-20)
 
+    def _get_signal_at_sample_points(self, signal, sample_points,
+                                     interp_method, min_distance):
+        """
+        Defines detection as seen by a camera object
 
+        Parameters
+        -----------
+               Conc : 2-D array with 4 columns with (X,Y,Z,Concentration)
+                      information. Each time-step should be passed
+                      separately to this program. Furthermore, it is also
+                      assumed that z-axis locations change the fastest
+                      in the array, followed by Y and X. If X changes the
+                      fastest, followed by Y and then Z, the reshape
+                      command for ppm on line 46 should be modified with
+                      order parameter as 'F' instead of 'C'. Concentration
+                      units are assumed to be in g/m^3
+              X,Y,Z : array of x-, y-, z-locations where concentration is
+                      calculated
+             CamLoc : Location of IR cameras as an (x,y,z) tuple
+             CamDir : Direction camera is pointing as an (x,y,z) tuple.
+             Should this be specified relative to the origin or the camera
+             location??
 
-    def get_detected_signal(self, signal, position):
-        NA = 6.02E23  # Avogadro's number
-        h = 6.626e-34  # Planck's constant [J-s]
-        SIGMA = 5.67e-8  # Stefan-Boltzmann constant [W/m^2-K^4]
-        c = 3e8  # Speed of light [m/s]
-        k = 1.38e-23  # Boltzmann's constant [J/K]
+        Returns
+        ---------
+             Detect :  Binary variable based on whether the leak is detected
+                       (1) or not (0) based on the given concentration map.
+        """
+
         CamDir = self.direction
-
-        for time in self.sample_times:
-            CamLoc = position(time)
+        CamLoc = sample_points
 
         # if Conc is None:
         #     Conc = np.ones((18491,
@@ -285,96 +366,109 @@ class Camera(SimpleSensor):
 
         nx, ny, nz = np.size(X), np.size(Y), np.size(Z)
 
-        ppm = np.reshape(Conc[:, 3], (nx, ny, nz),
-                         order='C')  # reshaping concentration column as a
-        # 3D array
+        # reshaping concentration column as a 3D array
+        ppm = np.reshape(Conc[:, 3], (nx, ny, nz), order='C')
 
-        # ---------Calculating angles (horizontal and vertical) associated
-        # with camera orientation. The vertical angle
-        #         is complemented due to spherical coordinate convention.-------------------------------------------
-
+        # Calculating angles (horizontal and vertical) associated with camera
+        # orientation. The vertical angle is complemented due to spherical
+        # coordinate convention.
         dir1 = np.array(CamDir) - np.array(CamLoc)
         dir2 = dir1 / (np.sqrt(dir1[0] ** 2 + dir1[1] ** 2 + dir1[2] ** 2))
         horiz = np.arccos(dir2[0])
         vert = np.pi / 2 - np.arccos(dir2[2])
 
-        # --------The camera has 320 X 240 pixels. To speed up computation,
-        # this has been reduced proportionally to 80 X 60.
-        #        The horizontal (vert) field of view is divided equally among the 80 (60) horizontal (vert) pixels.
+        # The camera has 320 X 240 pixels. To speed up computation, this has
+        # been reduced proportionally to 80 X 60. The horizontal (vert) field
+        # of view is divided equally among the 80 (60) horizontal (vert) pixels
 
         theta_h = np.linspace(horiz - np.pi / 15, horiz + np.pi / 15, 80)
         theta_v = np.linspace(vert - np.pi / 20, vert + np.pi / 20, 60)
 
-        # -------factor_x, factor_y, factor_z are used later for concentration-pathlength (CPL) calculations. This is because
-        #       extrapolation to calculate CPL happens in pixel-coordinates rather than real-life coordinates. The value 500
-        #       is used as a proxy for a large distance. Beyond 500 m, the IR camera doesn't see anything.
+        # factor_x, factor_y, factor_z are used later for
+        # concentration-pathlength (CPL) calculations. This is because
+        # extrapolation to calculate CPL happens in pixel-coordinates rather
+        # than real-life coordinates. The value 500 is used as a proxy for a
+        # large distance. Beyond 500 m, the IR camera doesn't see anything.
 
         Xstep, Ystep, Zstep = X[1] - X[0], Y[1] - Y[0], Z[1] - Z[0]
-        factor_x, factor_y, factor_z = int(500 / Xstep), int(500 / Ystep), int(
-            100 / Zstep)
+        factor_x = int(500 / Xstep)
+        factor_y = int(500 / Ystep)
+        factor_z = int(100 / Zstep)
 
         p, q = len(theta_h), len(theta_v)
-        x_end, y_end, z_end = np.zeros((p, q)), np.zeros((p, q)), np.zeros(
-            (p, q))
+        x_end = np.zeros((p, q))
+        y_end = np.zeros((p, q))
+        z_end = np.zeros((p, q))
 
-        # -------Here, we calculate the real-life coordinate of a far-away point (say, 500 m away) for each pixel orientation.
-        #       This is used to calculate CPL. If 500 m goes outside the boundary of 3D considered, concentration is 0.
+        # Here, we calculate the real-life coordinate of a far-away point (say,
+        # 500 m away) for each pixel orientation. This is used to calculate CPL
+        # If 500 m goes outside the boundary of 3D considered, concentration
+        # is 0.
 
         for i in range(0, p):
             for j in range(0, q):
-                x_end[i, j] = factor_x * np.cos(theta_h[i]) * np.cos(
-                    theta_v[j])
-                y_end[i, j] = factor_y * np.sin(theta_h[i]) * np.cos(
-                    theta_v[j])
+                x_end[i, j] = factor_x * np.cos(theta_h[i]) * \
+                              np.cos(theta_v[j])
+                y_end[i, j] = factor_y * np.sin(theta_h[i]) * \
+                              np.cos(theta_v[j])
                 z_end[i, j] = factor_z * np.cos(theta_h[i])
 
-                # -------Because calculations happen in pixel coordinates,
-                # the location of the camera (start of calculation) and the
-                #       location of far-away point (end of calculation) is converted to pixel coordinates.
+        # Because calculations happen in pixel coordinates, the
+        # location of the camera (start of calculation) and the
+        # location of far-away point (end of calculation) is converted
+        # to pixel coordinates.
 
-        shiftx, shifty, shiftz = (CamLoc[0] - np.min(X)) / Xstep, (
-        CamLoc[1] - np.min(Y)) / Ystep, (CamLoc[2] - np.min(Z)) / Zstep
+        shiftx = (CamLoc[0] - np.min(X)) / Xstep
+        shifty = (CamLoc[1] - np.min(Y)) / Ystep
+        shiftz = (CamLoc[2] - np.min(Z)) / Zstep
 
-        x_start, y_start, z_start = CamLoc[0] / Xstep + shiftx, CamLoc[
-            1] / Ystep + shifty, CamLoc[2] / Zstep + shiftz
-        x_end, y_end, z_end = x_end + shiftx, y_end + shifty, z_end + shiftz
+        x_start = CamLoc[0] / Xstep + shiftx
+        y_start = CamLoc[1] / Ystep + shifty
+        z_start = CamLoc[2] / Zstep + shiftz
 
-        # ------These are real-space coordinates of the end points used in simulation
-        Rx_end, Ry_end, Rz_end = (x_end + 1 - shiftx) * Xstep, (
-        y_end + 1 - shifty) * Ystep, (z_end + 1 - shiftz) * Zstep
+        x_end += shiftx
+        y_end += shifty
+        z_end += shiftz
 
-        # ------Used to calculate camera properties including noise-equivalent power (nep), temperature-emissivity contrast
-        #      (tec) and absorption coefficient (Kav). Temperature is assumed to be 300 K, with an emissivity of 0.5.
-        camprop = cp.pixelprop(300, 300)
-        nep, tec, Kav = camprop[0], camprop[1], camprop[2]
+        # These are real-space coordinates of the end points used in simulation
+        Rx_end = (x_end + 1 - shiftx) * Xstep
+        Ry_end = (y_end + 1 - shifty) * Ystep
+        Rz_end = (z_end + 1 - shiftz) * Zstep
 
-        IntConc, dist, CPL = np.zeros((p, q)), np.zeros((p, q)), np.zeros(
-            (p, q))
+        # Calculate camera properties
+        nep, tec = self._pixelprop()
 
-        # ------This is where concentration pathlength (CPL) is calculated using properties of images.
+        IntConc = np.zeros((p, q))
+        dist = np.zeros((p, q))
+        CPL = np.zeros((p, q))
+
+        # This is where concentration pathlength (CPL) is calculated using
+        # properties of images.
         for i in range(0, len(theta_h)):
             for j in range(0, len(theta_v)):
-                IntConc[i, j] = cp.Pathlength(x_start, y_start, z_start,
-                                              x_end[i, j], y_end[i, j],
-                                              z_end[i, j], ppm)
-                dist[i, j] = np.sqrt((Rx_end[i, j] - CamLoc[0]) ** 2 + (
-                Ry_end[i, j] - CamLoc[1]) ** 2 + (
-                                     Rz_end[i, j] - CamLoc[2]) ** 2)
+                IntConc[i, j] = self._pathlength(x_start, y_start, z_start,
+                                                 x_end[i, j], y_end[i, j],
+                                                 z_end[i, j], ppm)
+                dist[i, j] = np.sqrt((Rx_end[i, j] - CamLoc[0]) ** 2 +
+                                     (Ry_end[i, j] - CamLoc[1]) ** 2 +
+                                     (Rz_end[i, j] - CamLoc[2]) ** 2)
                 CPL[i, j] = IntConc[i, j] * dist[i, j]
 
-                # -------This section converts CPL to image contrast and
-                # compares it to nep.
-        attn = CPL * Kav * NA * 1e-4  # 1e-4 is conversion factor
+                # This section converts CPL to image contrast and compares it
+                # to nep.
+        attn = CPL * self.Kav * self.NA * 1e-4  # 1e-4 is conversion factor
         temp = 1 - 10 ** (-attn)
-        contrast = temp * np.abs(tec) * tau_air
+        contrast = temp * np.abs(tec) * self.tau_air
 
         pixels = 0
         for i in range(0, len(theta_h)):
             for j in range(0, len(theta_v)):
                 if contrast[i, j] >= nep:
-                    pixels = pixels + 1
+                    pixels += 1
 
-        pixel_final = 16 * pixels  # Camera pixels were initially truncated to 80 x 60 px, which is re-converted.
+        # Camera pixels were initially truncated to 80 x 60 px, which is
+        # re-converted.
+        pixel_final = 16 * pixels
 
         detect = 0
         if pixel_final >= 400:
@@ -382,71 +476,77 @@ class Camera(SimpleSensor):
 
         return detect
 
-    def _pathlength(x0, y0, z0, x1, y1, z1, data):
+    def _pathlength(self, x0, y0, z0, x1, y1, z1, data):
         num = 201  # number of points in extrapolation
-        x, y, z = np.linspace(x0, x1, num), np.linspace(y0, y1, num), np.linspace(
-            z0, z1, num)
+        x = np.linspace(x0, x1, num)
+        y = np.linspace(y0, y1, num)
+        z = np.linspace(z0, z1, num)
         concs = sn.map_coordinates(data, np.vstack((x, y, z)))
-        test = sum(
-            concs) / num  # CPL as a fraction of total number of points in
-        # extrapolation
+        # CPL as a fraction of total number of points in extrapolation
+        test = sum(concs) / num
         return test
 
+    def _pixelprop(self):
+        """
+        Calculate camera properties
 
-    def _pixelprop(T_g, T_plume):
-        # Camera Properties assumed as default
-        netd = 0.015
-        f_number = 1.5
-        e_a = 0.1
-        e_g = 0.5
+        Returns
+        -------
+        nep : noise-equivalent power
 
-        if T_g is None:
-            T_g = 300
+        tec : temperature-emissivity contrast
+        """
 
-        if T_plume is None:
-            T_plume = 300
+        T_a = self.T_g - 20
 
-        T_a = T_g - 20
-
-        w1g = h * c / (lambda2 * k * T_g)
-        w2g = h * c / (lambda1 * k * T_g)
-        n1 = 2 * np.pi * k ** 4 * T_g ** 3 / (h ** 3 * c ** 2)
-        temp_y1 = -np.exp(-w1g) * (
-        720 + 720 * w1g + 360 * w1g ** 2 + 120 * w1g ** 3 + 30 * w1g ** 4 + 6 * w1g ** 5 + w1g ** 6)
-        temp_y2 = -np.exp(-w2g) * (
-        720 + 720 * w2g + 360 * w2g ** 2 + 120 * w2g ** 3 + 30 * w2g ** 4 + 6 * w2g ** 5 + w2g ** 6)
+        w1g = self.h * self.c / (self.lambda2 * self.k * self.T_g)
+        w2g = self.h * self.c / (self.lambda1 * self.k * self.T_g)
+        n1 = 2 * np.pi * self.k ** 4 * self.T_g ** 3 / \
+             (self.h ** 3 * self.c ** 2)
+        temp_y1 = -np.exp(-w1g) * (720 + 720 * w1g + 360 * w1g ** 2 +
+                                   120 * w1g ** 3 + 30 * w1g ** 4 +
+                                   6 * w1g ** 5 + w1g ** 6)
+        temp_y2 = -np.exp(-w2g) * (720 + 720 * w2g + 360 * w2g ** 2 +
+                                   120 * w2g ** 3 + 30 * w2g ** 4 +
+                                   6 * w2g ** 5 + w2g ** 6)
         y1 = temp_y2 - temp_y1
         y = y1 * n1
-        nep = y * netd * a_d / (4 * f_number ** 2)
+        nep = y * self.netd * self.a_d / (4 * self.f_number ** 2)
 
-        ppixelg = pixel_power(T_g)
-        ppixelp = pixel_power(T_plume)
-        ppixela = pixel_power(T_a)
+        ppixelg = self._pixel_power(self.T_g)
+        ppixelp = self._pixel_power(self.T_plume)
+        ppixela = self._pixel_power(T_a)
 
-        tec = ppixelp - e_g * ppixelg - e_a * (1 - e_g) * ppixela
+        tec = ppixelp - self.e_g * ppixelg \
+              - self.e_a * (1 - self.e_g) * ppixela
 
-        Kav = 2.191e-20
+        return nep, tec
 
-        return nep, tec, Kav
-
-
-    def _pixel_power(temp):
+    def _pixel_power(self, temp):
         """
-        Calculate the the power incident on a pixel from an infinite blackbody emitter at a given temperature.
-        Inputs:
-            temp    Temperature of the emitter (K)
-        Return:
-            pixel_power   power incident on the pixel (W)
+        Calculate the the power incident on a pixel from an infinite blackbody
+        emitter at a given temperature.
+
+        Parameters
+        -----------
+            temp : Temperature of the emitter (K)
+        Returns
+        ---------
+            pixel_power : power incident on the pixel (W)
         """
+
         # Calculate the nondimensional frequency limits of the sensor
-        w1 = h * c / (lambda2 * k * temp)
-        w2 = h * c / (lambda1 * k * temp)
-        # Integrate the blackobdy radiation over the frequency range
+        w1 = self.h * self.c / (self.lambda2 * self.k * temp)
+        w2 = self.h * self.c / (self.lambda1 * self.k * temp)
+
+        # Integrate the blackbody radiation over the frequency range
         temp_int = integrate.quad(lambda x: x ** 3 / (np.exp(x) - 1), w1, w2)
+
         # calculate the power incident on one camera pixel
         frac = temp_int[0] / (np.pi ** 4 / 15)
-        sblaw = SIGMA * temp ** 4 * a_d
-        power = (4 / np.pi) * sblaw * np.tan(FoV1 / 2) * np.tan(FoV2 / 2)
+        sblaw = self.SIGMA * temp ** 4 * self.a_d
+        power = (4 / np.pi) * sblaw * np.tan(self.fov1 / 2) * \
+                np.tan(self.fov2 / 2)
         pixel_power = power * frac
         return pixel_power
 

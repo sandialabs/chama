@@ -375,7 +375,7 @@ class Camera(SimpleSensor):
         dir1 = np.array(CamDir) - np.array(CamLoc)
         dir2 = dir1 / (np.sqrt(dir1[0] ** 2 + dir1[1] ** 2 + dir1[2] ** 2))
         horiz = np.arccos(dir2[0])
-        vert = np.pi / 2 - np.arccos(dir2[2])
+        vert = np.arccos(dir2[2])
 
         # The camera has 320 X 240 pixels. To speed up computation, this has
         # been reduced proportionally to 80 X 60. The horizontal (vert) field
@@ -408,38 +408,39 @@ class Camera(SimpleSensor):
         for i in range(0, p):
             for j in range(0, q):
                 x_end[i, j] = factor_x * np.cos(theta_h[i]) * \
-                              np.cos(theta_v[j])
+                              np.sin(theta_v[j])
                 y_end[i, j] = factor_y * np.sin(theta_h[i]) * \
-                              np.cos(theta_v[j])
-                z_end[i, j] = factor_z * np.cos(theta_h[i])
+                              np.sin(theta_v[j])
+                z_end[i, j] = factor_z * np.cos(theta_v[j])
 
         # Because calculations happen in pixel coordinates, the
         # location of the camera (start of calculation) and the
         # location of far-away point (end of calculation) is converted
         # to pixel coordinates.
 
-        shiftx = (CamLoc[0] - np.min(X)) / Xstep
-        shifty = (CamLoc[1] - np.min(Y)) / Ystep
-        shiftz = (CamLoc[2] - np.min(Z)) / Zstep
+        x_start = (CamLoc[0] - np.min(X)) / Xstep
+        y_start = (CamLoc[1] - np.min(Y)) / Ystep
+        z_start = (CamLoc[2] - np.min(Z)) / Zstep
 
-        x_start = CamLoc[0] / Xstep + shiftx
-        y_start = CamLoc[1] / Ystep + shifty
-        z_start = CamLoc[2] / Zstep + shiftz
+        # x_start = CamLoc[0] / Xstep + shiftx
+        # y_start = CamLoc[1] / Ystep + shifty
+        # z_start = CamLoc[2] / Zstep + shiftz
 
-        x_end += shiftx
-        y_end += shifty
-        z_end += shiftz
+        x_end += x_start
+        y_end += y_start
+        z_end += z_start
 
         # These are real-space coordinates of the end points used in simulation
-        Rx_end = (x_end + 1 - shiftx) * Xstep
-        Ry_end = (y_end + 1 - shifty) * Ystep
-        Rz_end = (z_end + 1 - shiftz) * Zstep
+        # Rx_end = (x_end + 1 - shiftx) * Xstep
+        # Ry_end = (y_end + 1 - shifty) * Ystep
+        # Rz_end = (z_end + 1 - shiftz) * Zstep
 
         # Calculate camera properties
         nep, tec = self._pixelprop()
 
         IntConc = np.zeros((p, q))
-        dist = np.zeros((p, q))
+        #dist = np.zeros((p, q))
+        dist = 500  # TODO Move this to a parameter
         CPL = np.zeros((p, q))
 
         # This is where concentration pathlength (CPL) is calculated using
@@ -449,10 +450,10 @@ class Camera(SimpleSensor):
                 IntConc[i, j] = self._pathlength(x_start, y_start, z_start,
                                                  x_end[i, j], y_end[i, j],
                                                  z_end[i, j], ppm)
-                dist[i, j] = np.sqrt((Rx_end[i, j] - CamLoc[0]) ** 2 +
-                                     (Ry_end[i, j] - CamLoc[1]) ** 2 +
-                                     (Rz_end[i, j] - CamLoc[2]) ** 2)
-                CPL[i, j] = IntConc[i, j] * dist[i, j]
+                # dist[i, j] = np.sqrt((Rx_end[i, j] - CamLoc[0]) ** 2 +
+                #                      (Ry_end[i, j] - CamLoc[1]) ** 2 +
+                #                      (Rz_end[i, j] - CamLoc[2]) ** 2)
+                CPL[i, j] = IntConc[i, j] * dist
 
                 # This section converts CPL to image contrast and compares it
                 # to nep.
@@ -471,6 +472,7 @@ class Camera(SimpleSensor):
         pixel_final = 16 * pixels
 
         detect = 0
+        # TODO Move this check and convert to checking threshold parameter
         if pixel_final >= 400:
             detect = 1
 

@@ -7,7 +7,8 @@ import pandas as pd
 import time
 
 
-def extract(signal, sensors, metric='Time'):
+def extract(signal, sensors, metric='Time', interp_method='linear', 
+            min_distance=10):
     """
     Extract the impact metric from a signal profile and sensors
     """
@@ -31,7 +32,8 @@ def extract(signal, sensors, metric='Time'):
 
         # Get detected signal
         t0 = time.time()
-        detected = sensor.get_detected_signal(signal)
+        detected = sensor.get_detected_signal(signal, interp_method, 
+                                              min_distance)
         t1 = time.time()
         # print('time: ', t1-t0, ' s')
         sensor_time = sensor_time + (t1 - t0)

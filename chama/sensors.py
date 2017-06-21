@@ -13,17 +13,18 @@ import time as tme
 
 class Sensor(object):
 
-    @classmethod
-    def CameraSensor(cls, **kwds):
-        return Sensor(detector=Camera(), **kwds)
-
-    @classmethod
-    def MobileSensor(cls, **kwds):
-        return Sensor(position=Mobile(), **kwds)
-
-    @classmethod
-    def MobileCameraSensor(cls, **kwds):
-        return Sensor(position=Mobile(), detector=Camera(), **kwds)
+    # TODO: redo these alternative constructors, they don't work
+    # @classmethod
+    # def CameraSensor(cls, **kwds):
+    #     return Sensor(detector=Camera(), **kwds)
+    #
+    # @classmethod
+    # def MobileSensor(cls, **kwds):
+    #     return Sensor(position=Mobile(), **kwds)
+    #
+    # @classmethod
+    # def MobileCameraSensor(cls, **kwds):
+    #     return Sensor(position=Mobile(), detector=Camera(), **kwds)
 
     def __init__(self, position=None, detector=None, sample_times=None,
                  location=None, threshold=None):
@@ -139,6 +140,22 @@ class SimpleSensor(object):
 
     def get_detected_signal(self, signal, position, interp_method,
                             min_distance):
+        """
+
+        Parameters
+        ----------
+        signal
+        position
+        interp_method
+        min_distance
+
+        Returns
+        -------
+        ps.Series
+            Series with multi-index (T, Scenario) and signal values above
+            the sensor threshold
+
+        """
         # Given a signal dataframe with index (T, X, Y, Z)
         # Return the detected scenarios at each sample time
 
@@ -147,6 +164,7 @@ class SimpleSensor(object):
         signal_sample = self._get_signal_at_sample_points(signal, pts,
                                                           interp_method,
                                                           min_distance)
+        # print(signal_sample.head())
 
         # Reset the index
         signal_sample = signal_sample.reset_index()
@@ -157,8 +175,13 @@ class SimpleSensor(object):
         # Set T as the index
         signal_sample = signal_sample.set_index('T')
 
+        # print(signal_sample.head())
+
         # Apply threshold
         signal_sample = signal_sample[signal_sample > self.threshold]
+
+        # Name the columns so that the index is labeled after stacking
+        signal_sample.columns.name = 'Scenario'
 
         # Drop Nan and stack by index
         return signal_sample.stack()
@@ -188,6 +211,9 @@ class SimpleSensor(object):
         Returns
         ---------
         signal_subset : pd.DataFrame
+            This DataFrame has a multi-index containing all of the
+            sample_points and columns for each scenario with the
+            concentration at each sample point
 
         """
 
@@ -293,6 +319,7 @@ class Camera(SimpleSensor):
 
     def __init__(self, threshold=None, sample_times=None,
                  direction=(1, 1, 1), **kwds):
+
         super(Camera, self).__init__(threshold, sample_times)
 
         # Direction of the camera represented by a point on the unit circle
@@ -302,6 +329,9 @@ class Camera(SimpleSensor):
 
         # Transmission coefficient of air
         self.tau_air = kwds.pop('tau_air', 1)
+
+        # Maximum distance that the camera can detect in (m)
+        self.dist = kwds.pop('dist', 500.0)
 
         # TODO: Get descriptions of these from Arvind
         self.netd = kwds.pop('netd', 0.015)
@@ -321,10 +351,13 @@ class Camera(SimpleSensor):
                                      interp_method, min_distance):
         """
         Defines detection as seen by a camera object
+        Not just selecting/interpolating a subset of the signal dataframe.
+        We are using the CONCENTRATION signal dataframe to calculate the
+        PIXEL signal at the sample points
 
         Parameters
         -----------
-               Conc : 2-D array with 4 columns with (X,Y,Z,Concentration)
+              Conc : 2-D array with 4 columns with (X,Y,Z,Concentration)
                       information. Each time-step should be passed
                       separately to this program. Furthermore, it is also
                       assumed that z-axis locations change the fastest
@@ -340,153 +373,187 @@ class Camera(SimpleSensor):
              Should this be specified relative to the origin or the camera
              location??
 
+             sample_points : list of tuples (t,x,y,z)
+
         Returns
         ---------
              Detect :  Binary variable based on whether the leak is detected
                        (1) or not (0) based on the given concentration map.
         """
 
+        # TODO: Add option to specify a different camera direction at each
+        # sample point
         CamDir = self.direction
-        CamLoc = sample_points
+        # Reset the index and set it to T
+        allConc = signal.reset_index().set_index('T')
 
-        # if Conc is None:
-        #     Conc = np.ones((18491,
-        #                     4)) * 10e-3  # Example numbers: Uniform
-        #     # concentration of about 15 ppm
-        #     # Conc = np.random.lognormal(mean=1.0, sigma=1.0, size=(50,50,10))
-        #
-        # if X is None:
-        #     X = np.linspace(-200, 200, 41)  # Default X values
-        #
-        # if Y is None:
-        #     Y = np.linspace(-200, 200, 41)  # Default Y values
-        #
-        # if Z is None:
-        #     Z = np.linspace(0, 10, 11)  # Default Z values
+        # Create dataframe to be returned
+        newidx = pd.MultiIndex.from_tuples(sample_points,
+                                           names=('T', 'X', 'Y', 'Z'))
+        detected_pixels = pd.DataFrame(None, index=newidx,
+                                       columns=signal.columns)
 
-        nx, ny, nz = np.size(X), np.size(Y), np.size(Z)
+        for point in sample_points:
+            time = point[0]
+            print('        Time: ', time)
+            CamLoc = point[1:]
 
-        # reshaping concentration column as a 3D array
-        ppm = np.reshape(Conc[:, 3], (nx, ny, nz), order='C')
+            # Extract the rows at the sample time
+            Conc = allConc.loc[time, :]
 
-        # Calculating angles (horizontal and vertical) associated with camera
-        # orientation. The vertical angle is complemented due to spherical
-        # coordinate convention.
-        dir1 = np.array(CamDir) - np.array(CamLoc)
-        dir2 = dir1 / (np.sqrt(dir1[0] ** 2 + dir1[1] ** 2 + dir1[2] ** 2))
-        horiz = np.arccos(dir2[0])
-        vert = np.arccos(dir2[2])
+            # Might want to move the below calculations to a new function to
+            # avoid deeply nested for-loops. Any way to vectorize??
 
-        # The camera has 320 X 240 pixels. To speed up computation, this has
-        # been reduced proportionally to 80 X 60. The horizontal (vert) field
-        # of view is divided equally among the 80 (60) horizontal (vert) pixels
+            # For now, assume that every sample time is in the concentration signal
+            # dataframe
+            # TODO: relax this assumption
 
-        theta_h = np.linspace(horiz - np.pi / 15, horiz + np.pi / 15, 80)
-        theta_v = np.linspace(vert - np.pi / 20, vert + np.pi / 20, 60)
+            # No longer need T
+            Conc = Conc.reset_index(drop=True)
 
-        # factor_x, factor_y, factor_z are used later for
-        # concentration-pathlength (CPL) calculations. This is because
-        # extrapolation to calculate CPL happens in pixel-coordinates rather
-        # than real-life coordinates. The value 500 is used as a proxy for a
-        # large distance. Beyond 500 m, the IR camera doesn't see anything.
+            Conc = Conc.set_index(['X', 'Y', 'Z'])
+            # Sort the index so that we can guarantee the order of each column
+            # and use numpy reshape to do the conversion to a 3D array
+            Conc = Conc.sort_index()
 
-        Xstep, Ystep, Zstep = X[1] - X[0], Y[1] - Y[0], Z[1] - Z[0]
-        factor_x = int(500 / Xstep)
-        factor_y = int(500 / Ystep)
-        factor_z = int(100 / Zstep)
+            # Get all the unique X, Y, and Z grid points
+            gridpoints = list(Conc.index)
+            groupedpoints = list(zip(*gridpoints))
+            X = np.unique(groupedpoints[0])
+            Y = np.unique(groupedpoints[1])
+            Z = np.unique(groupedpoints[2])
 
-        p, q = len(theta_h), len(theta_v)
-        x_end = np.zeros((p, q))
-        y_end = np.zeros((p, q))
-        z_end = np.zeros((p, q))
+            # Check if signal is on a regular grid by looking at the number
+            # of rows
+            nx = len(X)
+            ny = len(Y)
+            nz = len(Z)
 
-        # Here, we calculate the real-life coordinate of a far-away point (say,
-        # 500 m away) for each pixel orientation. This is used to calculate CPL
-        # If 500 m goes outside the boundary of 3D considered, concentration
-        # is 0.
+            if nx * ny * nz != Conc.shape[0]:
+                raise RuntimeError('The camera sensor only supports regularly '
+                                   'gridded data')
 
-        for i in range(0, p):
-            for j in range(0, q):
-                x_end[i, j] = factor_x * np.cos(theta_h[i]) * \
-                              np.sin(theta_v[j])
-                y_end[i, j] = factor_y * np.sin(theta_h[i]) * \
-                              np.sin(theta_v[j])
-                z_end[i, j] = factor_z * np.cos(theta_v[j])
+            # TODO: Add check to make sure X,Y,Z points are equally spaced
 
-        # Because calculations happen in pixel coordinates, the
-        # location of the camera (start of calculation) and the
-        # location of far-away point (end of calculation) is converted
-        # to pixel coordinates.
+            # Calculating angles (horizontal and vertical) associated with camera
+            # orientation. The vertical angle is complemented due to spherical
+            # coordinate convention.
+            # dir1 = np.array(CamDir) - np.array(CamLoc)
+            dir1 = np.array(CamDir)
+            dir2 = dir1 / (np.sqrt(dir1[0] ** 2 + dir1[1] ** 2 + dir1[2] ** 2))
+            horiz = np.arccos(dir2[0])
+            vert = np.arccos(dir2[2])
 
-        x_start = (CamLoc[0] - np.min(X)) / Xstep
-        y_start = (CamLoc[1] - np.min(Y)) / Ystep
-        z_start = (CamLoc[2] - np.min(Z)) / Zstep
+            # The camera has 320 X 240 pixels. To speed up computation, this has
+            # been reduced proportionally to 80 X 60. The horizontal (vert) field
+            # of view is divided equally among the 80 (60) horizontal (vert) pixels
+            # TODO: convert horiz/vert field of view degrees to parameters
 
-        # x_start = CamLoc[0] / Xstep + shiftx
-        # y_start = CamLoc[1] / Ystep + shifty
-        # z_start = CamLoc[2] / Zstep + shiftz
+            theta_h = np.linspace(horiz - np.pi / 15, horiz + np.pi / 15, 80)
+            theta_v = np.linspace(vert - np.pi / 20, vert + np.pi / 20, 60)
 
-        x_end += x_start
-        y_end += y_start
-        z_end += z_start
+            # factor_x, factor_y, factor_z are used later for
+            # concentration-pathlength (CPL) calculations. This is because
+            # extrapolation to calculate CPL happens in pixel-coordinates rather
+            # than real-life coordinates. The value 500 is used as a proxy for a
+            # large distance. Beyond 500 m, the IR camera doesn't see anything.
 
-        # These are real-space coordinates of the end points used in simulation
-        # Rx_end = (x_end + 1 - shiftx) * Xstep
-        # Ry_end = (y_end + 1 - shifty) * Ystep
-        # Rz_end = (z_end + 1 - shiftz) * Zstep
+            Xstep, Ystep, Zstep = X[1] - X[0], Y[1] - Y[0], Z[1] - Z[0]
+            factor_x = int(self.dist / Xstep)
+            factor_y = int(self.dist / Ystep)
+            factor_z = int((self.dist / 5) / Zstep)
 
-        # Calculate camera properties
-        nep, tec = self._pixelprop()
+            p, q = len(theta_h), len(theta_v)
+            x_end = np.zeros((p, q))
+            y_end = np.zeros((p, q))
+            z_end = np.zeros((p, q))
 
-        IntConc = np.zeros((p, q))
-        #dist = np.zeros((p, q))
-        dist = 500  # TODO Move this to a parameter
-        CPL = np.zeros((p, q))
+            # Here, we calculate the real-life coordinate of a far-away point (say,
+            # 500 m away) for each pixel orientation. This is used to calculate CPL
+            # If 500 m goes outside the boundary of 3D considered, concentration
+            # is 0.
 
-        # This is where concentration pathlength (CPL) is calculated using
-        # properties of images.
-        for i in range(0, len(theta_h)):
-            for j in range(0, len(theta_v)):
-                IntConc[i, j] = self._pathlength(x_start, y_start, z_start,
-                                                 x_end[i, j], y_end[i, j],
-                                                 z_end[i, j], ppm)
-                # dist[i, j] = np.sqrt((Rx_end[i, j] - CamLoc[0]) ** 2 +
-                #                      (Ry_end[i, j] - CamLoc[1]) ** 2 +
-                #                      (Rz_end[i, j] - CamLoc[2]) ** 2)
-                CPL[i, j] = IntConc[i, j] * dist
+            for i in range(0, p):
+                for j in range(0, q):
+                    x_end[i, j] = factor_x * np.cos(theta_h[i]) * \
+                                  np.sin(theta_v[j])
+                    y_end[i, j] = factor_y * np.sin(theta_h[i]) * \
+                                  np.sin(theta_v[j])
+                    z_end[i, j] = factor_z * np.cos(theta_v[j])
 
-                # This section converts CPL to image contrast and compares it
-                # to nep.
-        attn = CPL * self.Kav * self.NA * 1e-4  # 1e-4 is conversion factor
-        temp = 1 - 10 ** (-attn)
-        contrast = temp * np.abs(tec) * self.tau_air
+            # Because calculations happen in pixel coordinates, the
+            # location of the camera (start of calculation) and the
+            # location of far-away point (end of calculation) is converted
+            # to pixel coordinates.
 
-        pixels = 0
-        for i in range(0, len(theta_h)):
-            for j in range(0, len(theta_v)):
-                if contrast[i, j] >= nep:
-                    pixels += 1
+            x_start = (CamLoc[0] - np.min(X)) / Xstep
+            y_start = (CamLoc[1] - np.min(Y)) / Ystep
+            z_start = (CamLoc[2] - np.min(Z)) / Zstep
 
-        # Camera pixels were initially truncated to 80 x 60 px, which is
-        # re-converted.
-        pixel_final = 16 * pixels
+            x_end += x_start
+            y_end += y_start
+            z_end += z_start
 
-        detect = 0
-        # TODO Move this check and convert to checking threshold parameter
-        if pixel_final >= 400:
-            detect = 1
+            # Calculate camera properties
+            nep, tec = self._pixelprop()
 
-        return detect
+            IntConc = np.zeros((p, q))
+            # dist = np.zeros((p, q))
+            CPL = np.zeros((p, q))
+
+            # Extract the concentration values as a numpy array
+            # Conc = Conc.values
+            # reshaping concentration column as a 3D array
+            # ppm = Conc.reshape(nx, ny, nz)
+
+            for scen in Conc.columns:
+                ppm = Conc.loc[:, scen].values
+                ppm = ppm.reshape(nx, ny, nz)
+
+                # TODO: Convert this to vector operation to remove for-loops??
+                for i in range(0, len(theta_h)):
+                    for j in range(0, len(theta_v)):
+                        # Calculate concentration pathlength (CPL)
+                        IntConc[i, j] = self._pathlength(x_start, y_start,
+                                                         z_start,
+                                                         x_end[i, j],
+                                                         y_end[i, j],
+                                                         z_end[i, j], ppm)
+
+                        CPL[i, j] = IntConc[i, j] * self.dist
+
+                # Convert CPL to image contrast and compare it to nep
+                # 1e-4 is conversion factor
+                attn = CPL * self.Kav * self.NA * 1e-4
+                temp = 1 - 10 ** (-attn)
+                contrast = temp * np.abs(tec) * self.tau_air
+
+                # Count the number of pixels with a contrast greater than nep
+                pixels = sum(sum(contrast >= nep))
+
+                # Camera pixels were initially truncated to 80 x 60 px,
+                # which is now re-converted.
+                pixel_final = 16 * pixels
+
+                detected_pixels.loc[point, scen] = pixel_final
+
+        # detect = 0
+        # # TODO Move this check and convert to checking threshold parameter
+        # if pixel_final >= 400:
+        #     detect = 1
+
+        print(detected_pixels)
+        return detected_pixels
 
     def _pathlength(self, x0, y0, z0, x1, y1, z1, data):
         num = 201  # number of points in extrapolation
         x = np.linspace(x0, x1, num)
         y = np.linspace(y0, y1, num)
         z = np.linspace(z0, z1, num)
-        concs = sn.map_coordinates(data, np.vstack((x, y, z)))
+        concs = sn.map_coordinates(data, np.vstack((x, y, z)), order=1)
         # CPL as a fraction of total number of points in extrapolation
-        test = sum(concs) / num
-        return test
+        avgconc = sum(concs) / num
+        return avgconc
 
     def _pixelprop(self):
         """
@@ -551,4 +618,3 @@ class Camera(SimpleSensor):
                 np.tan(self.fov2 / 2)
         pixel_power = power * frac
         return pixel_power
-

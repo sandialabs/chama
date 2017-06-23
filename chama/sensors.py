@@ -192,12 +192,12 @@ class SimpleSensor(object):
 
         Parameters
         ----------
-        position: :class:`Position` object
+        position : :class:`Position` object
             The position of the sensor
 
         Returns
         -------
-        sample_points: list of tuples
+        sample_points : list of tuples
 
         """
 
@@ -209,10 +209,11 @@ class SimpleSensor(object):
     def get_detected_signal(self, signal, position, interp_method,
                             min_distance):
         """
+        Return the signal detected by the sensor
 
         Parameters
         ----------
-        signal : :class:`pd.DataFrame`
+        signal : :class:`pandas.DataFrame`
             DataFrame with the multi-index (T, X, Y, Z) and columns
             containing the concentrations for different scenarios
         position : :class:`Position` object
@@ -224,7 +225,7 @@ class SimpleSensor(object):
 
         Returns
         -------
-        :class:`pd.Series`
+        :class:`pandas.Series`
             Series with multi-index (T, Scenario) and signal values above
             the sensor threshold.
 
@@ -261,7 +262,7 @@ class SimpleSensor(object):
 
         Parameters
         -----------
-        signal : pd.DataFrame
+        signal : :class:`pandas.DataFrame`
 
         sample_points : list of tuples
 
@@ -277,7 +278,7 @@ class SimpleSensor(object):
 
         Returns
         ---------
-        signal_subset : pd.DataFrame
+        signal_subset : :class:`pandas.DataFrame`
             This DataFrame has a multi-index containing all of the
             sample_points and columns for each scenario with the
             concentration at each sample point
@@ -435,7 +436,7 @@ class Camera(SimpleSensor):
 
         Parameters
         -----------
-        signal : :class:`pd.DataFrame`
+        signal : :class:`pandas.DataFrame`
             DataFrame has a multi-index with (T, X, Y, Z) points
             and each column in the frame contains concentration
             values at those points for one scenario
@@ -444,7 +445,7 @@ class Camera(SimpleSensor):
 
         Returns
         ---------
-        detected_pixels : :class:`pd.DataFrame`
+        detected_pixels : :class:`pandas.DataFrame`
             DataFrame has a multi-index with the sensor's sample_points
             (T,X,Y,Z) and each column contains the number of pixels that
             detected something for one scenario

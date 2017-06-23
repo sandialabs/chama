@@ -72,15 +72,16 @@ class SensorPlacement:
 
         Returns
         -------
-        dict
+        ret_dict : dict
             dictionary that includes the following fields:
                 * selected_sensors : a list of the sensor names that were
-                selected as part of the optimization
+                  selected as part of the optimization
                 * objective_value : the value of the objective at the optimal
-                point (float)
+                  point (float)
                 * scenario_detection : a dictionary with scenario name as keys
-                and the *first* sensor to detect it as the value. None
-                indicates that the scenario was not detected.
+                  and the **first** sensor to detect it as the value. None
+                  indicates that the scenario was not detected.
+
         """
 
         if pyomo_solver_options is None:

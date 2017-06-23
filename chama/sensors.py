@@ -1,7 +1,8 @@
 """
-The sensor module contains methods to define stationary and mobile 
-sensors along with camera properties.
+The sensor module contains classes to define point or camera sensors
+that can either be stationary and mobile.
 """
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata
@@ -12,6 +13,23 @@ import time as tme
 
 
 class Sensor(object):
+    """
+    A sensor for gas detection
+
+    This class represents a sensor and is used to calculate how much of a
+    signal is detected given the properties of the sensor.
+
+    Parameters
+    ----------
+    position : :class:`Position` object
+        The sensor's location in space
+    detector : :class:`SimpleSensor` object
+        The sensor's detector, determines the model used to calculate detection
+    sample_times : list of ints or floats
+        List of the sensor's sample/measurement times
+    location : tuple
+    threshold : int or float
+    """
 
     # TODO: redo these alternative constructors, they don't work
     # @classmethod
@@ -54,6 +72,14 @@ class Sensor(object):
 
 
 class Position(object):
+    """
+    Object representing a stationary position
+
+    Parameters
+    ----------
+    location : (x,y,z) tuple
+        The location of the Position object represented by (x,y,z) coordinates
+    """
 
     def __init__(self, location=None):
 
@@ -61,16 +87,37 @@ class Position(object):
 
     def __call__(self, time):
         """
-            Return the position (x,y,z) at the specified time
+        Return the location (x,y,z) at the specified time
+
+        Parameters
+        ----------
+        time ; int or float
+
+        Returns
+        -------
+        tuple
+            The (x,y,z) location
+
         """
         return tuple(self.location)
 
 
 class Mobile(Position):
     """
-    Mobile position class.
+    Mobile position class
+
     A mobile position moves according to defined waypoints and speed. The
-    mobile position is assumed to repeat its path.
+    mobile position is assumed to move in a straight line between waypoints
+    and will repeat its path if needed
+
+    Parameters
+    ----------
+    locations : list of (x,y,z) tuples
+        List of (x,y,z) tuples defining the waypoints of the mobile
+        position's path.
+    speed : int or float
+        The speed of the mobile position in units assumed to be consistent
+        with the waypoints and sensor sample_times
     """
     def __init__(self, locations=None, speed=1):
         super(Mobile, self).__init__(locations)
@@ -79,7 +126,17 @@ class Mobile(Position):
     
     def __call__(self, time):
         """
-            Return the position (x,y,z) at the specified time
+        Return the position (x,y,z) at the specified time
+
+        Parameters
+        ----------
+        time ; int or float
+
+        Returns
+        -------
+        tuple
+            The (x,y,z) location
+
         """
         # Calculate distance traveled at specified time
         distance = self.speed * time
@@ -113,6 +170,16 @@ class Mobile(Position):
 
 
 class SimpleSensor(object):
+    """
+    Defines a simple concentration sensor
+
+    Parameters
+    ----------
+    threshold : int
+        The minimum signal that can be detected by the sensor.
+    sample_times : list of ints or floats
+        List of the sensor's sample/measurement times
+    """
 
     def __init__(self, threshold=None, sample_times=None):
         self.threshold = threshold
@@ -125,7 +192,8 @@ class SimpleSensor(object):
 
         Parameters
         ----------
-        position: position object for the sensor
+        position: :class:`Position` object
+            The position of the sensor
 
         Returns
         -------
@@ -144,27 +212,28 @@ class SimpleSensor(object):
 
         Parameters
         ----------
-        signal
-        position
-        interp_method
-        min_distance
+        signal : :class:`pd.DataFrame`
+            DataFrame with the multi-index (T, X, Y, Z) and columns
+            containing the concentrations for different scenarios
+        position : :class:`Position` object
+            The position of the sensor
+        interp_method : 'linear' or 'nearest'
+            Method used to interpolate the signal if needed
+        min_distance : float
+            The minimum distance when using the 'nearest' interp_method
 
         Returns
         -------
-        ps.Series
+        :class:`pd.Series`
             Series with multi-index (T, Scenario) and signal values above
-            the sensor threshold
+            the sensor threshold.
 
         """
-        # Given a signal dataframe with index (T, X, Y, Z)
-        # Return the detected scenarios at each sample time
-
         pts = self.get_sample_points(position)
 
         signal_sample = self._get_signal_at_sample_points(signal, pts,
                                                           interp_method,
                                                           min_distance)
-        # print(signal_sample.head())
 
         # Reset the index
         signal_sample = signal_sample.reset_index()
@@ -174,8 +243,6 @@ class SimpleSensor(object):
 
         # Set T as the index
         signal_sample = signal_sample.set_index('T')
-
-        # print(signal_sample.head())
 
         # Apply threshold
         signal_sample = signal_sample[signal_sample > self.threshold]
@@ -244,7 +311,6 @@ class SimpleSensor(object):
         dist = pd.DataFrame(data=distdata, index=signal.index)
 
         if interp_method == 'linear':
-            # print('Performing linear interpolation')
 
             # Loop over interp_points
             for i in range(len(dist.columns)):
@@ -270,7 +336,6 @@ class SimpleSensor(object):
                     signal_subset.loc[interp_points[i], j] = interp_signal
 
         elif interp_method == 'nearest':
-            # print('Performing nearest neighbor interpolation')
 
             # Loop over interp_points
             for i in range(len(dist.columns)):
@@ -308,13 +373,26 @@ class SimpleSensor(object):
 class Camera(SimpleSensor):
     """
     Defines a camera sensor
+
+    Parameters
+    ----------
+    threshold : int
+        The minimum number of pixels that must detect something in order for
+        the camera to detect.
+    sample_times : list of ints or floats
+        List of the sensor's sample/measurement times
+    direction : (x, y, z) tuple
+        Tuple representing the direction that the camera is pointing in (x,
+        y, z) coordinates relative to the origin
+    **kwds : dictionary
+        Keyword arguments for setting parameter values in the camera model
     """
 
     # Constants used in the camera model
     NA = 6.02E23  # Avogadro's number
     h = 6.626e-34  # Planck's constant [J-s]
     SIGMA = 5.67e-8  # Stefan-Boltzmann constant [W/m^2-K^4]
-    c = 3e8  # Speed of light [m/s]
+    c = 3.0e8  # Speed of light [m/s]
     k = 1.38e-23  # Boltzmann's constant [J/K]
 
     def __init__(self, threshold=None, sample_times=None,
@@ -350,14 +428,14 @@ class Camera(SimpleSensor):
     def _get_signal_at_sample_points(self, signal, sample_points,
                                      interp_method, min_distance):
         """
-        Defines detection as seen by a camera object. Not just
+        Defines detection as seen by a camera sensor. Not just
         selecting/interpolating a subset of the signal dataframe. We are using
         the CONCENTRATION signal dataframe to calculate the PIXEL signal at the
         sample points
 
         Parameters
         -----------
-        signal : pd.DataFrame
+        signal : :class:`pd.DataFrame`
             DataFrame has a multi-index with (T, X, Y, Z) points
             and each column in the frame contains concentration
             values at those points for one scenario
@@ -366,8 +444,10 @@ class Camera(SimpleSensor):
 
         Returns
         ---------
-             Detect :  Binary variable based on whether the leak is detected
-                       (1) or not (0) based on the given concentration map.
+        detected_pixels : :class:`pd.DataFrame`
+            DataFrame has a multi-index with the sensor's sample_points
+            (T,X,Y,Z) and each column contains the number of pixels that
+            detected something for one scenario
         """
 
         # TODO: Add option to specify a different camera direction at each
@@ -382,22 +462,20 @@ class Camera(SimpleSensor):
         detected_pixels = pd.DataFrame(None, index=newidx,
                                        columns=signal.columns)
 
+        # TODO: Add interpolation for non-gridded or sparse signal data
         for point in sample_points:
             time = point[0]
             print('        Time: ', time)
             CamLoc = point[1:]
 
+            # We assume that every sample time is in the signal dataframe
             # Extract the rows at the sample time
             Conc = allConc.loc[time, :]
 
             # Might want to move the below calculations to a new function to
             # avoid deeply nested for-loops. Any way to vectorize??
 
-            # For now, assume that every sample time is in the concentration
-            # signal dataframe
-            # TODO: relax this assumption
-
-            # No longer need T
+            # No longer need T column
             Conc = Conc.reset_index(drop=True)
 
             # Set and sort the index so that we can guarantee the order of
@@ -537,9 +615,11 @@ class Camera(SimpleSensor):
 
         Returns
         -------
-        nep : noise-equivalent power
+        nep : float
+            Noise-equivalent power
 
-        tec : temperature-emissivity contrast
+        tec : float
+            Temperature-emissivity contrast
         """
 
         T_a = self.T_g - 20

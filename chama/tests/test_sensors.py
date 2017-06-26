@@ -52,3 +52,32 @@ def test_mobile_point_sensor():
                                 (5.0, 1.0, round(3 - np.sqrt(0.5), 5),
                                  round(np.sqrt(0.5), 5))]
     assert_list_equal(sample_points, expected_sampling_points)
+
+
+def test_stationary_camera_sensor():
+    t = 0.0
+    X = np.linspace(-200, 200, 41)
+    Y = np.linspace(-200, 200, 41)
+    Z = np.linspace(0, 10, 11)
+
+    conc = 10E-3
+
+    allpoints = [[t, x0, y0, z0, conc] for x0 in X for y0 in Y for z0 in Z]
+    signal = pd.DataFrame.from_records(allpoints,
+                                       columns=['T', 'X', 'Y', 'Z', 'S1'])
+
+    signal = signal.set_index(['T', 'X', 'Y', 'Z'])
+
+    camloc = (0, 0, 0)
+    camdir = (1, 1, 1)
+
+    detector = chama.sensors.Camera(threshold=400, sample_times=[t],
+                                    direction=camdir)
+    sensor = chama.sensors.Sensor(location=camloc, detector=detector)
+
+    assert_equal(sensor.detector.threshold, 400)
+    assert_list_equal(sensor.detector.sample_times, [t])
+
+    detected = sensor.get_detected_signal(signal)
+
+    assert_equal(list(detected.values)[0], 76800)

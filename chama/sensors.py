@@ -463,6 +463,7 @@ class Camera(SimpleSensor):
         detected_pixels = pd.DataFrame(None, index=newidx,
                                        columns=signal.columns)
 
+        print('    Calculating camera signal detection')
         # TODO: Add interpolation for non-gridded or sparse signal data
         for point in sample_points:
             time = point[0]
@@ -597,7 +598,7 @@ class Camera(SimpleSensor):
 
                 detected_pixels.loc[point, scen] = pixel_final
 
-        print(detected_pixels)
+        # print(detected_pixels)
         return detected_pixels
 
     def _pathlength(self, x0, y0, z0, x1, y1, z1, data):

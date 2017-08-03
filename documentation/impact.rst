@@ -5,7 +5,7 @@
 .. _impact:
 	
 Impact assessment
-==========================
+=================
 
 Impact assessment extracts the `impact` of a particular sensor detecting
 a particular scenario.  Chama includes two options to compute impact
@@ -30,7 +30,7 @@ The :mod:`chama.impact` module has more information on extracting impact
 metrics from a set of transport scenarios and sensor characteristics.
 
 Detection time
------------------
+--------------
 Sensors can be placed to minimize detection time.  Detection time is the
 time that a sensor first detects a scenario.  An example `detection time`
 impact DataFrame is shown in :numref:`fig-impact-time`.
@@ -62,7 +62,7 @@ detection time of 2.0 to a cost of $40,0000.  Other lines of the impact
 DataFrame be translated in a similar manner.
 
 Coverage
------------
+--------
 Sensors can also be placed to maximize coverage. Coverage is a measure
 of how often a sensor detects a scenario (i.e., the probability of
 detection).  The coverage metric records scenario-time pairs that are

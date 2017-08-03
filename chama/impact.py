@@ -1,6 +1,6 @@
 """
 The impact module contains methods to extract the impact of detecting transport 
-simulations given a set of defined sensor techninologies.
+simulations given a set of defined sensor technologies.
 """
 from __future__ import print_function
 import pandas as pd
@@ -11,6 +11,20 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
             min_distance=10):
     """
     Extract the impact metric from a signal profile and sensors
+
+    Parameters
+    ----------
+    signal
+    sensors
+    metric
+    interp_method
+    min_distance
+
+    Returns
+    -------
+    impact: pd.DataFrame
+        DataFrame with columns 'Scenario', 'Sensor', and 'Impact'
+
     """
     print('Beginning signal extraction...')
 
@@ -32,8 +46,16 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
 
         # Get detected signal
         t0 = time.time()
-        detected = sensor.get_detected_signal(signal, interp_method, 
+        detected = sensor.get_detected_signal(signal, interp_method,
                                               min_distance)
+
+        # if len(detected>0):
+        #     print(name)
+        #     print(detected.head())
+        #     print(type(detected))
+        #     print(detected.index)
+
+
         t1 = time.time()
         # print('time: ', t1-t0, ' s')
         sensor_time = sensor_time + (t1 - t0)
@@ -64,8 +86,10 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
 
     impact = impact.sort_values('Scenario')
     impact = impact.reset_index(drop=True)
-    
-    print(sensor_time, ' sec')
+
+    # print(impact.head())
+
+    # print(sensor_time, ' sec')
 
     return impact
 

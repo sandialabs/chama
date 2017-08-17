@@ -2,6 +2,8 @@
 
     \newpage
 
+.. _example:
+
 Methane emissions example
 ===========================
 

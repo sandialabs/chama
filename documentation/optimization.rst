@@ -2,6 +2,8 @@
 
     \newpage
 
+.. _optimization:
+
 Optimization
 ===========================
 

@@ -65,7 +65,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Chama'
-copyright = u'2016, Sandia National Laboratories'
+copyright = u'2016-2017, Sandia National Laboratories'
 author = u'Sandia National Laboratories'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -137,10 +137,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 else:
     html_theme = 'default'
     html_context = {
-        'css_files': [
-            'https://media.readthedocs.org/css/sphinx_rtd_theme.css',
-            'https://media.readthedocs.org/css/readthedocs-doc-embed.css',
-            '_static/chama.css',
+        'css_files': ['_static/chama.css',
         ],
     }
     
@@ -255,7 +252,6 @@ latex_elements = {
 'preamble':  '''%
   \pagestyle{plain}
   \pagenumbering{arabic}
-  \\renewcommand{\\refname}{References}
   \\raggedright
 ''',
 

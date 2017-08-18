@@ -12,16 +12,6 @@ class SensorPlacement:
     """
     This class implements a Pyomo-based sensor placement solver using the
     stochastic programming formulation from [LBSW12]_.
-
-    Examples
-    --------
-    >>> # read the data into appropriate pandas DataFrame objects
-    >>> ...
-    >>> # create and call the solver
-    >>> spsolver = SensorPlacement()
-    >>> results = spsolver.solve(df_sensor, df_scenario, df_impact, 5)
-    >>> # output the key results, e.g.,
-    >>> print(results['selected_sensors'])
     """
 
     def __init__(self, **kwds):

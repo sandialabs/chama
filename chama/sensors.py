@@ -246,7 +246,7 @@ class SimpleSensor(object):
         signal_sample = signal_sample.set_index('T')
 
         # Apply threshold
-        signal_sample = signal_sample[signal_sample > self.threshold]
+        signal_sample = signal_sample[signal_sample >= self.threshold]
 
         # Name the columns so that the index is labeled after stacking
         signal_sample.columns.name = 'Scenario'

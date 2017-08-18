@@ -85,7 +85,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     ax.set_xlim3d(x_range[0],x_range[1])
     ax.set_ylim3d(y_range[0],y_range[1])
     ax.set_zlim3d(z_range[0],z_range[1])
-    plt.show()
+    fig.show()
 
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
                         x_value=None, y_value=None, z_value=None, log_flag=False,

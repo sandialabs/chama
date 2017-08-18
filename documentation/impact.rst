@@ -86,3 +86,36 @@ scenario-time pair is detected. Sensor placement optimization also
 requires an impact value for each scenario-time that went undetected.
 When maximizing coverage, this value is set to 1 for each scenario-time
 pair.
+
+The following example demonstrates how to extract detection time 
+using a `signal`, described in the :ref:`transport` section, 
+and a set of sensors, described in the :ref:`sensors` section.
+Sensors must be grouped in a dictionary, each with a unique name.  
+The dictionary of sensors can be created as follows:
+
+.. doctest::
+    :hide:
+
+    >>> import chama
+    >>> import pandas as pd
+    >>> import numpy as np
+	>>> stationary_pt_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
+	>>> mobile_pt_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
+	>>> stationary_camera_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
+	>>> mobile_camera_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
+	>>> x,y,z,t = np.meshgrid([1,2], [1,2], [1,2], [0,10])       
+    >>> signal = pd.DataFrame({'X': x.flatten(),'Y': y.flatten(), 'Z': z.flatten(),'T': t.flatten(),'S': x.flatten()})
+	
+.. doctest::
+
+    >>> sensors = {}
+    >>> sensors['sensor1'] = stationary_pt_sensor
+    >>> sensors['sensor2'] = mobile_pt_sensor
+    >>> sensors['sensor3'] = stationary_camera_sensor
+    >>> sensors['sensor4'] = mobile_camera_sensor
+	
+Detection time can then be extracted using the following code:
+
+.. doctest::
+
+    >>> impact = chama.impact.extract(signal, sensors)

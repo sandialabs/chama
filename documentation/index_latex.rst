@@ -13,5 +13,6 @@ Contents
    graphics
    example
    license
+   developers
    reference
 

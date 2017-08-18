@@ -7,51 +7,55 @@
 Sensor technology
 =================
 
-Many different sensor technologies exist for a particular application. For
-example, in the context of gas detection, sensors may monitor the
-concentration at a fixed point or they may be based on optical gas imaging
+Many different sensor technologies exist. For
+example, in the context of gas detection, sensors can monitor the
+concentration at a fixed point or they can be based on optical gas imaging
 technology and monitoring an area within the field of view of the sensor.
-Sensors might be monitoring continuously or at defined sampling times.
-Sensors could also be mounted to vehicles or drones and moving through a
-detection area. In order to understand the tradeoffs between different
+Sensors can monitoring continuously or at defined sampling times.
+Sensors can also be mounted to vehicles or drones and move through a
+specified region. In order to understand the tradeoffs between different
 technologies and select an optimal subset of sensors, these different sensor
 technologies should be considered simultaneously within an optimal sensor
 placement problem.
 
-In Chama, a Sensor object is used to represent a variety of sensor properties
+The :mod:`chama.sensors` module can be used to define sensor technologies in Chama.
+The module is used to represent a variety of sensor properties
 including detector type, detection threshold, location, and sampling times.
-In addition, every sensor object includes a function that accepts a signal
-DataFrame and returns the subset of that signal that is detected by the
-sensor at the defined sampling times. This information is then used by the
-:ref:`impact` module to determine the impact of the sensor on a scenario.
+Additionally, every sensor object includes a function that accepts a `signal`, 
+described in the :ref:`transport` section, and returns the subset of that 
+signal that is detected by a set of sensors. This information is then used to extract
+the `impact` of each sensor on each scenario, as described in the :ref:`impact` section.
+This information is used as input to the sensor placement optimization.
 
-The :mod:`chama.sensors` module can be used to represent 4 types of sensor
-technologies; stationary and mobile point sensors and stationary and mobile
-camera sensors. In addition, the module has been designed to be extensible
-so that additional sensor technologies could easily be incorporated. A
-sensor is declared by specifying a position and a detector. See the
-:ref:`example` section for examples of declaring different sensor types.
-More information about the Sensor, Position, and Detector classes can be
-found in the :mod:`chama.sensors` documentation.
+Each sensor is declared by specifying a **position** and a **detector**.
+Currently, four types of sensor technologies can be defined
+(additional sensor technologies could easily be incorporated):
 
-Position class types
+* Stationary point sensors
+
+* Mobile point sensors
+
+* Stationary camera sensors
+
+* Mobile camera sensors
+
+Position options
 --------------------
 
-- **Position**: used to define a stationary sensor that is fixed at a single
-  location.
+- **Stationary**: A stationary sensor that is fixed at a single location.
 
-- **Mobile**: defines a mobile sensor that moves according to defined waypoints
+- **Mobile**: A mobile sensor that moves according to defined waypoints
   and speed. It can also be defined to repeat its path.
 
-Detector class types
+Detector options
 --------------------
 
-- **SimpleSensor**: used to define a concentration point detector. This
-  detector type determines detection by comparing a signal to the detector's
+- **Point**: A point detector. This type of
+  detector determines detection by comparing a signal to the detector's
   threshold.
 
-- **Camera**: defines a camera detector. The camera model is based on those in
-  [include references]. See the API documentation for details on the available
-  camera parameters. This detector type determines detection by collecting
+- **Camera**: A camera detector using the camera model from [RaWB16]_. 
+  This type of detector determines detection by collecting
   the signal within the camera's field of view, converting that signal to
-  pixels, and comparing that to the detector's threshold in terms of pixels
+  pixels, and comparing that to the detector's threshold in terms of pixels.
+

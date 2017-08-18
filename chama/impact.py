@@ -26,7 +26,7 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
         DataFrame with columns 'Scenario', 'Sensor', and 'Impact'
 
     """
-    print('Beginning signal extraction...')
+    #print('Beginning signal extraction...')
 
     # Extracting a subset of the signal in the sensor module is fastest
     # using multiindex even though setting the index initially is slow
@@ -35,13 +35,13 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
     if not isinstance(signal.index, pd.MultiIndex):
         t0 = time.time()
         signal = signal.set_index(txyz)
-        print('Time to set the index: ', time.time() - t0, ' sec')
+        #print('Time to set the index: ', time.time() - t0, ' sec')
 
     temp_impact = {'Scenario': [], 'Sensor': [], 'Impact': []}
 
     sensor_time = 0
 
-    print("    Extract/Integrate...")
+    #print("    Extract/Integrate...")
     for (name, sensor) in sensors.items():  # loop over sensors
 
         # Get detected signal

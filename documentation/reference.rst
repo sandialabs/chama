@@ -18,7 +18,9 @@ References
 	If the 6 digits match another citation, add a lower case letter (a, b, ...)
 	
 	* Exception made USEPA
-	
+
+.. [Arya99] Arya, S.P. (1999). Air pollution meteorology and dispersion (Vol. 6). New York: Oxford University Press.
+
 .. [HLWW12] Hart, W.E., Laird, C, Watson, J.P., & Woodruff D.L. (2012). Pyomo -- Optimization Modeling in Python, Volume 67 of Springer Optimization and Its Applications, Springer Science & Business Media.
 
 .. [Hunt07] Hunter, J.D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 3(9), 90-95.
@@ -32,6 +34,8 @@ References
 .. [McHa88] McDonald, M.G., & Harbaugh, A.W. (1988). A Modular Three-dimensional Finite-Difference Groundwater Flow Model: U.S. Geological Survey Techniques of Water-Resources Investigations, Book 6, Chap. A1, 586p.
 
 .. [Mcki13] McKinney W. (2013). Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython. O'Reilly Media, 1 edition, 466P.
+
+.. [RaWB16] Ravikumar, A.P., Wang, J., Brandr, A.R. (2016). Are Optical Gas Imaging Technologies Effective For Methane Leak Detection? Environmental science and technology 51 (1), 718-724.
 
 .. [Ross00] Rossman, L.A. (2000). EPANET 2 Users Manual. U. S. Environmental Protection Agency Technical Report, EPA/600/R--00/057, 200p.
 

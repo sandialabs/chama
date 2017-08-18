@@ -223,12 +223,13 @@ class GaussianPlume:
             conc_at_t[np.isnan(conc_at_t)] = 0
             conc_at_t = pd.DataFrame(data=np. transpose([self.grid.x.ravel(),
                 self.grid.y.ravel(), self.grid.z.ravel(), conc_at_t.ravel()]), 
-                columns=['X', 'Y', 'Z', 'C'])
+                columns=['X', 'Y', 'Z', 'S'])
             conc_at_t['T'] = t
             
             conc = conc.append(conc_at_t, ignore_index=True)
-        self.conc = conc
 
+        self.conc = conc
+        self.conc = self.conc[['X', 'Y', 'Z', 'T', 'S']]
 
 class GaussianPuff:
     
@@ -417,8 +418,9 @@ class GaussianPuff:
                                                         self.grid.y.ravel(),
                                                         self.grid.z.ravel(),
                                                         conc_at_t.ravel()]),
-                                     columns=['X', 'Y', 'Z', 'C'])
+                                     columns=['X', 'Y', 'Z', 'S'])
             conc_at_t['T'] = t
             conc_list.append(conc_at_t)
 
         self.conc = pd.concat(conc_list, ignore_index=True)
+        self.conc = self.conc[['X', 'Y', 'Z', 'T', 'S']]

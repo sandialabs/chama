@@ -60,7 +60,7 @@ install:
     - python setup.py install
 
 script:
-    - nosetests -v --with-coverage --cover-package=chama chama
+    - nosetests -v --with-coverage --with-doctest --doctest-extension=.rst --cover-package=chama documentation chama
 
 after_success:
     coveralls

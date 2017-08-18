@@ -37,8 +37,10 @@ class TestImpact(unittest.TestCase):
                                  ('S', 'sensor2', 10),
                                  ('S', 'sensor3', 20)],
                     columns=['Scenario', 'Sensor', 'Impact'])
-
-        assert_frame_equal(impact, expected, check_dtype=False)
+        
+        assert_frame_equal(impact.sort_values('Impact').reset_index(inplace=True), 
+                           expected.sort_values('Impact').reset_index(inplace=True), 
+                            check_dtype=False)
     
     #def test_extract_with_interpolation(self):
     #    new_sensors = self.sensors

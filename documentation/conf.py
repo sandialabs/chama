@@ -126,8 +126,10 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'sphinxdoc'
+#html_theme = 'sphinx_rtd_theme'
 
+def setup(app):
+  app.add_stylesheet( "chama.css" )			   
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
@@ -136,10 +138,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     html_style = 'chama.css'
 else:
     html_theme = 'default'
-    html_context = {
-        'css_files': ['_static/chama.css',
-        ],
-    }
+#    html_context = {
+#        'css_files': ['_static/chama.css'],
+#    }
     
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -158,7 +159,7 @@ else:
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = 'figures/logo.jpg'                                                   
+#html_logo = 'figures/chama.jpg'                                                   
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -253,6 +254,7 @@ latex_elements = {
   \pagestyle{plain}
   \pagenumbering{arabic}
   \\raggedright
+  \\bibliographystyle{ieeetr}						 
 ''',
 
 # Latex figure (float) alignment

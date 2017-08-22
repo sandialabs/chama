@@ -25,44 +25,21 @@ class Sensor(object):
         The sensor's location in space
     detector : :class:`SimpleSensor` object
         The sensor's detector, determines the model used to calculate detection
-    sample_times : list of ints or floats
-        List of the sensor's sample/measurement times
-    location : tuple
-    threshold : int or float
     """
 
-    # TODO: redo these alternative constructors, they don't work
-    # @classmethod
-    # def CameraSensor(cls, **kwds):
-    #     return Sensor(detector=Camera(), **kwds)
-    #
-    # @classmethod
-    # def MobileSensor(cls, **kwds):
-    #     return Sensor(position=Mobile(), **kwds)
-    #
-    # @classmethod
-    # def MobileCameraSensor(cls, **kwds):
-    #     return Sensor(position=Mobile(), detector=Camera(), **kwds)
-
-    def __init__(self, position=None, detector=None, sample_times=None,
-                 location=None, threshold=None):
+    def __init__(self, position=None, detector=None):
 
         self.name = None
 
-        if position:
-            self.position = position
-            if location:
-                self.position.location = location
-        else:
-            self.position = Position(location=location)
+        if position is None or not isinstance(position, Position):
+            raise ValueError('Must specify a Position object to create a '
+                             'Sensor')
+        self.position = position
 
-        if detector:
-            self.detector = detector
-            if sample_times:
-                self.detector.sample_times = sample_times
-        else:
-            self.detector = SimpleSensor(sample_times=sample_times,
-                                            threshold=threshold)
+        if detector is None or not isinstance(detector, Detector):
+            raise ValueError('Must specify a Detector object to create a '
+                             'Sensor')
+        self.detector = detector
 
     def get_detected_signal(self, signal, interp_method='linear',
                             min_distance=10.0):
@@ -73,16 +50,14 @@ class Sensor(object):
 
 class Position(object):
     """
-    Object representing a stationary position
+    Object representing a sensor position
 
     Parameters
     ----------
     location : (x,y,z) tuple
         The location of the Position object represented by (x,y,z) coordinates
     """
-
     def __init__(self, location=None):
-
         self.location = location
 
     def __call__(self, time):
@@ -100,6 +75,14 @@ class Position(object):
 
         """
         return tuple(self.location)
+
+
+class Stationary(Position):
+    """
+    Object representing a stationary position
+
+    """
+    pass
 
 
 class Mobile(Position):
@@ -169,9 +152,9 @@ class Mobile(Position):
         return tuple(location)
 
 
-class SimpleSensor(object):
+class Detector(object):
     """
-    Defines a simple concentration sensor
+    Base class for different detector types
 
     Parameters
     ----------
@@ -256,6 +239,17 @@ class SimpleSensor(object):
 
     def _get_signal_at_sample_points(self, signal, sample_points,
                                      interp_method, min_distance):
+        raise NotImplementedError()
+
+
+class Point(Detector):
+    """
+    Defines a simple point sensor
+
+    """
+
+    def _get_signal_at_sample_points(self, signal, sample_points,
+                                     interp_method, min_distance):
         """
         Extract the signal at the sensor sample points. If a sample point
         does not exist in the signal DataFrame then interpolate the signal
@@ -296,7 +290,7 @@ class SimpleSensor(object):
         if len(interp_points) == 0:
             return signal_subset
 
-        print('Interpolation required for ', len(interp_points), ' points')
+        # print('Interpolation required for ', len(interp_points), ' points')
         t0 = tme.time()
         # TODO: Revisit the distance calculation.
         # Scaling issue by including both time and xyz location in distance
@@ -366,12 +360,12 @@ class SimpleSensor(object):
                              ' "%s" was specified. Only "linear" or "nearest" '
                              'interpolations are supported' % interp_method)
 
-        print('   Interpolation time: ', tme.time() - t0, ' sec')
+        # print('   Interpolation time: ', tme.time() - t0, ' sec')
 
         return signal_subset
 
 
-class Camera(SimpleSensor):
+class Camera(Detector):
     """
     Defines a camera sensor
 
@@ -463,11 +457,11 @@ class Camera(SimpleSensor):
         detected_pixels = pd.DataFrame(None, index=newidx,
                                        columns=signal.columns)
 
-        print('    Calculating camera signal detection')
+        # print('    Calculating camera signal detection')
         # TODO: Add interpolation for non-gridded or sparse signal data
         for point in sample_points:
             time = point[0]
-            print('        Time: ', time)
+            # print('        Time: ', time)
             CamLoc = point[1:]
 
             # We assume that every sample time is in the signal dataframe

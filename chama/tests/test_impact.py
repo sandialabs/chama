@@ -13,35 +13,35 @@ class TestImpact(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         sensors = {}
-        sensors['sensor1'] = chama.sensors.Sensor(sample_times=[0],
+        sensors['A'] = chama.sensors.Sensor(sample_times=[0],
                                                   location=(1, 2, 3),
                                                   threshold=0)
-        sensors['sensor2'] = chama.sensors.Sensor(sample_times=[0, 10],
+        sensors['B'] = chama.sensors.Sensor(sample_times=[0, 10],
                                                   location=(2, 2, 2),
                                                   threshold=2)
-        sensors['sensor3'] = chama.sensors.Sensor(sample_times=[0, 10, 20],
+        sensors['C'] = chama.sensors.Sensor(sample_times=[0, 10, 20],
                                                   location=(3, 2, 1),
                                                   threshold=40)
         self.sensors = sensors
 
-        x, y, z, t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20])
+        x, y, z, t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20, 30])
         self.signal = pd.DataFrame({'X': x.flatten(),
                                     'Y': y.flatten(),
                                     'Z': z.flatten(),
                                     'T': t.flatten(),
-                                    'S': x.flatten() * t.flatten()})
+                                    'S': t.flatten() * t.flatten()})
 
     @classmethod
     def tearDownClass(self):
         pass
 
     def test_extract(self):
-        impact = chama.impact.extract(self.signal, self.sensors)
+        impact = chama.impact.detection_times(self.signal, self.sensors)
 
-        expected = pd.DataFrame([('S', 'sensor1', 0),
-                                 ('S', 'sensor2', 10),
-                                 ('S', 'sensor3', 20)],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+        expected = pd.DataFrame([('S', 'A', [0]),
+                                 ('S', 'B', [10]),
+                                 ('S', 'C', [10,20])],
+                                columns=['Scenario', 'Sensor', 'T'])
 
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)

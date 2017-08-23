@@ -4,11 +4,9 @@ simulations given a set of defined sensor technologies.
 """
 from __future__ import print_function
 import pandas as pd
-import time
+import numpy as np
 
-
-def extract(signal, sensors, metric='Time', interp_method='linear', 
-            min_distance=10):
+def detection_times(signal, sensors, interp_method='linear', min_distance=10, metric=None):
     """
     Extract the impact metric from a signal profile and sensors
 
@@ -26,108 +24,83 @@ def extract(signal, sensors, metric='Time', interp_method='linear',
         DataFrame with columns 'Scenario', 'Sensor', and 'Impact'
 
     """
-    #print('Beginning signal extraction...')
-
     # Extracting a subset of the signal in the sensor module is fastest
     # using multiindex even though setting the index initially is slow
     txyz = ['T', 'X', 'Y', 'Z']
     # check if the signal is already in multiindex form
     if not isinstance(signal.index, pd.MultiIndex):
-        t0 = time.time()
         signal = signal.set_index(txyz)
-        #print('Time to set the index: ', time.time() - t0, ' sec')
 
-    temp_impact = {'Scenario': [], 'Sensor': [], 'Impact': []}
+    temp_det_times = {'Scenario': [], 'Sensor': [], 'T': []}
 
-    sensor_time = 0
-
-    #print("    Extract/Integrate...")
     for (name, sensor) in sensors.items():  # loop over sensors
 
         # Get detected signal
-        t0 = time.time()
         detected = sensor.get_detected_signal(signal, interp_method,
                                               min_distance)
 
-        # if len(detected>0):
-        #     print(name)
-        #     print(detected.head())
-        #     print(type(detected))
-        #     print(detected.index)
-
-
-        t1 = time.time()
-        # print('time: ', t1-t0, ' s')
-        sensor_time = sensor_time + (t1 - t0)
-
         # If the sensor detected something
         if detected.shape[0] > 0:
-            if metric == 'Coverage':
-                # Rework this to remove the for loop
-                for row in range(detected.shape[0]):
-                    col = str(detected.index[row])
-                    val = 0
-                    temp_impact['Scenario'].append(col)
-                    temp_impact['Sensor'].append(name)
-                    temp_impact['Impact'].append(val)
+            for scenario_name, group in detected.groupby(level=[1]):
+                temp_det_times['Scenario'].append(scenario_name)
+                temp_det_times['Sensor'].append(name)
+                temp_det_times['T'].append(group.index.get_level_values(0).tolist())
+            
+    det_times = pd.DataFrame()
+    det_times['Scenario'] = temp_det_times['Scenario']
+    det_times['Sensor'] = temp_det_times['Sensor']
+    det_times['T'] = temp_det_times['T']
 
-            elif metric == 'Time':
-                for col in set(detected.index.get_level_values(1)):
-                    temp = detected.loc[:, col]  # this returns a series
-                    val = temp.index.min()
-                    temp_impact['Scenario'].append(col)
-                    temp_impact['Sensor'].append(name)
-                    temp_impact['Impact'].append(val)
+    det_times = det_times.sort_values('Scenario')
+    det_times = det_times.reset_index(drop=True)
+    
+    return det_times
 
-    impact = pd.DataFrame()
-    impact['Scenario'] = temp_impact['Scenario']
-    impact['Sensor'] = temp_impact['Sensor']
-    impact['Impact'] = temp_impact['Impact']
+def detection_time_stats(det_times, statistic='min'):
 
-    impact = impact.sort_values('Scenario')
-    impact = impact.reset_index(drop=True)
+    impact_col_name = list(set(det_times.columns) - set(['Scenario', 'Sensor']))[0]
+    
+    det_t = det_times.copy()
+    for index, row in det_t.iterrows():
+        if statistic == 'min':
+            row[impact_col_name] = np.min(row[impact_col_name])
+    
+    det_t = det_t.rename(columns={impact_col_name: statistic+impact_col_name})
+    
+    return det_t
+    
+def translate(det_t, damage):
+    
+    impact_col_name = list(set(det_t.columns) - set(['Scenario', 'Sensor']))[0]
+    
+    damage = damage.set_index('T')
+    allT = list(set(det_t[impact_col_name]) | set(damage.index))
+    damage = damage.reindex(allT)
+    damage.apply(pd.Series.interpolate)
+    
+    det_damage = det_t.copy()
+    for index, row in det_damage.iterrows():
+        row[impact_col_name] = damage.loc[row[impact_col_name],row['Scenario']]
+    
+    det_damage = det_damage.rename(columns={impact_col_name: 'Damage'})
+    
+    return det_damage
 
-    # print(impact.head())
-
-    # print(sensor_time, ' sec')
-
-    return impact
-
-
-# def _translate(impact, metric):
-#     """
-#     Translate the time of detection to a different metric
-#     """
-#     # Gather sample points
-#     scenario = impact.index.get_level_values(0)
-#     t = impact.tolist()
-#     sample_points = list(zip(scenario,t))
-#
-#     # Interpolate metrics (if needed)
-#     metric = interpolate(metric, sample_points)
-#
-#     # There is probably a better way to do this without a loop
-#     data = {}
-#     for i in range(impact.shape[0]):
-#         data[(impact.index[i][0], impact.index[i][1])] = metric[
-#             impact.index[i][0]][impact.iloc[i]]
-#
-#     # Reindex
-#     impact_metric = pd.Series(data)
-#     impact_metric.index.names = ['Scenario', 'Sensor']
-#
-#     return impact_metric
-
-# def _add_nondetected_impact(impact_metric, scenario_list,
-#                             nondetected_impact_value):
-#
-#     multiindex = pd.MultiIndex.from_tuples(list(zip(scenario_list,
-#                                                 len(scenario_list) * [
-#                                                     '_NotDetected'])),
-#                                        names=impact_metric.index.names)
-#     nondetected_impact = pd.DataFrame(index=multiindex,
-#                                       data=nondetected_impact_value,
-#                                       columns=impact_metric.columns)
-#     impact_metric = impact_metric.append(nondetected_impact)
-#
-#     return impact_metric
+def _detection_times_to_coverage(det_times):
+    
+    impact_col_name = list(set(det_times.columns) - set(['Scenario', 'Sensor']))[0]
+    
+    temp = {'Scenario': [], 'Sensor': [], impact_col_name: []}
+    for index, row in det_times.iterrows():
+        for t in row['T']:
+            temp['Scenario'].append(str((t,row['Scenario'])))
+            temp['Sensor'].append(row['Sensor'])
+            temp[impact_col_name].append(0.0)
+    coverage = pd.DataFrame()
+    coverage['Scenario'] = temp['Scenario']
+    coverage['Sensor'] = temp['Sensor']
+    coverage['Cov'] = temp['Cov']
+    coverage = coverage.sort_values('Scenario')
+    coverage = coverage.reset_index(drop=True)
+    
+    return coverage

@@ -3,7 +3,6 @@ Contents
 .. toctree::
    :maxdepth: 1
 	
-   acknowledgements
    overview
    installation
    transport
@@ -11,7 +10,6 @@ Contents
    impact
    optimization
    graphics
-   example
    license
    developers
    reference

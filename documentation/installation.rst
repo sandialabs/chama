@@ -14,17 +14,13 @@ To install the latest stable version of Chama using pip::
 
 	pip install chama
 
-To build the development branch of Chama from source using git::
+To install the development branch of Chama from source using git::
 
 	git clone https://github.com/sandialabs/chama
 	cd chama
 	python setup.py install
 
-Developers should build Chama using the 'develop' option::
-
-	git clone https://github.com/sandialabs/chama
-	cd chama
-	python setup.py develop
+Developers should build Chama using the setup.py 'develop' option.
 
 Dependencies
 --------------

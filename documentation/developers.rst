@@ -5,7 +5,7 @@
 Software development
 ======================================
 
-The following section includes information on where to find resources associated with the Chama software project, including
+The following section includes information on resources associated with the Chama software project, including
 the GitHub repository, 
 the Python Package Index (PyPI), 
 software tests, 
@@ -18,7 +18,7 @@ and information on contributing.
 The Chama software repository is hosted on GitHub at https://github.com/sandialabs/chama.  
 
 **PyPI:**
-The latest stable version hosted on PyPI at https://pypi.python.org/pypi/chama.
+The latest stable version is hosted on PyPI at https://pypi.python.org/pypi/chama.
 
 **Testing:**
 Automated testing is run using TravisCI at https://travis-ci.org/sandialabs/chama.

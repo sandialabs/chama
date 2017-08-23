@@ -9,9 +9,10 @@ datadir = join(testdir, 'data')
 
 
 def test_stationary_point_sensor():
-    sensor = chama.sensors.Sensor(location=(1, 2, 3),
-                                  sample_times=[4, 5, 6],
-                                  threshold=1E-3)
+
+    pos = chama.sensors.Stationary(location=(1, 2, 3))
+    det = chama.sensors.Point(sample_times=[4, 5, 6], threshold=1E-3)
+    sensor = chama.sensors.Sensor(position=pos, detector=det)
 
     assert_tuple_equal(sensor.position.location, (1, 2, 3))
     assert_list_equal(sensor.detector.sample_times, [4, 5, 6])
@@ -34,9 +35,8 @@ def test_mobile_point_sensor():
                                           (1, 3, 0),
                                           (1, 2, 1)],
                                speed=1)
-    sensor = chama.sensors.Sensor(position=pos,
-                                  sample_times=[1, 2, 3, 4, 5],
-                                  threshold=1E-3)
+    det = chama.sensors.Point(sample_times=[1, 2, 3, 4, 5], threshold=1E-3)
+    sensor = chama.sensors.Sensor(position=pos, detector=det)
     
     temp = sensor.detector.get_sample_points(sensor.position)
     sample_points = []
@@ -73,7 +73,8 @@ def test_stationary_camera_sensor():
 
     detector = chama.sensors.Camera(threshold=400, sample_times=[t],
                                     direction=camdir)
-    sensor = chama.sensors.Sensor(location=camloc, detector=detector)
+    pos = chama.sensors.Stationary(location=camloc)
+    sensor = chama.sensors.Sensor(position=pos, detector=detector)
 
     assert_equal(sensor.detector.threshold, 400)
     assert_list_equal(sensor.detector.sample_times, [t])

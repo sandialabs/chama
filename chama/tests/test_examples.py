@@ -54,7 +54,7 @@ def test_simple_example():
     
     # Solve sensor placement
     sensor_budget = 5
-    solver = chama.solver.SensorPlacement()
+    solver = chama.optimize.Pmedian()
     results = solver.solve(df_sensor, df_scenario, df_impact,
                            sensor_budget, pyomo_solver_options={'tee': False})
     

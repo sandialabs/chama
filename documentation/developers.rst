@@ -5,7 +5,8 @@
 Software development
 ======================================
 
-The following section includes information on resources associated with the Chama software project, including
+The following section includes information on resources associated with 
+the Chama software project, including
 the GitHub repository, 
 the Python Package Index (PyPI), 
 software tests, 
@@ -38,4 +39,3 @@ The core development team will prioritize requests.
 Software developers are expected to follow standard practices to document and test new code. 
 Pull requests will be reviewed by the core development team.
 See https://github.com/sandialabs/chama/graphs/contributors for a list of contributors.
-

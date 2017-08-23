@@ -1,5 +1,5 @@
 """
-The solver module contains high-level solvers for sensor placement
+The optimize module contains high-level solvers for sensor placement
 optimization.
 """
 import pyomo.environ as pe
@@ -8,38 +8,37 @@ import numpy as np
 import pandas as pd
 
 
-class SensorPlacement:
+class Pmedian(object):
     """
-    This class implements a Pyomo-based sensor placement solver using the
+    This class implements a Pyomo-based Pmedian sensor placement solver using the
     stochastic programming formulation from [LBSW12]_.
     """
 
     def __init__(self, **kwds):
-        """
-        Create an instance of the SensorPlacement
-        """
+
         self.scenario_prob = kwds.pop('scenario_prob', False)
+        self.coverage = kwds.pop('coverage', False)
         
-    def solve(self, df_sensor, df_scenario, df_impact, sensor_budget,
+    def solve(self, sensor, scenario, impact, sensor_budget,
               mip_solver_name='glpk', pyomo_solver_options=None):
         """
         Call this method to solve the sensor placement problem using Pyomo.
 
         Parameters
         ----------
-        df_sensor : :class:`pandas.DataFrame`
+        sensor : :class:`pandas.DataFrame`
             This is a pandas dataframe with columns "Sensor" (of type str) and
             "Cost" (of type float), where "Sensor" specifies the name of the
             sensor, and "Cost" gives the cost as a floating point number. For
             a simple sensor budget of N sensors, set the sensor_budget to N
             and specify the cost as 1.0 for each sensor.
-        df_scenario : :class:`pandas.DataFrame`
+        scenario : :class:`pandas.DataFrame`
             This is a pandas dataframe with the columns "Scenario" (of type
             str) and "Undetected Impact" (of type float), where "Scenario"
             specifies the scenario name, and "Undetected Impact" specifies the
             impact that will be realized if this scenario is not detected by
             any selected sensor.
-        df_impact : :class:`pandas.DataFrame`
+        impact : :class:`pandas.DataFrame`
             This is a pandas dataframe with the columns "Scenario" (of type
             str), "Sensor" (of type str), and "Impact" (of type float). It is
             a sparse representation of an impact matrix where "Scenario" is
@@ -76,27 +75,30 @@ class SensorPlacement:
 
         if pyomo_solver_options is None:
             pyomo_solver_options = {}
-
+        
+        if self.coverage:
+            impact = self._detection_times_to_coverage(impact)
+            
         # validate the pandas dataframe input
-        cu.df_columns_required('df_sensor', df_sensor,
+        cu.df_columns_required('df_sensor', sensor,
                                {'Sensor': np.object, 'Cost': np.float64})
-        cu.df_nans_not_allowed('df_sensor', df_sensor)
-        cu.df_columns_required('df_scenario', df_scenario,
+        cu.df_nans_not_allowed('df_sensor', sensor)
+        cu.df_columns_required('df_scenario', scenario,
                                {'Scenario': np.object,
                                 'Undetected Impact': np.float64})
-        cu.df_nans_not_allowed('df_scenario', df_scenario)
-        cu.df_columns_required('df_impact', df_impact,
+        cu.df_nans_not_allowed('df_scenario', scenario)
+        cu.df_columns_required('df_impact', impact,
                                {'Scenario': np.object,
                                 'Sensor': np.object,
                                 'Impact': np.float64})
-        cu.df_nans_not_allowed('df_impact', df_impact)
+        cu.df_nans_not_allowed('df_impact', impact)
 
         # validate optional columns in pandas dataframe input
         if self.scenario_prob:
-            cu.df_columns_required('df_scenario', df_scenario,
+            cu.df_columns_required('df_scenario', scenario,
                                    {'Probability': np.float64})
 
-        model = self._create_pyomo_model(df_sensor, df_scenario, df_impact,
+        model = self._create_pyomo_model(sensor, scenario, impact,
                                          sensor_budget)
 
         self._solve_pyomo_model(model, mip_solver_name, pyomo_solver_options)
@@ -117,7 +119,7 @@ class SensorPlacement:
         Returns
         -------
         dict
-            dictionary object specified by :func:`SensorPlacement.solve`
+            dictionary object specified by :func:`Pmedian.solve`
         """
         selected_sensors = []
         for key in model.y:
@@ -145,13 +147,13 @@ class SensorPlacement:
         Parameters
         ----------
         df_sensor : :class:`pandas.DataFrame`
-            see :func:`~solver.SensorPlacement.solve`
+            see :func:`~solver.Pmedian.solve`
         df_scenario : :class:`pandas.DataFrame`
-            see :func:`~solver.SensorPlacement.solve`
+            see :func:`~solver.Pmedian.solve`
         df_impact : :class:`pandas.DataFrame`
-            see :func:`~solver.SensorPlacement.solve`
+            see :func:`~solver.Pmedian.solve`
         sensor_budget : float
-            see :func:`~solver.SensorPlacement.solve`
+            see :func:`~solver.Pmedian.solve`
 
         Returns
         -------
@@ -278,11 +280,35 @@ class SensorPlacement:
         return opt.solve(model, **pyomo_solver_options)
 
 
-class SensorPlacement_ScenarioProbability(SensorPlacement):
+class Pmedian_ScenarioProbability(Pmedian):
     """
-    A SensorPlacement that includes scenario probabilities in the formulation.
+    A Pmedian that includes scenario probabilities in the formulation.
     """
 
     def __init__(self, **kwds):
         kwds['scenario-prob'] = True
-        SensorPlacement.__init__(self, **kwds)
+        Pmedian.__init__(self, **kwds)
+
+class Coverage(Pmedian):
+    
+    def __init__(self, **kwds):
+        kwds['coverage'] = True
+        Pmedian.__init__(self, **kwds)
+    
+    def _detection_times_to_coverage(self, det_times):
+    
+        temp = {'Scenario': [], 'Sensor': [], 'Impact': []}
+        for index, row in det_times.iterrows():
+            for t in row['Impact']:
+                temp['Scenario'].append(str((t,row['Scenario'])))
+                temp['Sensor'].append(row['Sensor'])
+                temp['Impact'].append(0.0)
+        coverage = pd.DataFrame()
+        coverage['Scenario'] = temp['Scenario']
+        coverage['Sensor'] = temp['Sensor']
+        coverage['Impact'] = temp['Impact']
+        coverage = coverage.sort_values('Scenario')
+        coverage = coverage.reset_index(drop=True)
+        
+        return coverage
+        

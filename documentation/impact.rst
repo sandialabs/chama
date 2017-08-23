@@ -16,9 +16,8 @@ The :mod:`chama.impact` module is used to extract detection
 times and convert detection time to other damage metrics.
 
 Chama uses Pandas DataFrames [Mcki13]_ to store the impact assessment.  
-Each DataFrame has three columns: Scenario, Sensor, and Impact value.
-Exact column names must be used for Scenario and Sensor. 
-The column name for impact value can be defined by the user.
+Each DataFrame has three columns: Scenario, Sensor, and Impact.
+Exact column names must be used.  Note that 'Impact' can represent different metrics.
 
 Detection times
 -----------------
@@ -38,12 +37,23 @@ Group sensors in a dictionary:
     >>> import chama
     >>> import pandas as pd
     >>> import numpy as np
-    >>> stationary_pt_sensor = chama.sensors.Sensor(sample_times=[0,10,20],location=(1, 2, 3),threshold=15)
-    >>> mobile_pt_sensor = chama.sensors.Sensor(sample_times=[0,10,20],location=(2, 3, 1),threshold=25)
-    >>> stationary_camera_sensor = chama.sensors.Sensor(sample_times=[0,10,20,30,40],location=(3, 2, 1),threshold=100)
-    >>> mobile_camera_sensor = chama.sensors.Sensor(sample_times=[0],location=(1, 2, 1),threshold=1000)     
-    >>> x, y, z, t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20, 30, 40])
-    >>> signal = pd.DataFrame({'X': x.flatten(),'Y': y.flatten(),'Z': z.flatten(),'T': t.flatten(),'S1': x.flatten() * t.flatten(),'S2': z.flatten() * t.flatten(),'S3': t.flatten() * t.flatten()})
+    >>> posA = chama.sensors.Stationary(location=(1,2,3))
+    >>> detA = chama.sensors.Point(sample_times=[0,10,20,30], threshold=30)
+    >>> stationary_pt_sensor = chama.sensors.Sensor(position=posA, detector=detA)
+    >>> posB = chama.sensors.Mobile(locations=[(2,3,1.1),(2,3,1),(2,3.1,1),(2,3,3)], speed=1)
+    >>> detB = chama.sensors.Point(sample_times=[0,10,20,30], threshold=60)
+    >>> mobile_pt_sensor = chama.sensors.Sensor(position=posB, detector=detB)
+    >>> posC = chama.sensors.Stationary(location=(3,2,1))
+	>>> detC = chama.sensors.Camera(threshold=100, sample_times=[0,10,20,30,40], direction=(1,1,1))
+    >>> stationary_camera_sensor = chama.sensors.Sensor(position=posC, detector=detC)
+	>>> posD = chama.sensors.Mobile(locations=[(1,1,1),(1,2,1),(1,2,2),(2,1,1)], speed=1)
+	>>> detD = chama.sensors.Camera(threshold=10000, sample_times=[0], direction=(1,1,1))
+	>>> mobile_camera_sensor = chama.sensors.Sensor(position=posD, detector=detD)
+	>>> x,y,z,t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20, 30, 40])
+    >>> signal = pd.DataFrame({'X': x.flatten(),'Y': y.flatten(),'Z': z.flatten(),'T': t.flatten(),
+    ...                        'S1': x.flatten() * t.flatten(),
+    ...                        'S2': z.flatten() * t.flatten(),
+    ...                        'S3': (t.flatten()-10) * t.flatten()})
 
 .. doctest::
 
@@ -59,20 +69,20 @@ Extract detection times:
 
     >>> det_times = chama.impact.detection_times(signal, sensors)
     >>> print(det_times)
-      Scenario Sensor                 T
-    0       S1      A              [20]
-    1       S1      B              [20]
-    2       S1      C              [40]
-    3       S2      A          [10, 20]
-    4       S3      A          [10, 20]
-    5       S3      B          [10, 20]
-    6       S3      C  [10, 20, 30, 40]
+      Scenario Sensor            Impact
+    0       S1      A              [30]
+    1       S1      C  [10, 20, 30, 40]
+    2       S2      A      [10, 20, 30]
+    3       S2      C  [10, 20, 30, 40]
+    4       S3      A          [20, 30]
+    5       S3      B              [20]
+    6       S3      C      [20, 30, 40]
 	
-The example shows that Scenario S1 was detected by Sensor A at
-time 20 (units of time depend on the transport simulation).  
-Scenario S1 was also detected by Sensors B and C.
-Scenario S2 was only detected by Sensor A, at times 10 and 20.
-Scenario S3 was detected by Sensors A, B, and C, at multiple times.  
+The example shows that 
+Scenario S1 was detected by Sensor A at time 30 (units of time depend on the transport simulation).  
+Scenario S1 was also detected by Sensors C at times 10, 20, 30 and 40.
+Scenario S2 was detected by Sensor A and C.
+Scenario S3 was detected by Sensors A, B, and C.  
 Sensor D did not detect any scenarios.
 
 This information can be used directly to optimization a sensor layout that maximizes coverage.
@@ -86,14 +96,14 @@ Extract the minimum detection time:
 
     >>> min_det_time = chama.impact.detection_time_stats(det_times, 'min')
     >>> print(min_det_time)
-      Scenario Sensor minT
-    0       S1      A   20
-    1       S1      B   20
-    2       S1      C   40
-    3       S2      A   10
-    4       S3      A   10
-    5       S3      B   10
-    6       S3      C   10
+      Scenario Sensor Impact
+    0       S1      A     30
+    1       S1      C     10
+    2       S2      A     10
+    3       S2      C     10
+    4       S3      A     20
+    5       S3      B     20
+    6       S3      C     20
 	
 Damage metrics
 -----------------
@@ -131,15 +141,14 @@ Convert detection time to damage cost:
 
     >>> damage_metric = chama.impact.translate(min_det_time, damage_cost)
     >>> print(damage_metric)
-      Scenario Sensor  Damage
-    0       S1      A   40000
-    1       S1      B   40000
-    2       S1      C  100000
-    3       S2      A    5000
-    4       S3      A   15000
-    5       S3      B   15000
-    6       S3      C   15000
+      Scenario Sensor Impact
+    0       S1      A  80000
+    1       S1      C  10000
+    2       S2      A   5000
+    3       S2      C   5000
+    4       S3      A  50000
+    5       S3      B  50000
+    6       S3      C  50000
 	
-Note that the 'translate' function interpolates based on time (T), if needed.
+Note that the 'translate' function interpolates based on time, if needed.
 The damage metric can be used in sensor placement optimization to minimize damage.
-

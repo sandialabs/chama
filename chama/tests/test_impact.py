@@ -13,15 +13,17 @@ class TestImpact(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         sensors = {}
-        sensors['A'] = chama.sensors.Sensor(sample_times=[0],
-                                                  location=(1, 2, 3),
-                                                  threshold=0)
-        sensors['B'] = chama.sensors.Sensor(sample_times=[0, 10],
-                                                  location=(2, 2, 2),
-                                                  threshold=2)
-        sensors['C'] = chama.sensors.Sensor(sample_times=[0, 10, 20],
-                                                  location=(3, 2, 1),
-                                                  threshold=40)
+        pos1 = chama.sensors.Stationary(location=(1, 2, 3))
+        det1 = chama.sensors.Point(sample_times=[0], threshold=0)
+        sensors['A'] = chama.sensors.Sensor(position=pos1, detector=det1)
+
+        pos2 = chama.sensors.Stationary(location=(2, 2, 2))
+        det2 = chama.sensors.Point(sample_times=[0, 10], threshold=2)
+        sensors['B'] = chama.sensors.Sensor(position=pos2, detector=det2)
+
+        pos3 = chama.sensors.Stationary(location=(3, 2, 1))
+        det3 = chama.sensors.Point(sample_times=[0, 10, 20], threshold=40)
+        sensors['C'] = chama.sensors.Sensor(position=pos3, detector=det3)
         self.sensors = sensors
 
         x, y, z, t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20, 30])
@@ -41,8 +43,9 @@ class TestImpact(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'T'])
-
+                                columns=['Scenario', 'Sensor', 'Impact'])
+        print(impact)
+        
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
         assert_frame_equal(impact, expected, check_dtype=False,

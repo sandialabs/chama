@@ -1,7 +1,7 @@
 from chama import transport
 from chama import sensors
 from chama import impact
-from chama import solver
+from chama import optimize
 from chama import graphics
 
 __version__ = '0.1.0'

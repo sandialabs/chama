@@ -40,7 +40,7 @@ def test_water_network_example():
 
     # Solve sensor placement
     sensor_budget = 5
-    solver = chama.solver.SensorPlacement()
+    solver = chama.optimize.Pmedian()
     results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
                            pyomo_solver_options={'tee': False})
 
@@ -100,7 +100,7 @@ def test_water_network_example_with_scenario_prob():
     # Solve sensor placement
     sensor_budget = 5
     use_prob = False
-    solver = chama.solver.SensorPlacement(scenario_prob=use_prob)
+    solver = chama.optimize.Pmedian(scenario_prob=use_prob)
     results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 8760.59
@@ -112,7 +112,7 @@ def test_water_network_example_with_scenario_prob():
     assert_list_equal(results['selected_sensors'], expected_selected_sensors)
     
     use_prob = True
-    solver = chama.solver.SensorPlacement(scenario_prob=use_prob)
+    solver = chama.optimize.Pmedian(scenario_prob=use_prob)
     results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 9146.646

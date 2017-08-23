@@ -10,13 +10,14 @@ Sensor technology
 Many different sensor technologies exist. For
 example, in the context of gas detection, sensors can monitor the
 concentration at a fixed point or they can be based on optical gas imaging
-technology and monitoring an area within the field of view of the sensor.
-Sensors can monitoring continuously or at defined sampling times.
-Sensors can also be mounted to vehicles or drones and move through a
-specified region. In order to understand the tradeoffs between different
-technologies and select an optimal subset of sensors, these different sensor
-technologies should be considered simultaneously within an optimal sensor
-placement problem.
+technology and monitor an area within a field of view.
+Sensors can monitor continuously or at defined sampling times.
+Sensors can also be mounted on vehicles or drones and move through a
+specified region. Furthermore, sensors can have different operating 
+conditions which can change detectability.  In order to understand the tradeoffs 
+between different sensor technologies and operating conditions and to 
+select an optimal subset of sensors, these different options should be 
+considered simultaneously within an optimal sensor placement problem.
 
 The :mod:`chama.sensors` module can be used to define sensor technologies in Chama.
 The module is used to represent a variety of sensor properties
@@ -28,16 +29,8 @@ the `impact` of each sensor on each scenario, as described in the :ref:`impact` 
 This information is used as input to the sensor placement optimization.
 
 Each sensor is declared by specifying a **position** and a **detector**.
-Currently, four types of sensor technologies can be defined
-(additional sensor technologies could easily be incorporated):
-
-* Stationary point sensors
-
-* Mobile point sensors
-
-* Stationary camera sensors
-
-* Mobile camera sensors
+The following options are available in Chama (additional sensor 
+technologies could easily be incorporated).
 
 Position options
 --------------------
@@ -59,3 +52,42 @@ Detector options
   the signal within the camera's field of view, converting that signal to
   pixels, and comparing that to the detector's threshold in terms of pixels.
 
+For example, a **stationary point sensor**, can be defined as follows:
+
+.. doctest::
+    :hide:
+
+    >>> import chama
+	
+.. doctest::
+
+	>>> pos1 = chama.sensors.Stationary(location=(1,2,3))
+	>>> det1 = chama.sensors.Point(threshold=0.001, sample_times=[0,2,4,6,8,10])
+	>>> stationary_pt_sensor = chama.sensors.Sensor(position=pos1, detector=det1)
+
+A **mobile point sensor**, can be defined as follows:
+
+.. doctest::
+
+    >>> pos2 = chama.sensors.Mobile(locations=[(0,0,0),(1,0,0),(1,3,0),(1,2,1)],speed=1.2)
+    >>> det2 = chama.sensors.Point(threshold=0.001, sample_times=[0,1,2,3,4,5,6,7,8,9,10])
+    >>> mobile_pt_sensor = chama.sensors.Sensor(position=pos2, detector=det2)
+
+A **stationary camera sensor**, can be defined as follows:
+
+.. doctest::
+
+    >>> pos3 = chama.sensors.Stationary(location=(2,2,1))
+    >>> det3 = chama.sensors.Camera(threshold=400, sample_times=[0,5,10], direction=(1,1,1))
+    >>> stationary_camera_sensor = chama.sensors.Sensor(position=pos3, detector=det3)
+
+A **mobile camera sensor**, can be defined as follows:
+
+.. doctest::
+
+    >>> pos4 = chama.sensors.Mobile(locations=[(0,1,1),(0.1,1.2,1),(1,3,0),(1,2,1)],speed=0.5)
+    >>> det4 = chama.sensors.Camera(threshold=100, sample_times=[0,3,6,9], direction=(1,1,1))
+    >>> mobile_camera_sensor = chama.sensors.Sensor(position=pos4, detector=det4)
+
+Note that the units for time, location, speed, and threshold need to match the units 
+from the transport simulation.

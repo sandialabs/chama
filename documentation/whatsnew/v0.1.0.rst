@@ -1,7 +1,7 @@
 v0.1.0 (XX/XX/XXXX)
 -----------------------
 
-Features include basic functionality to:
+This is the first release of Chama. Features include basic functionality to:
 
 * Run atmospheric dispersion simulations or import transport simulations from external software
 * Define point or camera sensors that can be stationary and mobile

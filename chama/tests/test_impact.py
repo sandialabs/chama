@@ -13,15 +13,18 @@ class TestImpact(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         sensors = {}
-        sensors['sensor1'] = chama.sensors.Sensor(sample_times=[0],
-                                                  location=(1, 2, 3),
-                                                  threshold=0)
-        sensors['sensor2'] = chama.sensors.Sensor(sample_times=[0, 10],
-                                                  location=(2, 2, 2),
-                                                  threshold=2)
-        sensors['sensor3'] = chama.sensors.Sensor(sample_times=[0, 10, 20],
-                                                  location=(3, 2, 1),
-                                                  threshold=40)
+
+        pos1 = chama.sensors.Stationary(location=(1, 2, 3))
+        det1 = chama.sensors.Point(sample_times=[0], threshold=0)
+        sensors['sensor1'] = chama.sensors.Sensor(position=pos1, detector=det1)
+
+        pos2 = chama.sensors.Stationary(location=(2, 2, 2))
+        det2 = chama.sensors.Point(sample_times=[0, 10], threshold=2)
+        sensors['sensor2'] = chama.sensors.Sensor(position=pos2, detector=det2)
+
+        pos3 = chama.sensors.Stationary(location=(3, 2, 1))
+        det3 = chama.sensors.Point(sample_times=[0, 10, 20], threshold=40)
+        sensors['sensor3'] = chama.sensors.Sensor(position=pos3, detector=det3)
         self.sensors = sensors
 
         x, y, z, t = np.meshgrid([1, 2, 3], [1, 2, 3], [1, 2, 3], [0, 10, 20])

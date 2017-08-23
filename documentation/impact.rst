@@ -99,10 +99,14 @@ The dictionary of sensors can be created as follows:
     >>> import chama
     >>> import pandas as pd
     >>> import numpy as np
-	>>> stationary_pt_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
-	>>> mobile_pt_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
-	>>> stationary_camera_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
-	>>> mobile_camera_sensor = chama.sensors.Sensor(sample_times=[0], location=(1,1,1),threshold=0)
+    >>> pos = chama.sensors.Stationary(location=(1,1,1))
+    >>> pos2 = chama.sensors.Mobile(locations=[(0,0,0),(1,0,0),(1,1,0),(0,1,0)], speed=1)
+    >>> det = chama.sensors.Point(sample_times=[0], threshold=0)
+    >>> det2 = chama.sensors.Camera(threshold=0, sample_times=[0], direction=(1,1,1))
+    >>> stationary_pt_sensor = chama.sensors.Sensor(position=pos, detector=det)
+    >>> mobile_pt_sensor = chama.sensors.Sensor(position=pos2, detector=det)
+    >>> stationary_camera_sensor = chama.sensors.Sensor(position=pos, detector=det2)
+	>>> mobile_camera_sensor = chama.sensors.Sensor(position=pos2, detector=det2)
 	>>> x,y,z,t = np.meshgrid([1,2], [1,2], [1,2], [0,10])       
     >>> signal = pd.DataFrame({'X': x.flatten(),'Y': y.flatten(), 'Z': z.flatten(),'T': t.flatten(),'S': x.flatten()})
 	

@@ -6,9 +6,10 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 
-def detection_times(signal, sensors, interp_method='linear', min_distance=10, metric=None):
+
+def detection_times(signal, sensors, interp_method='linear', min_distance=10):
     """
-    Extract the impact metric from a signal profile and sensors
+    Extract the detection times from a signal profile and sensors
 
     Parameters
     ----------

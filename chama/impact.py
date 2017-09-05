@@ -2,7 +2,7 @@
 The impact module contains methods to extract the impact of detecting transport 
 simulations given a set of defined sensor technologies.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 

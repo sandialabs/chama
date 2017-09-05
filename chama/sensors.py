@@ -2,7 +2,7 @@
 The sensor module contains classes to define point or camera sensors
 that can either be stationary and mobile.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata

@@ -35,6 +35,7 @@ Group sensors in a dictionary:
 .. doctest::
     :hide:
 
+    >>> from __future__ import print_function
     >>> import chama
     >>> import pandas as pd
     >>> import numpy as np
@@ -80,16 +81,17 @@ Extract detection times:
 .. doctest::
 
     >>> print(det_times)
-      Scenario Sensor        Impact
-    0       S1      A          [30]
-    1       S1      B          [30]
-    2       S1      C  [20, 30, 40]
-    3       S2      A  [10, 20, 30]
-    4       S2      B          [30]
-    5       S2      C      [30, 40]
-    6       S3      A      [20, 30]
-    7       S3      B      [20, 30]
-    8       S3      C  [20, 30, 40]
+      Scenario Sensor            Impact
+    0       S1      A              [30]
+    1       S1      B              [30]
+    2       S1      C  [10, 20, 30, 40]
+    3       S2      A      [10, 20, 30]
+    4       S2      B              [30]
+    5       S2      C  [10, 20, 30, 40]
+    6       S3      A          [20, 30]
+    7       S3      B          [20, 30]
+    8       S3      C      [20, 30, 40]
+
 	
 The example shows that Scenario S1 was detected by Sensor A at time 30
 (units of time depend on the transport simulation). Scenario S1 was also
@@ -112,13 +114,14 @@ Extract the minimum detection time:
       Scenario Sensor Impact
     0       S1      A     30
     1       S1      B     30
-    2       S1      C     20
+    2       S1      C     10
     3       S2      A     10
     4       S2      B     30
-    5       S2      C     30
+    5       S2      C     10
     6       S3      A     20
     7       S3      B     20
     8       S3      C     20
+
 
 Damage metrics
 --------------
@@ -159,13 +162,14 @@ Convert detection time to damage cost:
       Scenario Sensor Impact
     0       S1      A  80000
     1       S1      B  80000
-    2       S1      C  40000
+    2       S1      C  10000
     3       S2      A   5000
     4       S2      B  75000
-    5       S2      C  75000
+    5       S2      C   5000
     6       S3      A  50000
     7       S3      B  50000
     8       S3      C  50000
+
 	
 Note that the `translate` function interpolates based on time, if needed. The
 damage metric can be used in sensor placement optimization to minimize damage.

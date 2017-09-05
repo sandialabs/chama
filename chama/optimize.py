@@ -2,6 +2,7 @@
 The optimize module contains high-level solvers for sensor placement
 optimization.
 """
+from __future__ import print_function, division
 import pyomo.environ as pe
 import chama.utils as cu
 import numpy as np

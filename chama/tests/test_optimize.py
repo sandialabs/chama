@@ -122,3 +122,49 @@ def test_water_network_example_with_scenario_prob():
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
     assert_list_equal(results['selected_sensors'], expected_selected_sensors)
+
+
+def test_water_network_example_with_grouping_constraint():
+    impact_file = join(datadir, 'Net3_ec.impact')
+
+    # read the impact file from the water simulations
+    impact_data = pd.read_csv(impact_file, skiprows=2, sep=' ',
+                              usecols=[0, 1, 3],
+                              names=['Scenario', 'Sensor', 'Impact'])
+    impact_data['Scenario'] = impact_data['Scenario'].apply(
+        str)  # convert the scenario names to strings
+    impact_data['Sensor'] = impact_data['Sensor'].apply(
+        str)  # convert the Sensor names to strings
+
+    # Define sensor dataframe
+    df_sensor = pd.DataFrame(data=impact_data['Sensor'].unique(),
+                             columns=['Sensor'])
+    df_sensor = df_sensor[df_sensor.Sensor != "-1"]
+    df_sensor['Cost'] = 1.0  # define the cost
+
+    # Define scenario dataframe
+    df_scenario = impact_data[impact_data.Sensor == "-1"]
+    df_scenario = df_scenario.drop('Sensor', axis=1)
+    df_scenario.rename(columns={'Impact': 'Undetected Impact'}, inplace=True)
+    # df_scenario.to_csv('blah_scenario.csv')
+
+    # Define the impact data dataframe
+    df_impact = impact_data[impact_data.Sensor != "-1"]
+
+    # Solve sensor placement
+    sensor_budget = 5
+    use_prob = False
+    solver = chama.optimize.Pmedian()
+    model = solver.create_pyomo_model(df_sensor, df_scenario, df_impact,
+                                      sensor_budget)
+    solver.add_grouping_constraint(['15', '16', '17'], select=2)
+    solver.add_grouping_constraint(['16', '17', '18'], max_select=1)
+    results = solver.solve(pyomo_solver_options={'tee': True})
+
+    expected_objective_value = 9400.531
+    expected_selected_sensors = ["15", "16", "19", "38", "65",
+                                 "__DUMMY_SENSOR_UNDETECTED__"]
+    error = abs((results['objective_value'] -
+                 expected_objective_value) / expected_objective_value)
+    assert_less(error, 0.01)  # 1% error
+    assert_list_equal(results['selected_sensors'], expected_selected_sensors)

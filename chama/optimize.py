@@ -19,9 +19,11 @@ class Pmedian(object):
 
         self.scenario_prob = kwds.pop('scenario_prob', False)
         self.coverage = kwds.pop('coverage', False)
+        self._model = None
         
-    def solve(self, sensor, scenario, impact, sensor_budget,
-              mip_solver_name='glpk', pyomo_solver_options=None):
+    def solve(self, sensor=None, scenario=None, impact=None,
+              sensor_budget=None, mip_solver_name='glpk',
+              pyomo_solver_options=None):
         """
         Call this method to solve the sensor placement problem using Pyomo.
 
@@ -77,30 +79,11 @@ class Pmedian(object):
         if pyomo_solver_options is None:
             pyomo_solver_options = {}
         
-        if self.coverage:
-            impact = self._detection_times_to_coverage(impact)
-            
-        # validate the pandas dataframe input
-        cu.df_columns_required('df_sensor', sensor,
-                               {'Sensor': np.object, 'Cost': [np.float64, np.int64]})
-        cu.df_nans_not_allowed('df_sensor', sensor)
-        cu.df_columns_required('df_scenario', scenario,
-                               {'Scenario': np.object,
-                                'Undetected Impact': [np.float64, np.int64]})
-        cu.df_nans_not_allowed('df_scenario', scenario)
-        cu.df_columns_required('df_impact', impact,
-                               {'Scenario': np.object,
-                                'Sensor': np.object,
-                                'Impact': [np.float64, np.int64]})
-        cu.df_nans_not_allowed('df_impact', impact)
-
-        # validate optional columns in pandas dataframe input
-        if self.scenario_prob:
-            cu.df_columns_required('df_scenario', scenario,
-                                   {'Probability': np.float64})
-
-        model = self._create_pyomo_model(sensor, scenario, impact,
-                                         sensor_budget)
+        if self._model is None:
+            model = self.create_pyomo_model(sensor, scenario, impact,
+                                            sensor_budget)
+        else:
+            model = self._model
 
         self._solve_pyomo_model(model, mip_solver_name, pyomo_solver_options)
 
@@ -140,8 +123,8 @@ class Pmedian(object):
                 'objective_value': obj_value,
                 'scenario_detection': scenario_detection}
         
-    def _create_pyomo_model(self, df_sensor, df_scenario, df_impact,
-                            sensor_budget):
+    def create_pyomo_model(self, df_sensor, df_scenario, df_impact,
+                           sensor_budget):
         """
         Create and return the Pyomo model to be solved.
 
@@ -161,6 +144,30 @@ class Pmedian(object):
         ConcreteModel
             A Pyomo model ready to be solved
         """
+
+        if self.coverage:
+            impact = self._detection_times_to_coverage(df_impact)
+
+        # validate the pandas dataframe input
+        cu.df_columns_required('df_sensor', df_sensor,
+                               {'Sensor': np.object,
+                                'Cost': [np.float64, np.int64]})
+        cu.df_nans_not_allowed('df_sensor', df_sensor)
+        cu.df_columns_required('df_scenario', df_scenario,
+                               {'Scenario': np.object,
+                                'Undetected Impact': [np.float64, np.int64]})
+        cu.df_nans_not_allowed('df_scenario', df_scenario)
+        cu.df_columns_required('df_impact', df_impact,
+                               {'Scenario': np.object,
+                                'Sensor': np.object,
+                                'Impact': [np.float64, np.int64]})
+        cu.df_nans_not_allowed('df_impact', df_impact)
+
+        # validate optional columns in pandas dataframe input
+        if self.scenario_prob:
+            cu.df_columns_required('df_scenario', df_scenario,
+                                   {'Probability': np.float64})
+
         df_impact = df_impact.set_index(['Scenario', 'Sensor'])
         assert(df_impact.index.names[0] == 'Scenario')
         assert(df_impact.index.names[1] == 'Sensor')
@@ -253,6 +260,8 @@ class Pmedian(object):
             pe.Constraint(expr=sum(float(sensor_cost[i]) * model.y[i]
                                    for i in sensor_list) <= sensor_budget)
 
+        self._model = model
+
         return model
 
     def _solve_pyomo_model(self, model, mip_solver_name='glpk',
@@ -280,6 +289,85 @@ class Pmedian(object):
         opt = pe.SolverFactory(mip_solver_name)
         return opt.solve(model, **pyomo_solver_options)
 
+    def add_grouping_constraint(self, sensor_list, select=None,
+                                min_select=None, max_select=None):
+        """
+        Add a sensor grouping constraint to the sensor placement model. This
+        constraint forces a certain number of sensors to be selected from a
+        particular subset of all the possible sensors
+
+        Parameters
+        ----------
+        sensor_list : list of strings
+            List containing the string names of a subset of the sensors
+        select : positive integer or None
+            The exact number of sensors from the sensor_list that should
+            be selected
+        min_select : positive integer or None
+            The minimum number of sensors from the sensor_list that should
+            be selected
+        max_select : positive integer or None
+            The maximum number of sensors from the sensor_list that should
+            be selected
+        """
+
+        if self._model is None:
+            raise RuntimeError('Cannot add a grouping constraint to a'
+                               'nonexistent model. Please call the '
+                               'create_pyomo_model function before trying to '
+                               'add grouping constraints')
+
+        if select is not None and min_select is not None:
+            raise ValueError('Invalid keyword arguments for adding grouping '
+                             'constraint. Cannot specify both a "select" '
+                             'value and a "min_select" value')
+
+        if select is not None and max_select is not None:
+            raise ValueError('Invalid keyword arguments for adding grouping '
+                             'constraint. Cannot specify both a "select" '
+                             'value and a "max_select" value')
+
+        if select is None and max_select is None and min_select is None:
+            raise ValueError('Must specify a sensor selection limit for the '
+                             'grouping constraint.')
+
+        gconlist = self._model.find_component('_groupingconlist')
+        if gconlist is None:
+            self._model.add_component('_groupingconlist', pe.ConstraintList())
+            gconlist = self._model._groupingconlist
+
+        # Check to make sure all sensors are valid and build sum expression
+        sensor_sum = sum(self._model.y[i] for i in sensor_list)
+
+        if select is not None:
+            #  Select exactly 'select' sensors from sensor_list
+            if select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+
+            gconlist.add(sensor_sum == select)
+
+        elif min_select is not None and max_select is not None:
+            #  Select between min_select and max_select sensors from
+            #  sensor_list
+            if min_select < 0 or max_select:
+                raise ValueError('Cannot select a negative number of sensors')
+
+            if min_select > max_select:
+                raise ValueError('min_select must be less than max_select')
+
+            gconlist.add(min_select <= sensor_sum <= max_select)
+
+        elif min_select is not None:
+            #  Select at least min_select sensors from sensor list
+            if min_select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+            gconlist.add(min_select <= sensor_sum)
+        else:
+            #  Select at most max_select sensors from sensor list
+            if max_select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+            gconlist.add(sensor_sum <= max_select)
+
 
 class Pmedian_ScenarioProbability(Pmedian):
     """
@@ -289,6 +377,7 @@ class Pmedian_ScenarioProbability(Pmedian):
     def __init__(self, **kwds):
         kwds['scenario-prob'] = True
         Pmedian.__init__(self, **kwds)
+
 
 class Coverage(Pmedian):
     
@@ -312,4 +401,3 @@ class Coverage(Pmedian):
         coverage = coverage.reset_index(drop=True)
         
         return coverage
-        

@@ -81,16 +81,16 @@ class Pmedian(object):
             
         # validate the pandas dataframe input
         cu.df_columns_required('df_sensor', sensor,
-                               {'Sensor': np.object, 'Cost': np.float64})
+                               {'Sensor': np.object, 'Cost': [np.float64, np.int64]})
         cu.df_nans_not_allowed('df_sensor', sensor)
         cu.df_columns_required('df_scenario', scenario,
                                {'Scenario': np.object,
-                                'Undetected Impact': np.float64})
+                                'Undetected Impact': [np.float64, np.int64]})
         cu.df_nans_not_allowed('df_scenario', scenario)
         cu.df_columns_required('df_impact', impact,
                                {'Scenario': np.object,
                                 'Sensor': np.object,
-                                'Impact': np.float64})
+                                'Impact': [np.float64, np.int64]})
         cu.df_nans_not_allowed('df_impact', impact)
 
         # validate optional columns in pandas dataframe input
@@ -187,7 +187,7 @@ class Pmedian(object):
         df_dummy['Sensor'] = '__DUMMY_SENSOR_UNDETECTED__'
         df_dummy = df_dummy.reset_index().set_index(['Scenario', 'Sensor'])
         df_impact = df_impact.append(df_dummy)
-        sensor_cost['__DUMMY_SENSOR_UNDETECTED__'] = 0
+        sensor_cost['__DUMMY_SENSOR_UNDETECTED__'] = 0.0
 
         # create a list of tuples for all the scenario/sensor pairs where
         # detection has occurred
@@ -249,7 +249,7 @@ class Pmedian(object):
                           rule=detect_only_if_sensor_rule)
 
         model.sensor_budget = \
-            pe.Constraint(expr=sum(sensor_cost[i] * model.y[i]
+            pe.Constraint(expr=sum(float(sensor_cost[i]) * model.y[i]
                                    for i in sensor_list) <= sensor_budget)
 
         return model

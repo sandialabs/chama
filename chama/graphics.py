@@ -1,6 +1,7 @@
 """
 The graphics module contains ...
 """
+from __future__ import print_function, division
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
@@ -9,11 +10,13 @@ import numpy as np
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.collections import PatchCollection
 from matplotlib.animation import FuncAnimation
+import chama.sensors
 
 
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
-                   colormap=plt.cm.viridis, txyz_names=['T', 'X', 'Y', 'Z'], 
-                   x_range=(None, None), y_range=(None, None), z_range=(None, None)):
+                      colormap=plt.cm.viridis, txyz_names=None,
+                      x_range=(None, None), y_range=(None, None),
+                      z_range=(None, None)):
     """
     Creates a 3D plot of the convex hull of the signal
 
@@ -39,6 +42,9 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     z_range: tuple
         The z-axis limits for the plot
     """
+
+    if txyz_names is None:
+        txyz_names = ['T', 'X', 'Y', 'Z']
     
     t_col = txyz_names[0]
     x_col = txyz_names[1]
@@ -46,7 +52,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     z_col = txyz_names[3]
 
     if timesteps is None:
-        timesteps = sorted(set(signal.loc[:,t_col]))
+        timesteps = sorted(set(signal.loc[:, t_col]))
 
     fig = plt.figure()
     plt.set_cmap(colormap)
@@ -57,7 +63,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
         for timestep in timesteps:
             try:
                 color = colormap(i)
-                i = i + 1/float(len(timesteps))
+                i += 1 / float(len(timesteps))
                 
                 signal_t = signal[signal[t_col] == timestep]
                 conc_filter = signal_t[scenario] > threshold
@@ -67,10 +73,10 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
                 # data = data.as_matrix()
                 # ax.scatter(data[:,0], data[:,1], data[:,2], c=data[:,3],s=30)
                 
-                data = signal_t[[x_col,y_col,z_col]][conc_filter]
+                data = signal_t[[x_col, y_col, z_col]][conc_filter]
                 data = data.as_matrix()
-                hull=ConvexHull(data)
-                ax.plot_trisurf(data[:,0], data[:,1], data[:,2], 
+                hull = ConvexHull(data)
+                ax.plot_trisurf(data[:, 0], data[:, 1], data[:, 2],
                                 triangles=hull.simplices,
                                 edgecolor='none', 
                                 shade=False,
@@ -82,16 +88,17 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     ax.set_ylabel(y_col)
     ax.set_zlabel(z_col)
     
-    ax.set_xlim3d(x_range[0],x_range[1])
-    ax.set_ylim3d(y_range[0],y_range[1])
-    ax.set_zlim3d(z_range[0],z_range[1])
+    ax.set_xlim3d(x_range[0], x_range[1])
+    ax.set_ylim3d(y_range[0], y_range[1])
+    ax.set_zlim3d(z_range[0], z_range[1])
     fig.show()
 
+
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
-                        x_value=None, y_value=None, z_value=None, log_flag=False,
-                        colormap=plt.cm.viridis, alpha=0.7, N=5,
-                        txyz_names=['T', 'X', 'Y', 'Z'], 
-                        x_range=(None, None), y_range=(None, None), z_range=(None, None)):
+                    x_value=None, y_value=None, z_value=None, log_flag=False,
+                    colormap=plt.cm.viridis, alpha=0.7, N=5,
+                    txyz_names=None, x_range=(None, None),
+                    y_range=(None, None), z_range=(None, None)):
     """
     Creates x-y, x-z, and y-z cross section contour plots. The signal is
     summed over all desired time steps and summed across the axis not
@@ -133,25 +140,28 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     z_range: tuple
         The z-axis limits for the plot
     """
-        
+
+    if txyz_names is None:
+        txyz_names = ['T', 'X', 'Y', 'Z']
+
     t_col = txyz_names[0]
     x_col = txyz_names[1]
     y_col = txyz_names[2]
     z_col = txyz_names[3]
 
     if timesteps is None:
-        timesteps = sorted(set(signal.loc[:,t_col]))
+        timesteps = sorted(set(signal.loc[:, t_col]))
 
     if log_flag:
         log_flag = ticker.LogLocator()
     else:
         log_flag = ticker.MaxNLocator()
       
-    fig = plt.figure(figsize=(20,5))
+    fig = plt.figure(figsize=(20, 5))
     plt.set_cmap(colormap)
-    ax1 = fig.add_subplot(1,3,1)
-    ax2 = fig.add_subplot(1,3,2)
-    ax3 = fig.add_subplot(1,3,3)
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax3 = fig.add_subplot(1, 3, 3)
     
     signal_t = signal[signal[t_col].isin(timesteps)]
     signal_t = signal_t.groupby([x_col, y_col, z_col]).sum()
@@ -164,7 +174,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
         Z = temp.values
 
         if threshold:
-            Z[Z<=threshold] = 0
+            Z[Z <= threshold] = 0
         Z = np.transpose(Z)
         return X, Y, Z
     
@@ -173,7 +183,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
         if type(z_value) is not list:
             z_value = [z_value]
         temp = temp[temp[z_col].isin(z_value)]
-    temp = temp.groupby([x_col,y_col])[signal_name].sum()
+    temp = temp.groupby([x_col, y_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
 
@@ -182,9 +192,10 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     #     #Z = np.ma.array(Z, mask= Z<=0)
     #     print(Z)
     #     print(Z.min(), Z.max())
-    cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap, locator=log_flag)
-    ax1.set_xlim(x_range[0],x_range[1])
-    ax1.set_ylim(y_range[0],y_range[1])
+    cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap,
+                          locator=log_flag)
+    ax1.set_xlim(x_range[0], x_range[1])
+    ax1.set_ylim(y_range[0], y_range[1])
     ax1.set_xlabel(x_col)
     ax1.set_ylabel(y_col)
     ax1.set_title(signal_name)
@@ -194,12 +205,13 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
         if type(y_value) is not list:
             y_value = [y_value]
         temp = temp[temp[y_col].isin(y_value)]
-    temp = temp.groupby([x_col,z_col])[signal_name].sum()
+    temp = temp.groupby([x_col, z_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot2 = ax2.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
-    ax2.set_xlim(x_range[0],x_range[1])
-    ax2.set_ylim(z_range[0],z_range[1])
+    cplot2 = ax2.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap,
+                          locator=log_flag)
+    ax2.set_xlim(x_range[0], x_range[1])
+    ax2.set_ylim(z_range[0], z_range[1])
     ax2.set_xlabel(x_col)
     ax2.set_ylabel(z_col)
     ax2.set_title(signal_name)
@@ -209,21 +221,23 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
         if type(x_value) is not list:
             x_value = [x_value]
         temp = temp[temp[x_col].isin(x_value)]
-    temp = temp.groupby([y_col,z_col])[signal_name].sum()
+    temp = temp.groupby([y_col, z_col])[signal_name].sum()
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
-    cplot3 = ax3.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap, locator=log_flag)
-    ax3.set_xlim(y_range[0],y_range[1])
-    ax3.set_ylim(z_range[0],z_range[1])
+    cplot3 = ax3.contourf(Xi, Yi, Z, N, alpha=alpha, cmap=colormap,
+                          locator=log_flag)
+    ax3.set_xlim(y_range[0], y_range[1])
+    ax3.set_ylim(z_range[0], z_range[1])
     ax3.set_xlabel(y_col)
     ax3.set_ylabel(z_col)
     ax3.set_title(signal_name)
 
-    fig.colorbar(cplot1,ax=ax1)
-    fig.colorbar(cplot2,ax=ax2)
-    fig.colorbar(cplot3,ax=ax3)
+    fig.colorbar(cplot1, ax=ax1)
+    fig.colorbar(cplot2, ax=ax2)
+    fig.colorbar(cplot3, ax=ax3)
 
     fig.show()
+
 
 def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     """
@@ -249,6 +263,7 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         """
         Make a scatter plot of circles. 
         Similar to plt.scatter, but the size of circles are in data scale.
+
         Parameters
         ----------
         x, y : scalar or array_like, shape (n, )
@@ -268,8 +283,8 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
             luminance data.  If either are `None`, the min and max of the
             color array is used.
         kwargs : `~matplotlib.collections.Collection` properties
-            Eg. alpha, edgecolor(ec), facecolor(fc), linewidth(lw), linestyle(ls), 
-            norm, cmap, transform, etc.
+            Eg. alpha, edgecolor(ec), facecolor(fc), linewidth(lw),
+            linestyle(ls), norm, cmap, transform, etc.
         Returns
         -------
         paths : `~matplotlib.collections.PathCollection`
@@ -323,12 +338,13 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         plt.cla()
         ax.set_xlim(x_range[0], x_range[1])
         ax.set_ylim(y_range[0], y_range[1])
-        ax.set_title('T = %6.2f' %(time))
+        ax.set_title('T = %6.2f' % time)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
 
         temp = puff.loc[puff['T'] == time]
-        out = circles(temp['X'], temp['Y'], temp['sigmaY'], alpha=0.5, edgecolor='none')
+        out = circles(temp['X'], temp['Y'], temp['sigmaY'], alpha=0.5,
+                      edgecolor='none')
         return out
 
     ani = FuncAnimation(fig, update, frames=puff['T'].unique())
@@ -337,3 +353,29 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     # ani.save('puff.mp4')
 
     plt.show()
+
+
+def plot_sensors(sensors, x_range=(None, None), y_range=(None, None),
+            z_range=(None, None), legend=False):
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    for name, sensor in sensors.items():
+        position = sensor.position
+        if isinstance(position, chama.sensors.Mobile):
+            x = [val[0] for val in position.location]
+            y = [val[1] for val in position.location]
+            z = [val[2] for val in position.location]
+            ax.plot(x, y, z, label=name)
+        else:
+            x = position.location[0]
+            y = position.location[1]
+            z = position.location[2]
+            ax.scatter(x, y, z, label=name)
+
+    ax.set_xlim3d(x_range[0], x_range[1])
+    ax.set_ylim3d(y_range[0], y_range[1])
+    ax.set_zlim3d(z_range[0], z_range[1])
+    if legend:
+        ax.legend()
+    fig.show()

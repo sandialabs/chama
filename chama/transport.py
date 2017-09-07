@@ -9,23 +9,21 @@ import pandas as pd
 
 def _calculate_sigma(x, stability_class):
     """
-    Calculate sigmay and sigmaz as a function of grid points in the 
+    Calculates sigmay and sigmaz as a function of grid points in the 
     direction of travel (x) for stability class A through F.
 
     Parameters
     ---------------
-    x: array-like object
-        either a numpy array or pandas dataframe containing grid points in the
-        direction of travel (m)
+    x: numpy array
+        Grid points in the direction of travel (m)
         
     Returns
     ---------
-    sigmay: numpy array or pandas dataframe
-        The standard deviation of the Gaussian distribution in the horizontal
+    sigmay: numpy array
+        Standard deviation of the Gaussian distribution in the horizontal
         (crosswind) direction (m)
-        
-    sigmaz: numpy array or pandas dataframe
-        The standard deviation of the Gaussian distribution in the vertical
+    sigmaz: numpy array
+        Standard deviation of the Gaussian distribution in the vertical
         direction (m)
     """
     if stability_class == 'A':
@@ -51,24 +49,26 @@ def _calculate_sigma(x, stability_class):
 
 def _modify_grid(model, wind_direction, wind_speed):
     """
-    Rotate grid to account for wind direction.
-    Translate grid to account for source location.
+    Rotates grid to account for wind direction.
+    Translates grid to account for source location.
     
     Parameters
     ---------------
-    model: GaussianPlume object
+    model: chama.transport.GaussianPlume object
+        GaussianPlume object
     wind_direction: float
-        wind direction (degrees)
+        Wind direction (degrees)
     wind_speed: float
-        wind speed (m/s)
+        Wind speed (m/s)
 
     Returns
     ---------
     gridx: numpy array
-    
+        x values in the grid (m)
     gridy: numpy array
-        
+        y values in the grid (m)
     gridz: numpy array
+        z values in the grid (m)
     """
 
     angle_rad = wind_direction / 180.0 * np.pi
@@ -86,20 +86,22 @@ def _modify_grid(model, wind_direction, wind_speed):
 
 def _calculate_z_with_buoyancy(model, x, wind_speed):
     """
-    Adjust grid in z direction to account for buoyancy.
+    Adjusts grid in z direction to account for buoyancy.
     
     Parameters
     ---------------
-    model: either a GaussianPlume or GaussianPuff object
+    model: chama.transport.GaussianPlume or chama.transport.GaussianPuff object
+        GaussianPlume or GaussianPuff object
     x: numpy array
-        distance in the downwind direction from the source (m)
+        Distance in the downwind direction from the source (m)
+        
     wind_speed: float
-        wind speed (m/s)
+        Wind speed (m/s)
 
     Returns
     -----------
     z: numpy array
-
+        z values in the grid (m)
     """
     # buoyancy_parameter units: [m^4/s^3]
     buoyancy_parameter = (model.gravity * model.source.rate / np.pi) \
@@ -117,7 +119,7 @@ class Grid(object):
 
     def __init__(self, x, y, z):
         """
-        Define the receptor grid
+        Defines the receptor grid
         
         Parameters
         --------------
@@ -158,30 +160,26 @@ class GaussianPlume:
     
     def __init__(self, grid, source, atm,
                  gravity=9.81, density_eff=0.769, density_air=1.225):
-        """Gaussian plume model.
+        """
+        Defines the Gaussian plume model.
         
         Parameters
         ---------------
         grid: chama.transport.Grid object
-        
+            Grid points at which concentrations should be calculated
         source: chama.transport.Source object
-
-        atm: pandas dataframe 
-            Contains the atmospheric conditions for the
-            simulation. Should include the columns 'Wind Direction',
-            'Wind Speed', and 'Stability Class' indexed by the time that
-            changes occur.
-
+            Source location and leak rate
+        atm: pandas DataFrame 
+            Atmospheric conditions for the simulation. Columns include 
+            'Wind Direction', 'Wind Speed', and 'Stability Class' indexed by 
+            the time that changes occur.
         gravity: float
             Gravity (m2/s), default = 9.81 m2/s
-        
         density_eff: float
             Effective denisty of the leaked species (kg/m3),
             default = 0.769 kg/m3
-        
         density_eff: float
             Effective density of air (kg/m3), default = 1.225 kg/m3
-
         """
         self.grid = grid
         self.source = source
@@ -194,7 +192,7 @@ class GaussianPlume:
 
     def run(self):
         """
-        Computes the concentrations of a gaussian plume.
+        Computes the concentrations of a Gaussian plume.
         """
 
         conc = pd.DataFrame()
@@ -236,43 +234,34 @@ class GaussianPuff:
     def __init__(self, grid=None, source=None, atm=None, tpuff=1, tend=None,
                  tstep=10, gravity=9.81, density_eff=0.769, density_air=1.225):
         """
-        Guassian puff model.  
+        Defines the Guassian puff model.  
         
         Parameters
         ---------------
         grid: chama.transport.Grid object
-        
+            Grid points at which concentrations should be calculated
         source: chama.transport.Source object
-
-        atm: pandas dataframe 
-            Contains the atmospheric conditions for the
-            simulation. Should include the columns 'Wind Direction',
-            'Wind Speed', and 'Stability Class' indexed by the time that
-            changes occur.
-
+            Source location and leak rate
+        atm: pandas DataFrame 
+            Atmospheric conditions for the simulation. Columns include 
+            'Wind Direction','Wind Speed', and 'Stability Class' indexed by 
+            the time that changes occur.
         tpuff: float
-            The time between puffs (s)
-
+            Time between puffs (s)
         tend: float
-            The total time to run the simulation (s). Must be divisible by
+            Total time to run the simulation (s). Must be divisible by
             tpuff
-
         tstep: float
-            The time step for reporting concentration information (s)
-
+            Time step for reporting concentration information (s)
         gravity: float
             Gravity (m2/s), default = 9.81 m2/s
-        
         density_eff: float
             Effective denisty of the leaked species (kg/m3),
             default = 0.769 kg/m3
-        
-        density_eff: float
+        density_air: float
             Effective denisty of air (kg/m3), default = 1.225 kg/m3
         """
-
-        # Do keyword checks, must have atm!
-        # Can't vary the stability class
+        # TODO Do keyword checks, must have atm! Can't vary the stability class
 
         self.grid = grid
         self.source = source
@@ -297,7 +286,7 @@ class GaussianPuff:
         with the total distance traveled from the source and the
         standard deviations in the horizontal and vertical directions
         (sigmaY and sigmaZ). All of this information is stored in a
-        pandas dataframe called puff.
+        pandas DataFrame called puff.
         """
 
         if self.tend is None:
@@ -363,15 +352,14 @@ class GaussianPuff:
 
     def run(self, grid, tstep):
         """
-        Computes the concentrations of a gaussian puff model.
+        Computes the concentrations of a Gaussian puff model.
 
         Parameters
         -----------------
         grid: chama.transport.Grid object
-            The grid points at which concentrations should be calculated
-
+            Grid points at which concentrations should be calculated
         tstep: float
-            The time step for reporting concentration information (s)
+            Time step for reporting concentration information (s)
         """
         
         self.grid = grid
@@ -382,7 +370,7 @@ class GaussianPuff:
         conc_list = []
 
         for t in times:
-            print('Calculating for time: ', t)
+            #print('Calculating for time: ', t)
             # Extract the puff data at time t
             mask = (self.puff['T'] >= t - 0.1 * self.tpuff) \
                    & (self.puff['T'] <= t + 0.1 * self.tpuff)

@@ -2,27 +2,29 @@
 The impact module contains methods to extract the impact of detecting transport 
 simulations given a set of defined sensor technologies.
 """
-from __future__ import print_function
 import pandas as pd
 import numpy as np
 
-def detection_times(signal, sensors, interp_method='linear', min_distance=10, metric=None):
+def detection_times(signal, sensors, interp_method='linear', min_distance=10):
     """
-    Extract the impact metric from a signal profile and sensors
+    Extract detection times from a signal and group of sensors.
 
     Parameters
     ----------
-    signal
-    sensors
-    metric
-    interp_method
-    min_distance
+    signal : pd DataFrame
+    
+    sensors : dict
+    
+    interp_method : str
+
+    min_distance : float
+    
 
     Returns
     -------
-    detection times: pd.DataFrame
-        DataFrame with columns 'Scenario', 'Sensor', and 'Impact'
-
+    det_times: pd.DataFrame
+        DataFrame with columns 'Scenario', 'Sensor', and 'Impact'.  
+        The Impact column contains a list of detection times.
     """
     # Extracting a subset of the signal in the sensor module is fastest
     # using multiindex even though setting the index initially is slow
@@ -34,7 +36,6 @@ def detection_times(signal, sensors, interp_method='linear', min_distance=10, me
     temp_det_times = {'Scenario': [], 'Sensor': [], 'Impact': []}
 
     for (name, sensor) in sensors.items():  # loop over sensors
-
         # Get detected signal
         detected = sensor.get_detected_signal(signal, interp_method,
                                               min_distance)
@@ -56,12 +57,13 @@ def detection_times(signal, sensors, interp_method='linear', min_distance=10, me
     
     return det_times
 
-def detection_time_stats(det_times, statistic='min'):
+def detection_time_stats(det_times, operation=np.min):
 
     det_t = det_times.copy()
     for index, row in det_t.iterrows():
-        if statistic == 'min':
-            row['Impact'] = np.min(row['Impact'])
+        row['Impact'] = operation(row['Impact'])
+    
+    det_t['Impact'] = det_t['Impact'].apply(pd.to_numeric)
     
     return det_t
     

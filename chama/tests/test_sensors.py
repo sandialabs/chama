@@ -30,29 +30,62 @@ def test_stationary_point_sensor():
 
 def test_mobile_point_sensor():
 
-    pos = chama.sensors.Mobile(locations=[(0, 0, 0),
-                                          (1, 0, 0),
-                                          (1, 3, 0),
-                                          (1, 2, 1)],
-                               speed=1)
-    det = chama.sensors.Point(sample_times=[1, 2, 3, 4, 5], threshold=1E-3)
+    pos = chama.sensors.Mobile(locations=[
+            (0, 0, 0),
+            (1, 0, 0),
+            (1, 3, 0),
+            (1, 2, 1)],
+            speed=1, start_time=0, repeat=False)
+    det = chama.sensors.Point(sample_times=[0, 1, 2, 3, 4, 5, 6, 7, 8], 
+            threshold=1E-3)
     sensor = chama.sensors.Sensor(position=pos, detector=det)
     
-    temp = sensor.detector.get_sample_points(sensor.position)
-    sample_points = []
-    for pt in temp:
-        if pt[0] == 5.0 and pt[1] == 1.0:
-            pt = (pt[0], pt[1], round(pt[2], 5), round(pt[3], 5))
-        sample_points.append(pt)
-
-    expected_sampling_points = [(1, 1.0, 0.0, 0.0), 
-                                (2.0, 1.0, 1.0, 0.0),
-                                (3.0, 1.0, 2.0, 0.0), 
-                                (4.0, 1.0, 3.0, 0.0), 
-                                (5.0, 1.0, round(3 - np.sqrt(0.5), 5),
-                                 round(np.sqrt(0.5), 5))]
-    assert_list_equal(sample_points, expected_sampling_points)
-
+    sample_points = sensor.detector.get_sample_points(sensor.position)
+    expected_sampling_points = [
+            (0, 0, 0, 0),
+            (1, 1, 0, 0), 
+            (2, 1, 1, 0),
+            (3, 1, 2, 0), 
+            (4, 1, 3, 0), 
+            (5, 1, round(3 - np.sqrt(0.5), 5), round(np.sqrt(0.5), 5)),
+            (6, 1, 2, 1),
+            (7, 1, 2, 1),
+            (8, 1, 2, 1)]
+    np.testing.assert_almost_equal(sample_points, expected_sampling_points,5)
+    
+    # Change start time
+    pos.start_time = 2
+    det.sample_points = None
+    sample_points2 = sensor.detector.get_sample_points(sensor.position)
+    expected_sampling_points2 = [
+            (0, 0, 0, 0),
+            (1, 0, 0, 0),
+            (2, 0, 0, 0),
+            (3, 1, 0, 0), 
+            (4, 1, 1, 0),
+            (5, 1, 2, 0), 
+            (6, 1, 3, 0), 
+            (7, 1, round(3 - np.sqrt(0.5), 5), round(np.sqrt(0.5), 5)),
+            (8, 1, 2, 1)]
+    np.testing.assert_almost_equal(sample_points2, expected_sampling_points2,5)
+    
+    # Repeat path
+    pos.start_time = 0
+    pos.repeat = True
+    det.sample_points = None
+    sample_points3 = sensor.detector.get_sample_points(sensor.position)
+    temp = 1-np.sqrt(pow(1-pos(5)[0],2)+ pow(2-pos(5)[1],2) + pow(1-pos(5)[2],2))
+    expected_sampling_points = [
+            (0, 0, 0, 0),
+            (1, 1, 0, 0), 
+            (2, 1, 1, 0),
+            (3, 1, 2, 0), 
+            (4, 1, 3, 0), 
+            (5, 1, round(3 - np.sqrt(0.5), 5), round(np.sqrt(0.5), 5)),
+            (6, temp, 0, 0),
+            (7, 1, temp, 0),
+            (8, 1, 1+temp, 0)]
+    np.testing.assert_almost_equal(sample_points3, expected_sampling_points,5)
 
 def test_stationary_camera_sensor():
     t = 0.0

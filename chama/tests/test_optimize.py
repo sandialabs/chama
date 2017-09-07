@@ -45,13 +45,12 @@ def test_water_network_example():
                            pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
-    error = abs((results['objective_value'] -
+    error = abs((results['Objective'] -
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
     
-    expected_selected_sensors = ["16", "21", "28", "38", "65",
-                                 "__DUMMY_SENSOR_UNDETECTED__"]
-    assert_list_equal(results['selected_sensors'], expected_selected_sensors)
+    expected_selected_sensors = ["16", "21", "28", "38", "65"]
+    assert_list_equal(results['Sensors'], expected_selected_sensors)
     
 
 def test_water_network_example_with_scenario_prob():
@@ -104,21 +103,19 @@ def test_water_network_example_with_scenario_prob():
     results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 8760.59
-    expected_selected_sensors = ["16", "21", "28", "38", "65",
-                                 "__DUMMY_SENSOR_UNDETECTED__"]
-    error = abs((results['objective_value'] -
+    expected_selected_sensors = ["16", "21", "28", "38", "65"]
+    error = abs((results['Objective'] -
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
-    assert_list_equal(results['selected_sensors'], expected_selected_sensors)
+    assert_list_equal(results['Sensors'], expected_selected_sensors)
     
     use_prob = True
     solver = chama.optimize.Pmedian(scenario_prob=use_prob)
     results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 9146.646
-    expected_selected_sensors = ["16", "19", "38", "65", "68",
-                                 "__DUMMY_SENSOR_UNDETECTED__"]
-    error = abs((results['objective_value'] -
+    expected_selected_sensors = ["16", "19", "38", "65", "68"]
+    error = abs((results['Objective'] -
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
-    assert_list_equal(results['selected_sensors'], expected_selected_sensors)
+    assert_list_equal(results['Sensors'], expected_selected_sensors)

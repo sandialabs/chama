@@ -4,12 +4,12 @@ The graphics module contains ...
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.spatial import ConvexHull  
-import numpy as np
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.collections import PatchCollection
 from matplotlib.animation import FuncAnimation
-
+from scipy.spatial import ConvexHull  
+import numpy as np
+from chama.sensors import Mobile
 
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
                    colormap=plt.cm.viridis, txyz_names=['T', 'X', 'Y', 'Z'], 
@@ -19,7 +19,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
 
     Parameters 
     -------------- 
-    signal: Pandas DataFrame A Pandas
+    signal: pandas DataFrame
         DataFrame containing columns for time, xyz position, scenario,
         and a signal to be plotted
     scenarios: list
@@ -99,7 +99,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
 
     Parameters 
     -------------- 
-    signal: Pandas DataFrame A Pandas
+    signal: pandas DataFrame
         DataFrame containing columns for time, xyz position, scenario,
         and a signal to be plotted
     signal_name: string
@@ -234,12 +234,10 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
 
     Parameters
     ------------------
-    puff: Pandas DataFrame
-        The puff dataframe created by a GaussianPuff object
-
+    puff: pandas DataFrame
+        The puff DataFrame created by a GaussianPuff object
     x_range: tuple (xmin, xmax)
         The x-axis limits for the plot
-
     y_range: tuple (ymin, ymax)
         The y-axis limits for the plot
     
@@ -249,6 +247,7 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         """
         Make a scatter plot of circles. 
         Similar to plt.scatter, but the size of circles are in data scale.
+        
         Parameters
         ----------
         x, y : scalar or array_like, shape (n, )
@@ -270,14 +269,17 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         kwargs : `~matplotlib.collections.Collection` properties
             Eg. alpha, edgecolor(ec), facecolor(fc), linewidth(lw), linestyle(ls), 
             norm, cmap, transform, etc.
+        
         Returns
         -------
         paths : `~matplotlib.collections.PathCollection`
+        
         Examples
         --------
         a = np.arange(11)
         circles(a, a, s=a*0.2, c=a, alpha=0.5, ec='none')
         plt.colorbar()
+        
         License
         --------
         This code is under [The BSD 3-Clause License]
@@ -337,3 +339,36 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     # ani.save('puff.mp4')
 
     plt.show()
+
+def sensors(sensors, x_range=(None, None), y_range=(None, None), 
+            z_range=(None, None), legend=False):
+    """
+    Parameters
+    -------------
+    sensors : dict
+        Dictonary of sensors where the key is the sensor name and value is the
+        chama.sensors.Sensor object.
+    """
+    
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    
+    for name, sensor in sensors.items():
+        position = sensor.position
+        if isinstance(position, Mobile):
+            x = [val[0] for val in position.location]
+            y = [val[1] for val in position.location]
+            z = [val[2] for val in position.location]
+            ax.plot(x, y, z,label=name)            
+        else:
+            x = position.location[0]
+            y = position.location[1]
+            z = position.location[2]
+            ax.scatter(x, y, z,label=name)
+            
+    ax.set_xlim3d(x_range[0],x_range[1])
+    ax.set_ylim3d(y_range[0],y_range[1])
+    ax.set_zlim3d(z_range[0],z_range[1])
+    if legend:
+        ax.legend()
+    fig.show()   

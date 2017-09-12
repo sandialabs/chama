@@ -13,22 +13,20 @@ import time as tme
 
 
 class Sensor(object):
-    """
-    A sensor for gas detection
-
-    This class represents a sensor and is used to calculate how much of a
-    signal is detected given the properties of the sensor.
-
-    Parameters
-    ----------
-    position : :class:`Position` object
-        The sensor's location in space
-    detector : :class:`SimpleSensor` object
-        The sensor's detector, determines the model used to calculate detection
-    """
+    
 
     def __init__(self, position=None, detector=None):
-
+        """
+        Defines a sensor object and methods to calculate detection.
+    
+        Parameters
+        ----------
+        position : chama.sensor.Position object
+            Sensor position 
+        detector : chama.sensor.Detector object
+            Sensor detector, determines the method used to calculate detection
+        """
+        
         self.name = None
 
         if position is None or not isinstance(position, Position):
@@ -49,15 +47,16 @@ class Sensor(object):
 
 
 class Position(object):
-    """
-    Object representing a sensor position
-
-    Parameters
-    ----------
-    location : (x,y,z) tuple
-        The location of the Position object represented by (x,y,z) coordinates
-    """
+    
     def __init__(self, location=None):
+        """
+        Defines a sensor's position
+    
+        Parameters
+        ----------
+        location : (x,y,z) tuple
+            The location of the Position object represented by (x,y,z) coordinates
+        """
         self.location = location
 
     def __call__(self, time):
@@ -101,10 +100,14 @@ class Mobile(Position):
     speed : int or float
         The speed of the mobile position in units assumed to be consistent
         with the waypoints and sensor sample_times
+    repeat : bool
+        Boolean indicating if the path should repeat
     """
-    def __init__(self, locations=None, speed=1):
+    def __init__(self, locations=None, speed=1, start_time=0, repeat=False):
         super(Mobile, self).__init__(locations)
         self.speed = speed
+        self.start_time = start_time
+        self.repeat = repeat
         self._d_btwn_locs = None
     
     def __call__(self, time):
@@ -113,7 +116,7 @@ class Mobile(Position):
 
         Parameters
         ----------
-        time ; int or float
+        time : int or float
 
         Returns
         -------
@@ -122,10 +125,14 @@ class Mobile(Position):
 
         """
         # Calculate distance traveled at specified time
-        distance = self.speed * time
+        delta_time = time - self.start_time
+        if delta_time < 0:
+            delta_time = 0
+        distance = self.speed * delta_time
 
         temp_locs = [np.array(i) for i in self.location]
-        temp_locs.append(temp_locs[0])  # Assuming path repeats
+        if self.repeat: # if path repeats
+            temp_locs.append(temp_locs[0])  
 
         if self._d_btwn_locs is None:
             # Distances between consecutive points
@@ -133,9 +140,13 @@ class Mobile(Position):
                 [np.linalg.norm(temp_locs[i] - temp_locs[i + 1])
                  for i in range(len(temp_locs) - 1)]
 
-        while distance > sum(self._d_btwn_locs):
-            distance -= sum(self._d_btwn_locs)
-
+        if self.repeat: # if path repeats
+            while distance > sum(self._d_btwn_locs):
+                distance -= sum(self._d_btwn_locs)
+        else:
+            if distance > sum(self._d_btwn_locs):
+                distance = sum(self._d_btwn_locs)
+        
         i = 0
         # Figure out which line segment
         for i, _ in enumerate(self._d_btwn_locs):
@@ -290,8 +301,6 @@ class Point(Detector):
         if len(interp_points) == 0:
             return signal_subset
 
-        # print('Interpolation required for ', len(interp_points), ' points')
-        t0 = tme.time()
         # TODO: Revisit the distance calculation.
         # Scaling issue by including both time and xyz location in distance
         # calculation. Manually select the signal times bordering
@@ -430,8 +439,8 @@ class Camera(Detector):
                                      interp_method, min_distance):
         """
         Defines detection as seen by a camera sensor. Not just
-        selecting/interpolating a subset of the signal dataframe. We are using
-        the CONCENTRATION signal dataframe to calculate the PIXEL signal at the
+        selecting/interpolating a subset of the signal DataFrame. We are using
+        the CONCENTRATION signal DataFrame to calculate the PIXEL signal at the
         sample points
 
         Parameters
@@ -457,7 +466,7 @@ class Camera(Detector):
         # Reset the index and set it to T
         allConc = signal.reset_index().set_index('T')
 
-        # Create dataframe to be returned
+        # Create DataFrame to be returned
         newidx = pd.MultiIndex.from_tuples(sample_points,
                                            names=('T', 'X', 'Y', 'Z'))
         detected_pixels = pd.DataFrame(None, index=newidx,
@@ -478,7 +487,7 @@ class Camera(Detector):
             # print('        Time: ', time)
             CamLoc = point[1:]
 
-            # We assume that every sample time is in the signal dataframe
+            # We assume that every sample time is in the signal DataFrame
             # Extract the rows at the sample time
             Conc = allConc.loc[time, :]
 

@@ -10,7 +10,7 @@ import chama
 testdir = dirname(abspath(__file__))
 datadir = join(testdir, 'data')
 
-class TestGraphics(unittest.TestCase):
+class TestSignalGraphics(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -60,4 +60,38 @@ class TestGraphics(unittest.TestCase):
 
     def test_signal_animate(self):
         pass
+
+class TestSensorGraphics(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        
+       sensors = {}
+       pos1 = chama.sensors.Stationary(location=(1,2,3))
+       det1 = chama.sensors.Point(threshold=0.001, sample_times=[0,2,4,6,8,10])
+       sensorA = chama.sensors.Sensor(position=pos1, detector=det1)
+       sensors['A'] = sensorA
+       
+       pos2 = chama.sensors.Mobile(locations=[(0,1,1),(1,2,2),(1,3,0),(1,2,1)],speed=0.5)
+       det2 = chama.sensors.Camera(threshold=100, sample_times=[0,3,6,9], direction=(1,1,1))
+       sensorB = chama.sensors.Sensor(position=pos2, detector=det2)
+       sensors['B'] = sensorB
+              
+       self.sensors = sensors
+    
+    @classmethod
+    def tearDownClass(self):
+        pass
+    
+    def test_sensors(self):
+        filename = abspath(join(testdir, 'plot_sensors.png'))
+        if isfile(filename):
+            os.remove(filename)
+        
+        plt.figure()
+        chama.graphics.sensors(self.sensors)
+        plt.savefig(filename, format='png')
+        plt.close()
+        
+        assert_true(isfile(filename))
         

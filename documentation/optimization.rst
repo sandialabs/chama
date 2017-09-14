@@ -85,7 +85,22 @@ The following example...
     2       S3              100.0         0.15
 
     >>> coverage = chama.optimize.Coverage()
-    >>> results = coverage.solve(sensor, scenario, det_times, 2) # doctest: +SKIP
+    >>> results = coverage.solve(sensor, scenario, det_times, 200)
+    >>> print(results['Objective'])
+    0.5
+    >>> print(results['Sensors'])
+    ['B']
+    >>> print(results['Assessment'])
+        Scenario Sensor  Impact
+    0  (4, 'S3')      B     0.0
+    1  (5, 'S3')      B     0.0
+    2  (6, 'S3')      B     0.0
+    3  (7, 'S3')      B     0.0
+    4  (2, 'S1')   None     1.0
+    5  (3, 'S1')   None     1.0
+    6  (3, 'S2')   None     1.0
+    7  (4, 'S1')   None     1.0
+
 
 P-median
 --------
@@ -159,7 +174,13 @@ The following example...
 .. doctest::
 
     >>> pmedian = chama.optimize.Pmedian()
-    >>> results = pmedian.solve(sensor, scenario, min_det_time, 2) # doctest: +SKIP
-    >>> print(results) # doctest: +SKIP
-    {'objective_value': 132.66666666666666, 'scenario_detection': {'S3': '__DUMMY_SENSOR_UNDETECTED__', 'S2': '__DUMMY_SENSOR_UNDETECTED__', 'S1': '__DUMMY_SENSOR_UNDETECTED__'}, 'selected_sensors': ['__DUMMY_SENSOR_UNDETECTED__']}
-
+    >>> results = pmedian.solve(sensor, scenario, min_det_time, 200)
+    >>> print(results['Objective'])
+    35.0
+    >>> print(results['Sensors'])
+    ['A']
+    >>> print(results['Assessment'])
+      Scenario Sensor  Impact
+    0       S1      A     2.0
+    1       S2      A     3.0
+    2       S3   None   100.0

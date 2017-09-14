@@ -10,10 +10,11 @@ import pandas as pd
 
 dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
 
+
 class Pmedian(object):
     """
-    This class implements a Pyomo-based Pmedian sensor placement solver using the
-    stochastic programming formulation from [LBSW12]_.
+    This class implements a Pyomo-based Pmedian sensor placement solver
+    using the stochastic programming formulation from [LBSW12]_.
     """
 
     def __init__(self, **kwds):
@@ -44,7 +45,10 @@ class Pmedian(object):
             str) and "Undetected Impact" (of type float), where "Scenario"
             specifies the scenario name, and "Undetected Impact" specifies the
             impact that will be realized if this scenario is not detected by
-            any selected sensor.
+            any selected sensor. This DataFrame may also include the
+            optional column "Probability" (of type float) to specify the
+            probability of each scenario. Scenario probability values will
+            only be used if the ``scenario_prob`` flag is set to True.
         impact : :class:`pandas.DataFrame`
             This is a pandas DataFrame with the columns "Scenario" (of type
             str), "Sensor" (of type str), and "Impact" (of type float). It is
@@ -123,8 +127,9 @@ class Pmedian(object):
             if pe.value(model.x[(scenario, sensor)]) > 0.5:
                 if sensor == dummy_sensor_name:
                     sensor = None
-                    impact_val = scenario_df[scenario_df['Scenario'] == \
-                        scenario]['Undetected Impact'].values[0]
+                    impact_val = \
+                        scenario_df[scenario_df['Scenario'] ==
+                                    scenario]['Undetected Impact'].values[0]
                 else:
                     impact_val = \
                         impact_df[(impact_df['Scenario'] == scenario) &
@@ -161,9 +166,6 @@ class Pmedian(object):
         ConcreteModel
             A Pyomo model ready to be solved
         """
-
-        if self.coverage:
-            df_impact = self._detection_times_to_coverage(df_impact)
 
         # validate the pandas dataframe input
         cu.df_columns_required('df_sensor', df_sensor,
@@ -405,20 +407,39 @@ class Coverage(Pmedian):
     def __init__(self, **kwds):
         kwds['coverage'] = True
         Pmedian.__init__(self, **kwds)
-    
+
+    def create_pyomo_model(self, df_sensor, df_scenario, df_impact,
+                            sensor_budget):
+        """
+        Modify the input DataFrames to be compatible with the coverage
+        formulation. Call the super class implementation to actually build
+        the Pyomo model.
+        """
+
+        df_impact, df_scenario = self._detection_times_to_coverage(df_impact)
+
+        model = Pmedian.create_pyomo_model(self, df_sensor, df_scenario,
+                                           df_impact, sensor_budget)
+        return model
+
     def _detection_times_to_coverage(self, det_times):
     
         temp = {'Scenario': [], 'Sensor': [], 'Impact': []}
         for index, row in det_times.iterrows():
             for t in row['Impact']:
-                temp['Scenario'].append(str((t,row['Scenario'])))
+                temp['Scenario'].append(str((t, row['Scenario'])))
                 temp['Sensor'].append(row['Sensor'])
                 temp['Impact'].append(0.0)
+
         coverage = pd.DataFrame()
         coverage['Scenario'] = temp['Scenario']
         coverage['Sensor'] = temp['Sensor']
         coverage['Impact'] = temp['Impact']
         coverage = coverage.sort_values('Scenario')
         coverage = coverage.reset_index(drop=True)
+
+        scenarios = pd.DataFrame()
+        scenarios['Scenario'] = coverage['Scenario'].unique()
+        scenarios['Undetected Impact'] = 1.0
         
-        return coverage
+        return coverage, scenarios

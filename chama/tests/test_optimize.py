@@ -150,18 +150,16 @@ def test_water_network_example_with_grouping_constraint():
 
     # Solve sensor placement
     sensor_budget = 5
-    use_prob = False
     solver = chama.optimize.Pmedian()
     model = solver.create_pyomo_model(df_sensor, df_scenario, df_impact,
                                       sensor_budget)
     solver.add_grouping_constraint(['15', '16', '17'], select=2)
     solver.add_grouping_constraint(['16', '17', '18'], max_select=1)
-    results = solver.solve(pyomo_solver_options={'tee': True})
+    results = solver.solve()
 
     expected_objective_value = 9400.531
-    expected_selected_sensors = ["15", "16", "19", "38", "65",
-                                 "__DUMMY_SENSOR_UNDETECTED__"]
-    error = abs((results['objective_value'] -
+    expected_selected_sensors = ["15", "16", "19", "38", "65"]
+    error = abs((results['Objective'] -
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
     assert_list_equal(results['Sensors'], expected_selected_sensors)

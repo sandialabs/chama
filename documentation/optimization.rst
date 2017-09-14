@@ -7,7 +7,7 @@
 Optimization
 ===========================
 
-The :mod:`chama.optimize` module contains **coverage** and **P-median** sensor 
+The :mod:`chama.optimize` module contains **coverage** and **P-median** sensor
 placement optimization formulations. Additional methods could be added to this
 module. Data requirements for sensor placement are listed below, note that
 some formulations require slightly different input:

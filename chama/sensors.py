@@ -2,18 +2,16 @@
 The sensor module contains classes to define point or camera sensors
 that can either be stationary and mobile.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial.distance import cdist
 from scipy import integrate
 from scipy import ndimage as sn
-import time as tme
 
 
 class Sensor(object):
-    
 
     def __init__(self, position=None, detector=None):
         """
@@ -55,7 +53,8 @@ class Position(object):
         Parameters
         ----------
         location : (x,y,z) tuple
-            The location of the Position object represented by (x,y,z) coordinates
+            The location of the Position object represented by (x,y,z)
+            coordinates
         """
         self.location = location
 
@@ -131,7 +130,7 @@ class Mobile(Position):
         distance = self.speed * delta_time
 
         temp_locs = [np.array(i) for i in self.location]
-        if self.repeat: # if path repeats
+        if self.repeat:  # if path repeats
             temp_locs.append(temp_locs[0])  
 
         if self._d_btwn_locs is None:
@@ -140,7 +139,7 @@ class Mobile(Position):
                 [np.linalg.norm(temp_locs[i] - temp_locs[i + 1])
                  for i in range(len(temp_locs) - 1)]
 
-        if self.repeat: # if path repeats
+        if self.repeat:  # if path repeats
             while distance > sum(self._d_btwn_locs):
                 distance -= sum(self._d_btwn_locs)
         else:
@@ -337,6 +336,12 @@ class Point(Detector):
                                              interp_points[i],
                                              method=interp_method,
                                              rescale=True)
+                    if np.isnan(interp_signal):
+                        raise ValueError('Trying to interpolate a sample '
+                                         'point outside of the signal grid. '
+                                         'Make sure that all sensor '
+                                         'locations are contained in the '
+                                         'area spanned by the signal data.')
                     signal_subset.loc[interp_points[i], j] = interp_signal
 
         elif interp_method == 'nearest':
@@ -466,6 +471,14 @@ class Camera(Detector):
         detected_pixels = pd.DataFrame(None, index=newidx,
                                        columns=signal.columns)
 
+        # Check if all the sample times are time points included in the
+        # signal dataframe
+        signal_t = set(allConc.index)
+        sample_t = set([p[0] for p in sample_points])
+        if not sample_t.issubset(signal_t):
+            raise ValueError('All sampling times for a camera sensor must be '
+                             'contained in the signal data')
+
         # print('    Calculating camera signal detection')
         # TODO: Add interpolation for non-gridded or sparse signal data
         for point in sample_points:
@@ -502,10 +515,17 @@ class Camera(Detector):
             nz = len(Z)
 
             if nx * ny * nz != Conc.shape[0]:
-                raise RuntimeError('The camera sensor only supports regularly '
-                                   'gridded data')
+                raise ValueError('The camera sensor requires signal data '
+                                 'to be on a regular grid')
 
-            # TODO: Add check to make sure X,Y,Z points are equally spaced
+            # Check to make sure X,Y,Z points are equally spaced
+            xdiff = np.unique(X[1:] - X[:-1])
+            ydiff = np.unique(Y[1:] - Y[:-1])
+            zdiff = np.unique(Z[1:] - Z[:-1])
+            if len(xdiff) > 1 or len(ydiff) > 1 or len(zdiff) > 1:
+                raise ValueError('The camera sensor requires signal data to '
+                                 'be equally spaced over a particular '
+                                 'spatial axis (i.e. X, Y, and Z)')
 
             # Calculate angles (horizontal and vertical) associated with the
             # camera orientation. The vertical angle is complemented due to

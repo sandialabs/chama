@@ -1,7 +1,7 @@
-chama.solver module
+chama.optimize module
 ===================
 
-.. automodule:: chama.solver
+.. automodule:: chama.optimize
     :members:
     :undoc-members:
     :show-inheritance:

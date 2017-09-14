@@ -1,11 +1,14 @@
 """
 The utils module contains a collection of utility functions.
 """
+
+
 def _scalar_or_list_to_list(data):
         if isinstance(data, list):
-            return [ i for i in data ]
+            return [i for i in data]
         else:
-            return [ data ]
+            return [data]
+
 
 def df_columns_required(df_name, df, col_type_dict):
     """ 
@@ -16,6 +19,7 @@ def df_columns_required(df_name, df, col_type_dict):
         if not df_columns_exist(df, {k:v}):
             raise TypeError('Expected column "{0}" of type {1} in DataFrame \
                             "{2}."'.format(k, v, df_name))
+
 
 def df_columns_exist(df, col_type_dict):
     """ 
@@ -32,6 +36,7 @@ def df_columns_exist(df, col_type_dict):
 
     return True
 
+
 def df_nans_not_allowed(df_name, df):
     """ 
     Internal function that raises an exception if a user passed a DataFrame 
@@ -40,6 +45,7 @@ def df_nans_not_allowed(df_name, df):
     if df.isnull().values.any():
         raise TypeError('Found unexpected NaN values in DataFrame "{0}"\
                         .'.format(df_name))
+
 
 def df_columns_nans_not_allowed(df_name, df, col_list):
     """ 
@@ -51,6 +57,7 @@ def df_columns_nans_not_allowed(df_name, df, col_list):
         if df_columns_has_nans(df, [name]):
             raise TypeError('Found unexpected NaN values in column "{0}" of \
                             DataFrame "{1}".'.format(name, df_name))
+
 
 def df_columns_has_nans(df, col_list):
     """ 
@@ -65,4 +72,3 @@ def df_columns_has_nans(df, col_list):
             return True
     
     return False
-

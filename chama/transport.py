@@ -1,7 +1,7 @@
 """
 The transport module contains Gaussian air dispersion models.
 """
-from __future__ import division
+from __future__ import print_function, division
 import numpy as np
 import pandas as pd
 # from scipy import integrate

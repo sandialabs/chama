@@ -1,9 +1,11 @@
 """
-The impact module contains methods to extract the impact of detecting transport 
+The impact module contains methods to extract the impact of detecting transport
 simulations given a set of defined sensor technologies.
 """
+from __future__ import print_function, division
 import pandas as pd
 import numpy as np
+
 
 def detection_times(signal, sensors, interp_method='linear', min_distance=10):
     """
@@ -57,7 +59,18 @@ def detection_times(signal, sensors, interp_method='linear', min_distance=10):
     
     return det_times
 
-def detection_time_stats(det_times, operation=np.min):
+
+def detection_time_stats(det_times, operation=None):
+
+    if operation == 'min' or operation is None:
+        operation = np.min
+    elif operation == 'mean':
+        operation = np.mean
+    elif operation == 'median':
+        operation = np.median
+    else:
+        raise ValueError('Unrecognized detection time operation "%s"'
+                         % operation)
 
     det_t = det_times.copy()
     for index, row in det_t.iterrows():
@@ -66,7 +79,8 @@ def detection_time_stats(det_times, operation=np.min):
     det_t['Impact'] = det_t['Impact'].apply(pd.to_numeric)
     
     return det_t
-    
+
+
 def translate(det_t, damage):
 
     damage = damage.set_index('T')
@@ -76,6 +90,7 @@ def translate(det_t, damage):
     
     det_damage = det_t.copy()
     for index, row in det_damage.iterrows():
-        row['Impact'] = damage.loc[row['Impact'],row['Scenario']]
-    
+        det_damage.loc[index, 'Impact'] = damage.loc[row['Impact'],
+                                                     row['Scenario']]
+
     return det_damage

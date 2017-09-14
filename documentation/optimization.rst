@@ -7,10 +7,10 @@
 Optimization
 ===========================
 
-The :mod:`chama.optimize` module contains **coverage** and **P-median** sensor 
-placement optimization formulations.  Additional methods could be added to this module.
-Data requirements for sensor placement are listed below, note that some formulations 
-require slightly different input:
+The :mod:`chama.optimize` module contains **coverage** and **P-median** sensor
+placement optimization formulations. Additional methods could be added to this
+module. Data requirements for sensor placement are listed below, note that
+some formulations require slightly different input:
 
 * Impact assessment: as described in the :ref:`impact` section.
 
@@ -34,13 +34,13 @@ require slightly different input:
     values.
 
 Coverage
------------
+--------
 The following coverage formulation is used to determine the optimal sensor
 placement and type that maximizes scenario or time coverage:
 
 .. math::
 
-	equation
+    equation
 	
 where:
 
@@ -55,12 +55,19 @@ The following example...
 
     >>> import pandas as pd
     >>> import chama
-    >>> sensor = pd.DataFrame({'Sensor': ['A', 'B', 'C', 'D'],'Cost': [100.0, 200.0, 500.0, 1500.0]})
+    >>> sensor = pd.DataFrame({'Sensor': ['A', 'B', 'C', 'D'],
+    ...                        'Cost': [100.0, 200.0, 500.0, 1500.0]})
     >>> sensor = sensor[['Sensor', 'Cost']]
-    >>> scenario = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],'Undetected Impact': [48.0, 250.0, 100.0], 'Probability': [0.25, 0.60, 0.15]})
-	>>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
-    >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],'Sensor': ['A', 'A', 'B'], 'Impact': [[2,3,4],[3],[4,5,6,7]]})
-	>>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],'Sensor': ['A', 'A', 'B'], 'Impact': [2.0,3.0,4.0]})
+    >>> scenario = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
+    ...                          'Undetected Impact': [48.0, 250.0, 100.0],
+    ...                          'Probability': [0.25, 0.60, 0.15]})
+    >>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
+    >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
+    ...                           'Sensor': ['A', 'A', 'B'],
+    ...                           'Impact': [[2, 3, 4], [3], [4, 5, 6, 7]]})
+    >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
+    ...                              'Sensor': ['A', 'A', 'B'],
+    ...                              'Impact': [2.0,3.0,4.0]})
 
 .. doctest::
 
@@ -70,26 +77,44 @@ The following example...
     1      B   200.0
     2      C   500.0
     3      D  1500.0
-	
+
     >>> print(scenario)
       Scenario  Undetected Impact  Probability
     0       S1               48.0         0.25
     1       S2              250.0         0.60
     2       S3              100.0         0.15
-	
+
     >>> coverage = chama.optimize.Coverage()
-    >>> results = coverage.solve(sensor, scenario, det_times, 2)
-	
+    >>> results = coverage.solve(sensor, scenario, det_times, 200)
+    >>> print(results['Objective'])
+    0.5
+    >>> print(results['Sensors'])
+    ['B']
+    >>> print(results['Assessment'])
+        Scenario Sensor  Impact
+    0  (4, 'S3')      B     0.0
+    1  (5, 'S3')      B     0.0
+    2  (6, 'S3')      B     0.0
+    3  (7, 'S3')      B     0.0
+    4  (2, 'S1')   None     1.0
+    5  (3, 'S1')   None     1.0
+    6  (3, 'S2')   None     1.0
+    7  (4, 'S1')   None     1.0
+
+
 P-median
------------
+--------
 The following P-median formulation is used to determine the optimal sensor
-placement and type that minimizes impact (detection time or some other measure of damage):
+placement and type that minimizes impact (detection time or some other measure
+of damage):
 
 .. math::
    
-	\text{minimize} \qquad &\sum_{a \in A} \alpha_a \sum_{i \in {\cal L}_a} d_{ai} x_{ai}\\
-	\text{subject to} \qquad &\sum_{i\in {\cal L}_a} x_{ai} = 1 \hspace{1.2in}      \forall a \in A\\ 
-	&x_{ai} \le s_i       \hspace{1.47in}      \forall a \in A, i \in {\cal L}_a\\  
+    \text{minimize} \qquad &\sum_{a \in A} \alpha_a \sum_{i \in {\cal L}_a}
+    d_{ai} x_{ai}\\
+	\text{subject to} \qquad &\sum_{i\in {\cal L}_a} x_{ai} = 1 \hspace{1.2in}
+    \forall a \in A\\
+	&x_{ai} \le s_i       \hspace{1.47in}  \forall a \in A, i \in {\cal L}_a\\
 	&\sum_{i \in L} c_i s_i \le p\\ 
 	&s_i \in \{0,1\}      \hspace{1.3in}      \forall i \in L\\ 
 	&0 \leq x_{ai} \leq 1 \hspace{1.23in}      \forall a \in A, i \in {\cal L}_a 
@@ -125,11 +150,10 @@ The P-median formulation is written in Pyomo [HLWW12]_ and solved
 using open source or commercial solvers.  The open source GLPK solver
 [Makh10]_ is used by default.  
 
-The user supplies the impact coefficients, :math:`d_{ai}`, sensor budget, :math:`p`,
-and (optionally) sensor cost, :math:`c_i`, and (optionally) the scenario
-probability, :math:`\alpha_a`.  
-The impact coefficients are computed from
-transport simulation results and sensor characteristics, as described in
+The user supplies the impact coefficients, :math:`d_{ai}`, sensor budget,
+:math:`p`, and (optionally) sensor cost, :math:`c_i`, and (optionally) the
+scenario probability, :math:`\alpha_a`. The impact coefficients are computed
+from transport simulation results and sensor characteristics, as described in
 the :ref:`impact` Section.  
 If sensor cost is not defined, it is assumed to be 1 for each sensor
 (in that case, the sensor budget is the number of sensors to place).
@@ -150,4 +174,13 @@ The following example...
 .. doctest::
 
     >>> pmedian = chama.optimize.Pmedian()
-    >>> results = pmedian.solve(sensor, scenario, min_det_time, 2)
+    >>> results = pmedian.solve(sensor, scenario, min_det_time, 200)
+    >>> print(results['Objective'])
+    35.0
+    >>> print(results['Sensors'])
+    ['A']
+    >>> print(results['Assessment'])
+      Scenario Sensor  Impact
+    0       S1      A     2.0
+    1       S2      A     3.0
+    2       S3   None   100.0

@@ -18,7 +18,7 @@ Submodules
    chama.transport
    chama.sensors
    chama.impact
-   chama.solver
+   chama.optimize
    chama.graphics
    chama.utils
 

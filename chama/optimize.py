@@ -116,7 +116,6 @@ class Pmedian(object):
                     selected_sensors.append(key)
 
         obj_value = pe.value(model.obj)
-        print(impact_df)
         selected_impact = {'Scenario': [], 'Sensor': [], 'Impact': []}
         for key in model.x:
             scenario = key[0]

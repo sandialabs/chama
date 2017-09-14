@@ -9,11 +9,9 @@ from scipy.interpolate import griddata
 from scipy.spatial.distance import cdist
 from scipy import integrate
 from scipy import ndimage as sn
-import time as tme
 
 
 class Sensor(object):
-    
 
     def __init__(self, position=None, detector=None):
         """
@@ -55,7 +53,8 @@ class Position(object):
         Parameters
         ----------
         location : (x,y,z) tuple
-            The location of the Position object represented by (x,y,z) coordinates
+            The location of the Position object represented by (x,y,z)
+            coordinates
         """
         self.location = location
 
@@ -131,7 +130,7 @@ class Mobile(Position):
         distance = self.speed * delta_time
 
         temp_locs = [np.array(i) for i in self.location]
-        if self.repeat: # if path repeats
+        if self.repeat:  # if path repeats
             temp_locs.append(temp_locs[0])  
 
         if self._d_btwn_locs is None:
@@ -140,7 +139,7 @@ class Mobile(Position):
                 [np.linalg.norm(temp_locs[i] - temp_locs[i + 1])
                  for i in range(len(temp_locs) - 1)]
 
-        if self.repeat: # if path repeats
+        if self.repeat:  # if path repeats
             while distance > sum(self._d_btwn_locs):
                 distance -= sum(self._d_btwn_locs)
         else:

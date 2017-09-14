@@ -21,6 +21,9 @@ class Pmedian(object):
         self.scenario_prob = kwds.pop('scenario_prob', False)
         self.coverage = kwds.pop('coverage', False)
         self._model = None
+        self._sensor_df = None
+        self._scenario_df = None
+        self._impact_df = None
         
     def solve(self, sensor=None, scenario=None, impact=None,
               sensor_budget=None, mip_solver_name='glpk',
@@ -88,18 +91,13 @@ class Pmedian(object):
 
         self._solve_pyomo_model(model, mip_solver_name, pyomo_solver_options)
 
-        ret_dict = self._create_solution_summary(model, impact, scenario)
+        ret_dict = self._create_solution_summary()
         return ret_dict
 
-    def _create_solution_summary(self, model, impact_df, scenario_df):
+    def _create_solution_summary(self):
         """
         Creates a dictionary representing common summary information about the
         solution from a Pyomo model object that has already been solved.
-
-        Parameters
-        ----------
-        model : Pyomo model object
-            Pyomo model object that has already been solved.
 
         Returns
         -------
@@ -107,6 +105,10 @@ class Pmedian(object):
             Dictionary containing objective value, selected sensors, and 
             impact assesment.
         """
+        model = self._model
+        impact_df = self._impact_df
+        scenario_df = self._scenario_df
+
         selected_sensors = []
         for key in model.y:
             if pe.value(model.y[key]) > 0.5:
@@ -114,7 +116,7 @@ class Pmedian(object):
                     selected_sensors.append(key)
 
         obj_value = pe.value(model.obj)
-
+        print(impact_df)
         selected_impact = {'Scenario': [], 'Sensor': [], 'Impact': []}
         for key in model.x:
             scenario = key[0]
@@ -125,8 +127,9 @@ class Pmedian(object):
                     impact_val = scenario_df[scenario_df['Scenario'] == \
                         scenario]['Undetected Impact'].values[0]
                 else:
-                    impact_val = impact_df[(impact_df['Scenario']==scenario) & \
-                        (impact_df['Sensor']==sensor)]['Impact'].values[0]
+                    impact_val = \
+                        impact_df[(impact_df['Scenario'] == scenario) &
+                        (impact_df['Sensor'] == sensor)]['Impact'].values[0]
                 selected_impact['Scenario'].append(scenario)
                 selected_impact['Sensor'].append(sensor)
                 selected_impact['Impact'].append(impact_val)
@@ -138,7 +141,7 @@ class Pmedian(object):
                 'Sensors': selected_sensors,
                 'Assessment': selected_impact}
 
-    def _create_pyomo_model(self, df_sensor, df_scenario, df_impact,
+    def create_pyomo_model(self, df_sensor, df_scenario, df_impact,
                             sensor_budget):
         """
         Create and return the Pyomo model to be solved.
@@ -161,7 +164,7 @@ class Pmedian(object):
         """
 
         if self.coverage:
-            impact = self._detection_times_to_coverage(df_impact)
+            df_impact = self._detection_times_to_coverage(df_impact)
 
         # validate the pandas dataframe input
         cu.df_columns_required('df_sensor', df_sensor,
@@ -182,6 +185,10 @@ class Pmedian(object):
         if self.scenario_prob:
             cu.df_columns_required('df_scenario', df_scenario,
                                    {'Probability': np.float64})
+
+        self._sensor_df = df_sensor
+        self._scenario_df = df_scenario
+        self._impact_df = df_impact
 
         df_impact = df_impact.set_index(['Scenario', 'Sensor'])
         assert(df_impact.index.names[0] == 'Scenario')

@@ -98,8 +98,7 @@ distribution. Gaussian plume models are typically used to model steady state plu
 while Gaussian puff models are used to model non-continuous sources. 
 The :mod:`chama.transport` module has additional information on
 running the Gaussian plume and Gaussian puff models.
-Note that many atmospheric dispersion applications will require more sophisticated 
-transport models.
+Note that many atmospheric dispersion applications require more sophisticated models.
 
 The following simple example runs a single Gaussian plume model for a given receptor grid,
 source, and atmospheric conditions.  
@@ -149,10 +148,22 @@ Initialize the Gaussian plume model and run (the first 5 rows of the signal Data
     2 -100.0 -100.0  4.0  0  0.0
     3 -100.0 -100.0  6.0  0  0.0
     4 -100.0 -100.0  8.0  0  0.0
+
+The Gaussian Puff model is run in a similar manner.  
+The time between puffs (tpuff) and time at the end of the simulation (tend) must be defined.
+
+Initialize the Gaussian puff model and run:
+
+.. doctest::
+
+    >>> gauss_puff = chama.transport.GaussianPuff(grid, source, atm, tpuff=1, tend=10)
+    >>> gauss_puff.run(grid, 10)
+    >>> signal = gauss_puff.conc
+
 	
 External simulation engines
 ---------------------------
-The transport simulations can also be generated from a wide range of external
+Transport simulations can also be generated from a wide range of external
 simulation engines, for example, atmospheric dispersion can be simulated using AERMOD
 [USEPA04]_ or CALPUFF [ScSY00]_, transport in pipe networks can be simulated
 using EPANET [Ross00]_, and groundwater transport can be simulated using

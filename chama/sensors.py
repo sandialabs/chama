@@ -19,9 +19,9 @@ class Sensor(object):
     
         Parameters
         ----------
-        position : chama.sensor.Position object
+        position : chama Position
             Sensor position 
-        detector : chama.sensor.Detector object
+        detector : chama Detector
             Sensor detector, determines the method used to calculate detection
         """
         
@@ -39,7 +39,9 @@ class Sensor(object):
 
     def get_detected_signal(self, signal, interp_method='linear',
                             min_distance=10.0):
-
+        """
+        Returns the detected signal.
+        """
         return self.detector.get_detected_signal(signal, self.position,
                                                  interp_method, min_distance)
 
@@ -48,7 +50,7 @@ class Position(object):
     
     def __init__(self, location=None):
         """
-        Defines a sensor's position
+        Defines a sensor's position.
     
         Parameters
         ----------
@@ -60,11 +62,11 @@ class Position(object):
 
     def __call__(self, time):
         """
-        Return the location (x,y,z) at the specified time
+        Returns the location (x,y,z) at the specified time.
 
         Parameters
         ----------
-        time ; int or float
+        time : int or float
 
         Returns
         -------
@@ -77,27 +79,25 @@ class Position(object):
 
 class Stationary(Position):
     """
-    Object representing a stationary position
-
+    Defines a stationary sensor's position.
     """
     pass
 
 
 class Mobile(Position):
     """
-    Mobile position class
-
+    Defines a mobile sensor's position.
     A mobile position moves according to defined waypoints and speed. The
     mobile position is assumed to move in a straight line between waypoints
-    and will repeat its path if needed
+    and will repeat its path if needed.
 
     Parameters
     ----------
     locations : list of (x,y,z) tuples
         List of (x,y,z) tuples defining the waypoints of the mobile
-        position's path.
+        sensor's path.
     speed : int or float
-        The speed of the mobile position in units assumed to be consistent
+        The speed of the mobile sensor in units consistent
         with the waypoints and sensor sample_times
     repeat : bool
         Boolean indicating if the path should repeat
@@ -111,7 +111,7 @@ class Mobile(Position):
     
     def __call__(self, time):
         """
-        Return the position (x,y,z) at the specified time
+        Returns the position (x,y,z) at the specified time.
 
         Parameters
         ----------
@@ -164,12 +164,12 @@ class Mobile(Position):
 
 class Detector(object):
     """
-    Base class for different detector types
+    Defines a sensor's detector.
 
     Parameters
     ----------
     threshold : int
-        The minimum signal that can be detected by the sensor.
+        The minimum signal that can be detected by the sensor
     sample_times : list of ints or floats
         List of the sensor's sample/measurement times
     """
@@ -181,17 +181,16 @@ class Detector(object):
 
     def get_sample_points(self, position):
         """
-        Generates the sensor sample points in the form (t,x,y,z)
+        Returns the sensor sample points in the form (t,x,y,z)
 
         Parameters
         ----------
-        position : :class:`Position` object
+        position : chama Position
             The position of the sensor
-
+            
         Returns
         -------
-        sample_points : list of tuples
-
+        A list of sample points in the form (t,x,y,z)
         """
 
         if self.sample_points is None:
@@ -202,25 +201,29 @@ class Detector(object):
     def get_detected_signal(self, signal, position, interp_method,
                             min_distance):
         """
-        Return the signal detected by the sensor
+        Returns the signal detected by the sensor.
 
         Parameters
         ----------
-        signal : :class:`pandas.DataFrame`
+        signal : pandas DataFrame
             DataFrame with the multi-index (T, X, Y, Z) and columns
             containing the concentrations for different scenarios
-        position : :class:`Position` object
+        position : chama Position
             The position of the sensor
         interp_method : 'linear' or 'nearest'
-            Method used to interpolate the signal if needed
+            Method used to interpolate the signal if needed.  
+            A value of 'linear' will use griddata to interpolate missing
+            sample points. A value of 'nearest' will set the sample point to
+            the nearest signal point within a minimum distance of min_distance.
+            If there are no signal points within this distance then the
+            signal will be set to zero at the sample point.
         min_distance : float
             The minimum distance when using the 'nearest' interp_method
 
         Returns
         -------
-        :class:`pandas.Series`
-            Series with multi-index (T, Scenario) and signal values above
-            the sensor threshold.
+        A pandas Series with multi-index (T, Scenario) and signal values above
+        the sensor threshold.
 
         """
         pts = self.get_sample_points(position)
@@ -254,38 +257,30 @@ class Detector(object):
 
 class Point(Detector):
     """
-    Defines a simple point sensor
-
+    Defines a point sensor.
     """
 
     def _get_signal_at_sample_points(self, signal, sample_points,
                                      interp_method, min_distance):
         """
-        Extract the signal at the sensor sample points. If a sample point
-        does not exist in the signal DataFrame then interpolate the signal
+        Returns the signal at the sensor sample points. If a sample point
+        does not exist in the signal DataFrame then interpolate the signal.
 
         Parameters
         -----------
-        signal : :class:`pandas.DataFrame`
+        signal : pandas DataFrame
 
         sample_points : list of tuples
 
         interp_method : 'linear' or 'nearest'
-            A value of 'linear' will use griddata to interpolate missing
-            sample points. A value of 'nearest' will set the sample point to
-            the nearest signal point within a minimum distance of min_distance.
-            If there are no signal points within this distance then the
-            signal will be set to zero at the sample point
 
         min_distance : float
-            The minimum distance when using the 'nearest' interp_method
 
         Returns
         ---------
-        signal_subset : :class:`pandas.DataFrame`
-            This DataFrame has a multi-index containing all of the
-            sample_points and columns for each scenario with the
-            concentration at each sample point
+        pandas DataFrame has a multi-index containing all of the
+        sample_points and columns for each scenario with the
+        concentration at each sample point
 
         """
 
@@ -374,14 +369,12 @@ class Point(Detector):
                              ' "%s" was specified. Only "linear" or "nearest" '
                              'interpolations are supported' % interp_method)
 
-        # print('   Interpolation time: ', tme.time() - t0, ' sec')
-
         return signal_subset
 
 
 class Camera(Detector):
     """
-    Defines a camera sensor
+    Defines a camera sensor.
 
     Parameters
     ----------
@@ -396,14 +389,7 @@ class Camera(Detector):
     **kwds : dictionary
         Keyword arguments for setting parameter values in the camera model
     """
-
-    # Constants used in the camera model
-    NA = 6.02E23  # Avogadro's number
-    h = 6.626e-34  # Planck's constant [J-s]
-    SIGMA = 5.67e-8  # Stefan-Boltzmann constant [W/m^2-K^4]
-    c = 3.0e8  # Speed of light [m/s]
-    k = 1.38e-23  # Boltzmann's constant [J/K]
-
+    
     def __init__(self, threshold=None, sample_times=None,
                  direction=(1, 1, 1), **kwds):
 
@@ -434,17 +420,24 @@ class Camera(Detector):
         self.a_d = kwds.pop('a_d', 9.0E-10)
         self.Kav = kwds.pop('Kav', 2.191e-20)
 
+        # Constants used in the camera model
+        self.NA = 6.02E23  # Avogadro's number
+        self.h = 6.626e-34  # Planck's constant [J-s]
+        self.SIGMA = 5.67e-8  # Stefan-Boltzmann constant [W/m^2-K^4]
+        self.c = 3.0e8  # Speed of light [m/s]
+        self.k = 1.38e-23  # Boltzmann's constant [J/K]
+    
     def _get_signal_at_sample_points(self, signal, sample_points,
                                      interp_method, min_distance):
         """
         Defines detection as seen by a camera sensor. Not just
         selecting/interpolating a subset of the signal DataFrame. We are using
         the CONCENTRATION signal DataFrame to calculate the PIXEL signal at the
-        sample points
+        sample points.
 
         Parameters
         -----------
-        signal : :class:`pandas.DataFrame`
+        signal : pandas DataFrame
             DataFrame has a multi-index with (T, X, Y, Z) points
             and each column in the frame contains concentration
             values at those points for one scenario
@@ -453,10 +446,9 @@ class Camera(Detector):
 
         Returns
         ---------
-        detected_pixels : :class:`pandas.DataFrame`
-            DataFrame has a multi-index with the sensor's sample_points
-            (T,X,Y,Z) and each column contains the number of pixels that
-            detected something for one scenario
+        pandas DataFrame has a multi-index with the sensor's sample_points
+        (T,X,Y,Z) and each column contains the number of pixels that
+        detected something for one scenario
         """
 
         # TODO: Add option to specify a different camera direction at each
@@ -636,7 +628,7 @@ class Camera(Detector):
 
     def _pixelprop(self):
         """
-        Calculate camera properties
+        Calculates camera properties
 
         Returns
         -------
@@ -674,7 +666,7 @@ class Camera(Detector):
 
     def _pixel_power(self, temp):
         """
-        Calculate the the power incident on a pixel from an infinite blackbody
+        Calculates the the power incident on a pixel from an infinite blackbody
         emitter at a given temperature.
 
         Parameters
@@ -684,8 +676,7 @@ class Camera(Detector):
 
         Returns
         ---------
-        pixel_power : float
-            Power incident on the pixel (W)
+        Power incident on the pixel (W)
         """
 
         # Calculate the nondimensional frequency limits of the sensor

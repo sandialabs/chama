@@ -25,12 +25,14 @@ Additionally, every sensor object includes a function that accepts a `signal`,
 described in the :ref:`transport` section, and returns the subset of that
 signal that is detected by a set of sensors. This information is then used
 to extract the `impact` of each sensor on each scenario, as described in the
-:ref:`impact` section. This information is used as input to the sensor
-placement optimization.
+:ref:`impact` section. The sensor placement optimization uses this measure of 
+'impact' to select sensors.
 
 Each sensor is declared by specifying a **position** and a **detector**.
 The following options are available in Chama (additional sensor 
 technologies could easily be incorporated).
+
+.. note:: add line of sight sensor?
 
 Position options
 ----------------
@@ -54,6 +56,11 @@ Detector options
   This type of detector determines detection by collecting
   the signal within the camera's field of view, converting that signal to
   pixels, and comparing that to the detector's threshold in terms of pixels.
+  
+Chama includes methods to interpolate sensor measurements that are not represented 
+in the signal data.  However, the sample time of a Camera detectors must be represented 
+in the signal data (i.e. only X, Y, and Z can be interpolated).
+
 
 For example, a **stationary point sensor**, can be defined as follows:
 

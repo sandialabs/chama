@@ -95,15 +95,15 @@ Extract detection times:
 	
 The example shows that Scenario S1 was detected by Sensor A at time 30
 (units of time depend on the transport simulation). Scenario S1 was also
-detected by Sensor B and time 30 and Sensor C at times 20, 30 and 40.
+detected by Sensor B and time 30 and Sensor C at times 10, 20, 30 and 40.
 Scenario S2 was detected by Sensors A, B, and C. Scenario S3 was detected by
 Sensors A, B, and C. Sensor D did not detect any scenarios.
 
 This information can be used directly to optimization a sensor layout that
 maximizes coverage. To optimize a sensor layout that minimizes detection
 time, each detected scenario-sensor pair must be represented by a single
-detection time.  This can be obtained by taking the minimum, mean, median,
-etc. from the list of detection times.
+detection time.  This can be obtained by taking the minimum, mean, or median
+from the list of detection times.
 
 Extract the minimum detection time:
 
@@ -130,10 +130,10 @@ detection time can be converted to other measures of damage, such as damage
 cost, extent of contamination, or ability to protect critical assets and
 populations. These metrics can be used in sensor placement optimization to
 minimize damage. For example, if the cost of detecting scenario S1 at time
-20 is $40,000, then the damage metric for that scenario can be translated
-from a detection time of 20 to a cost of $40,000. The data associated with
+30 is $80,000, then the damage metric for that scenario can be translated
+from a detection time of 30 to a cost of $80,000. The data associated with
 damage is stored in a Pandas DataFrame with one column for time (T) and one
-column for each scenario.
+column for each scenario (name specified by the user).
 
 Example damage costs, associated with each scenario and time:
 

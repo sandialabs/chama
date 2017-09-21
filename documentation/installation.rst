@@ -26,17 +26,17 @@ Dependencies
 --------------
 Required Python package dependencies include:
 
-* Pyomo [HLWW12]_: optimization modeling language and optimization capabilities, 
+* Pyomo [HLWW12]_: formulate optimization methods, 
   https://github.com/pyomo. 
 * Pandas [Mcki13]_: analyze and store databases, 
   http://pandas.pydata.org.
 * Numpy [VaCV11]_: support large, multi-dimensional arrays and matrices, 
   http://www.numpy.org.
-* Scipy [VaCV11]_: used to support efficient routines for numerical analysis, 
+* Scipy [VaCV11]_: support efficient routines for numerical analysis, 
   http://www.scipy.org/
   
 Optional Python package dependencies include:
 
-* Matplotlib [Hunt07]_: produce figures, 
+* Matplotlib [Hunt07]_: produce graphics, 
   http://matplotlib.org.
  

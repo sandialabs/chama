@@ -1,5 +1,5 @@
 """
-The graphics module contains ...
+The graphics module contains graphic functions.
 """
 from __future__ import print_function, division
 import matplotlib.pyplot as plt
@@ -13,42 +13,37 @@ import numpy as np
 from chama.sensors import Mobile
 
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
-                      colormap=plt.cm.viridis, txyz_names=None,
+                      colormap=plt.cm.viridis, 
                       x_range=(None, None), y_range=(None, None),
                       z_range=(None, None)):
     """
-    Creates a 3D plot of the convex hull of the signal
+    Plots of the signal's 3D convex hull.
 
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        DataFrame containing columns for time, xyz position, scenario,
-        and a signal to be plotted
+        Signal data from the tranpsort simulation.  
+        The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
+        for each scenario.
     scenarios: list
         Column names for the scenarios to be plotted
     threshold: float
         The minimum value of the signal to be included
-    timesteps: list
+    timesteps: list (optional)
         List of the time steps to include in the plot
-    colormap: matplotlib.pyplot ColorMap
+    colormap: matplotlib.pyplot ColorMap (optional)
         A ColorMap object sent to the contourf function
-    txyz_names: list
-        Column names for time and the x, y, and z axis locations
-    x_range: tuple
+    x_range: tuple (optional)
         The x-axis limits for the plot
-    y_range: tuple
+    y_range: tuple (optional)
         The y-axis limits for the plot
-    z_range: tuple
+    z_range: tuple (optional)
         The z-axis limits for the plot
     """
-
-    if txyz_names is None:
-        txyz_names = ['T', 'X', 'Y', 'Z']
-    
-    t_col = txyz_names[0]
-    x_col = txyz_names[1]
-    y_col = txyz_names[2]
-    z_col = txyz_names[3]
+    t_col = 'T'
+    x_col = 'X'
+    y_col = 'Y'
+    z_col = 'Z'
 
     if timesteps is None:
         timesteps = sorted(set(signal.loc[:, t_col]))
@@ -96,58 +91,54 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
                     x_value=None, y_value=None, z_value=None, log_flag=False,
                     colormap=plt.cm.viridis, alpha=0.7, N=5,
-                    txyz_names=None, x_range=(None, None),
-                    y_range=(None, None), z_range=(None, None)):
+                    x_range=(None, None), y_range=(None, None), 
+                    z_range=(None, None)):
     """
-    Creates x-y, x-z, and y-z cross section contour plots. The signal is
+    Plots x-y, x-z, and y-z cross sections. The signal is
     summed over all desired time steps and summed across the axis not
     included in the plot unless a value for the third access is specified.
 
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        DataFrame containing columns for time, xyz position, scenario,
-        and a signal to be plotted
+        Signal data from the tranpsort simulation.  
+        The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
+        for each scenario.
     signal_name: string
         Column name for the signal to be plotted
-    threshold: float
+    threshold: float (optional)
         The minimum value of the signal to be plotted
-    timesteps: list
+    timesteps: list (optional)
         List of the time steps to include in the plot
-    x_value: list
+    x_value: list (optional)
         List of the x locations to include in the plot
-    y_value: list
+    y_value: list (optional)
         List of the y locations to include in the plot
-    z_value: list
+    z_value: list (optional)
         List of the z locations to include in the plot
-    log_flag: boolean
+    log_flag: boolean (optional)
         Flag specifying whether the signal should be plotted on a log scale
-    colormap: matplotlib.pyplot ColorMap
+    colormap: matplotlib.pyplot ColorMap (optional)
         A ColorMap object sent to the contourf function
-    alpha: float
+    alpha: float (optional)
         Value between 0 and 1 representing the alpha blending value
         passed to the contourf function
-    N: int
+    N: int (optional)
         The number of levels to include in the plot, passed to the
         contourf function
-    txyz_names: list
-        Column names for time and the x, y, and z axis locations
-    x_range: tuple
+    x_range: tuple (optional)
         The x-axis limits for the plot
-    y_range: tuple
+    y_range: tuple (optional)
         The y-axis limits for the plot
-    z_range: tuple
+    z_range: tuple (optional)
         The z-axis limits for the plot
     """
 
-    if txyz_names is None:
-        txyz_names = ['T', 'X', 'Y', 'Z']
-
-    t_col = txyz_names[0]
-    x_col = txyz_names[1]
-    y_col = txyz_names[2]
-    z_col = txyz_names[3]
-
+    t_col = 'T'
+    x_col = 'X'
+    y_col = 'Y'
+    z_col = 'Z'
+    
     if timesteps is None:
         timesteps = sorted(set(signal.loc[:, t_col]))
 
@@ -186,11 +177,6 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     
     Xi, Yi, Z = contour_data(temp, threshold, log_flag)
 
-    # if log_flag:
-    #     print('here')
-    #     #Z = np.ma.array(Z, mask= Z<=0)
-    #     print(Z)
-    #     print(Z.min(), Z.max())
     cplot1 = ax1.contourf(Xi, Yi, Z, alpha=alpha, cmap=colormap,
                           locator=log_flag)
     ax1.set_xlim(x_range[0], x_range[1])
@@ -240,7 +226,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
 
 def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     """
-    Plot the horizontal movement of puffs from a GaussianPuff simulation
+    Plots the horizontal movement of puffs from a GaussianPuff simulation
     over time. Each puff is represented as a circle centered at the puff
     center location with radius equal to the standard deviation in the
     horizontal direction (sigmaY).
@@ -249,11 +235,10 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     ------------------
     puff: pandas DataFrame
         The puff DataFrame created by a GaussianPuff object
-    x_range: tuple (xmin, xmax)
+    x_range: tuple (xmin, xmax) (optional)
         The x-axis limits for the plot
-    y_range: tuple (ymin, ymax)
+    y_range: tuple (ymin, ymax) (optional)
         The y-axis limits for the plot
-    
     """
 
     def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
@@ -355,14 +340,24 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
     plt.show()
 
 
-def sensors(sensors, x_range=(None, None), y_range=(None, None), 
+def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
             z_range=(None, None), legend=False):
     """
+    Plots sensor locations.
+    
     Parameters
     -------------
     sensors : dict
-        Dictonary of sensors where the key is the sensor name and value is the
-        chama.sensors.Sensor object.
+        A dictonary of sensors with key:value pairs containing
+        {'sensor name': chama Sensor object}
+    x_range: tuple (optional)
+        The x-axis limits for the plot
+    y_range: tuple (optional)
+        The y-axis limits for the plot
+    z_range: tuple (optional)
+        The z-axis limits for the plot
+    legend : Boolean (optional)
+        Indicates if legend should be added to the plot
     """
     
     fig = plt.figure()

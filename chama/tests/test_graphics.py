@@ -83,13 +83,13 @@ class TestSensorGraphics(unittest.TestCase):
     def tearDownClass(self):
         pass
     
-    def test_sensors(self):
+    def test_sensor_locations(self):
         filename = abspath(join(testdir, 'plot_sensors.png'))
         if isfile(filename):
             os.remove(filename)
         
         plt.figure()
-        chama.graphics.sensors(self.sensors)
+        chama.graphics.sensor_locations(self.sensors)
         plt.savefig(filename, format='png')
         plt.close()
         

@@ -16,6 +16,8 @@ def _calculate_sigma(x, stability_class):
     ---------------
     x: numpy array
         Grid points in the direction of travel (m)
+    stability_class : string
+        Stability class, A through F
         
     Returns
     ---------
@@ -54,7 +56,7 @@ def _modify_grid(model, wind_direction, wind_speed):
     
     Parameters
     ---------------
-    model: chama.transport.GaussianPlume object
+    model: chama GaussianPlume
         GaussianPlume object
     wind_direction: float
         Wind direction (degrees)
@@ -90,11 +92,10 @@ def _calculate_z_with_buoyancy(model, x, wind_speed):
     
     Parameters
     ---------------
-    model: chama.transport.GaussianPlume or chama.transport.GaussianPuff object
+    model: chama GaussianPlume or GaussianPuff 
         GaussianPlume or GaussianPuff object
     x: numpy array
         Distance in the downwind direction from the source (m)
-        
     wind_speed: float
         Wind speed (m/s)
 
@@ -119,7 +120,7 @@ class Grid(object):
 
     def __init__(self, x, y, z):
         """
-        Defines the receptor grid
+        Defines the receptor grid.
         
         Parameters
         --------------
@@ -137,7 +138,7 @@ class Source(object):
 
     def __init__(self, x, y, z, rate):
         """
-        Defines the source location and leak rate
+        Defines the source location and leak rate.
         
         Parameters
         -------------
@@ -165,9 +166,9 @@ class GaussianPlume:
         
         Parameters
         ---------------
-        grid: chama.transport.Grid object
+        grid: chama Grid
             Grid points at which concentrations should be calculated
-        source: chama.transport.Source object
+        source: chama Source
             Source location and leak rate
         atm: pandas DataFrame 
             Atmospheric conditions for the simulation. Columns include 
@@ -238,9 +239,9 @@ class GaussianPuff:
         
         Parameters
         ---------------
-        grid: chama.transport.Grid object
+        grid: chama Grid
             Grid points at which concentrations should be calculated
-        source: chama.transport.Source object
+        source: chama Source
             Source location and leak rate
         atm: pandas DataFrame 
             Atmospheric conditions for the simulation. Columns include 
@@ -281,7 +282,7 @@ class GaussianPuff:
 
     def _make_and_track_puffs(self):
         """
-        Generate puffs for the entire simulation time. For each puff and
+        Generates puffs for the entire simulation time. For each puff and
         each time step the location of the puff center is tracked along
         with the total distance traveled from the source and the
         standard deviations in the horizontal and vertical directions
@@ -356,7 +357,7 @@ class GaussianPuff:
 
         Parameters
         -----------------
-        grid: chama.transport.Grid object
+        grid: chama Grid
             Grid points at which concentrations should be calculated
         tstep: float
             Time step for reporting concentration information (s)

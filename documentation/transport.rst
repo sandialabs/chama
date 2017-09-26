@@ -15,24 +15,24 @@ capture uncertainty in the system. For each scenario, a **signal** is recorded.
 For example:
 
 * **To place sensors to detect a gas leak**, an atmospheric dispersion model can be 
-  used to simulate gas concentrations. Multiple scenarios can capture the
+  used to simulate gas concentrations. Multiple scenarios capture
   uncertainty in the leak rate, leak location, wind speed and direction.
   Depending on the region of interest and the complexity of the system, very
-  detailed or coarse models can be used. In this case, the **signal** is
+  detailed or simple models can be used. In this case, the **signal** is
   concentration.
 
 * **To place sensors to detect contaminant in a water distribution system**, 
   a water network model can be used to simulate hydraulics and water quality. 
-  Multiple scenarios can capture uncertainty in the location, rate, start time, 
+  Multiple scenarios capture uncertainty in the location, rate, start time, 
   and duration of the injection along with uncertainty in customer demands. 
   EPANET, or similar water network models, are typically used to run this 
   type of analysis. In this case, the **signal** is concentration. 
   
 * **To place sensors to detect a seismic event**, a wave propagation model can
-  be used to simulate displacement. Multiple scenarios can capture uncertainty
+  be used to simulate displacement. Multiple scenarios capture uncertainty
   in the location and magnitude of the seismic event along with subsurface
   heterogeneity. Depending on the region of interest and the complexity of
-  the system, very detailed or coarse models can be used. In this case, the
+  the system, very detailed or simple models can be used. In this case, the
   **signal** is displacement.
   
 For each scenario, the time, location (x,y,z), and signal are recorded. 
@@ -165,7 +165,7 @@ External simulation engines
 ---------------------------
 Transport simulations can also be generated from a wide range of external
 simulation engines, for example, atmospheric dispersion can be simulated using AERMOD
-[USEPA04]_ or CALPUFF [ScSY00]_, transport in pipe networks can be simulated
+[USEPA04]_ or CALPUFF [ScSY00]_ or using detailed CFD models, transport in pipe networks can be simulated
 using EPANET [Ross00]_, and groundwater transport can be simulated using
 MODFLOW [McHa88]_. Output from external simulation engines can be easily
 formatted and imported into Chama.

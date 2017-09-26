@@ -15,7 +15,7 @@ Some of the methods in Chama were originally developed by Sandia
 National Laboratories and the U.S. Environmental Protection Agency to 
 design sensor networks to detect contamination in water distribution systems [USEPA12]_ [USEPA15]_. 
 In this context, contamination scenarios are 
-precomuted using a water network model, feasible sensor locations and thresholds are defined, 
+precomputed using a water network model, feasible sensor locations and thresholds are defined, 
 and the optimization method selects a set of sensors to minimize a given objective.
 
 Chama was developed to be a general purpose sensor placement optimization
@@ -37,7 +37,7 @@ limited to):
 * Seismic wave propagation
 
 The basic steps required for sensor placement optimization using Chama are
-shown in :numref:`fig-flowchart`.
+shown in :numref:`fig-flowchart`.  
 
 .. _fig-flowchart:
 .. figure:: figures/flowchart.png
@@ -57,6 +57,9 @@ shown in :numref:`fig-flowchart`.
 * :ref:`graphics`: Generate maps of the site that include the optimal sensor
   layout and information about scenarios that were and were not detected.
 
+The user can enter the workflow at any stage.  For example, if the impact assessment 
+was determined using other methods, Chama can still be used to optimize
+sensor placement.
 The following documentation includes additional information on these steps,
 along with installation instructions, software application programming
 interface (API), and software license.  It is assumed that the reader is

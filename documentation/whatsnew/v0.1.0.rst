@@ -1,4 +1,4 @@
-v0.1.0 (XX/XX/XXXX)
+v0.1.0 (9/29/2017)
 -----------------------
 
 This is the first release of Chama. Features include basic functionality to:

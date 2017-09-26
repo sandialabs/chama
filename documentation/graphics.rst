@@ -39,7 +39,7 @@ The convex hull of several scenarios can be generated as follows:
 .. figure:: figures/convexhull_plot.png
    :scale: 75 %
    
-   Sample convex hull plot
+   Convex hull plot
 
 The cross section of a single scenarios can be generated as follows:
 
@@ -51,49 +51,112 @@ The cross section of a single scenarios can be generated as follows:
 .. figure:: figures/xsection_plot.png
    :scale: 100 %
    
-   Sample cross section plot
-   
-One of the internal simulation engines included in Chama is a Gaussian puff air dispersion
-model. Using the puff example defined in the :ref:`transport` section, 
-the movements of each puff over the simulation horizon can be visualized as follows:
-
-.. doctest::
-    :hide:
-	
-    >>> x_grid = np.linspace(-100, 100, 21)
-    >>> y_grid = np.linspace(-100, 100, 21)
-    >>> z_grid = np.linspace(0, 40, 21)
-    >>> grid = chama.transport.Grid(x_grid, y_grid, z_grid)
-	>>> source = chama.transport.Source(-20, 20, 1, 1.5)
-	>>> atm = pd.DataFrame({'Wind Direction': [45,120,200], 'Wind Speed': [1.2,1,1.8], 'Stability Class': ['A','B','C']}, index=[0,10,20])	
-	>>> gauss_puff = chama.transport.GaussianPuff(grid, source, atm, tpuff=1, tend=20)
-	>>> gauss_puff.run(grid, 10)
-	
-.. doctest::
-
-	>>> #chama.graphics.animate_puffs(gauss_puff.puff)
-	
-.. _fig-puff:
-.. figure:: figures/puff_animation_plot.png
-   :scale: 50 %
-   
-   Sample frame from Gaussian puff animation
+   Cross section plot
 
 Sensor graphics
 ---------------------
 
-* Plot the location of sensors on a map (KML or using matplotlib)
+The position of fixed and mobile sensors, described in the :ref:`sensors` section, 
+can be plotted.  After grouping sensors in a dictionary, the locations can be 
+plotted as follows:
 
-* All feasible sensors or selected sensors, color by impact.
+.. doctest::
+    :hide:
 
+    >>> import chama
+	>>> import numpy as np
+    >>> import pandas as pd
+    >>> sensors = {}
+	>>> z = 20
+    >>> drone_path = chama.sensors.Mobile(locations=[
+    ...     (100,100,z), (400,100,z), (420,150,z), 
+    ...     (400,200,z), (100,200,z), ( 80,250,z),
+    ...     (100,300,z), (400,300,z), (420,350,z),
+    ...     (400,400,z), (100,400,z)], 
+    ...     speed=0.04701, start_time=8*3600) 
+    >>> drone_camera = chama.sensors.Camera(threshold=100, 
+    ...     sample_times=[0], direction=(0,0,-1))
+    >>> drone = chama.sensors.Sensor(position=drone_path, detector=drone_camera)
+    >>> sensors['Drone' + str(z)] = drone
+	>>> dist_loc = chama.sensors.Stationary(location=(100,200,5))
+    >>> dist_pt = chama.sensors.Point(threshold=0.1, sample_times=[0])
+    >>> dist = chama.sensors.Sensor(position=dist_loc, detector=dist_pt)
+    >>> sensors['Dist1'] = dist
+    >>> dist_loc = chama.sensors.Stationary(location=(200,300,10))
+    >>> dist_pt = chama.sensors.Point(threshold=0.1, sample_times=[0])
+    >>> dist = chama.sensors.Sensor(position=dist_loc, detector=dist_pt)
+    >>> sensors['Dist2'] = dist
+    >>> dist_loc = chama.sensors.Stationary(location=(200,400,8))
+    >>> dist_pt = chama.sensors.Point(threshold=0.1, sample_times=[0])
+    >>> dist = chama.sensors.Sensor(position=dist_loc, detector=dist_pt)
+    >>> sensors['Dist3'] = dist
+	
+.. doctest::
 
+	>>> chama.graphics.sensor_locations(sensors)
+	
+.. doctest::
+    :hide:
+	
+	>>> #import matplotlib.pylab as plt 
+    >>> #plt.gcf()
+    >>> #plt.savefig('sensorloc.png')
+
+.. _fig-sensorloc:
+.. figure:: figures/sensorloc.png
+   :scale: 70 %
+   
+   Mobile and stationary sensor locations
+   
 Tradeoff curves
 ---------------------------
 
-* Plot objective using several sensor placements, increasing budget.  Minimize time and coverage?
+After running a series of sensor placement optimizations with increasing sensor budget, a tradeoff
+curve can be generated using the objective value (results['Objective']).  The following 
+plot compares the expected time to detection (using P-median) and scenario coverage as the sensor 
+budget increases.
 
+.. _fig-tradeoff:
+.. figure:: figures/tradeoff.png
+   :scale: 60 %
+   
+   Optimization tradeoff curve
 
 Scenario analysis
 ---------------------------
 
-* histogram showing impact from all scenarios, based on optimal sensor placement.
+The impact of individual scenarios can also be analyzed for a single sensor placement using the 
+impact assessment from the optimization (results['Assessment']).  The following plot compares
+time to detection from several scenarios, given an optimal placement.
+
+.. doctest::
+    :hide:
+
+    >>> results = {}
+    >>> results['Assessment'] = pd.DataFrame(data =  [['S1', 'A', 4], ['S2', 'A', 5],['S3', 'B', 10],['S4', 'C', 3],['S5', 'A', 1]],
+    ...    columns=['Scenario', 'Sensor', 'Assessment'])
+    >>> results['Assessment'] = results['Assessment'][['Scenario', 'Sensor', 'Impact']]
+	
+.. doctest::
+
+    >>> print(results['Assessment'])
+      Scenario Sensor  Assessment
+    0       S1      A           4
+    1       S2      A           5
+    2       S3      B          10
+    3       S4      C           3
+    4       S5      A           1
+    >>> results['Assessment'].plot(kind='bar')
+
+.. doctest::
+    :hide:
+	
+	>>> #import matplotlib.pylab as plt 
+    >>> #plt.gcf()
+    >>> #plt.savefig('scenarioimpact.png')
+
+.. _fig-scenarioimpact:
+.. figure:: figures/scenarioimpact.png
+   :scale: 60 %
+   
+   Scenario impact values based on sensor placement optimization

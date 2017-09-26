@@ -45,13 +45,13 @@ class Pmedian(object):
         ----------
         sensor : pandas DataFrame
             Sensor characteristics.  Contains sensor cost for each sensor. 
-            Sensor characteristics are stored as a Pandas DataFrame with 
+            Sensor characteristics are stored as a pandas DataFrame with 
             columns 'Sensor' and 'Cost'. Cost is used in the sensor 
             placement optimization if the 'use_sensor_cost' flag is set to True.
         scenario : pandas DataFrame
             Scenario characteristics.  Contains scenario probability and the 
             impact for undetected scenarios. Scenario characteristics are 
-            stored as a Pandas DataFrame with columns 'Scenario', 
+            stored as a pandas DataFrame with columns 'Scenario', 
             'Undetected Impact', and 'Probability'. Undetected Impact is 
             required for each scenario. Probability is used if the 
             'use_scenario_probability' flag is set to True.
@@ -142,7 +142,8 @@ class Pmedian(object):
         selected_impact = selected_impact[['Scenario', 'Sensor', 'Impact']]
         
         if type(self) is Coverage:
-            obj_value = 1- obj_value
+            obj_value = 1 - obj_value
+            selected_impact['Impact'] = 1 - selected_impact['Impact']
             
         return {'Objective': obj_value,
                 'Sensors': selected_sensors,

@@ -32,8 +32,6 @@ Each sensor is declared by specifying a **position** and a **detector**.
 The following options are available in Chama (additional sensor 
 technologies could easily be incorporated).
 
-.. note:: add line of sight sensor?
-
 Position options
 ----------------
 

@@ -11,7 +11,7 @@ Chama is an open source Python package which includes mixed-integer, stochastic
 programming formulations to determine sensor locations and technology that maximize 
 monitoring effectiveness. The methods in Chama are general and can be applied 
 to a wide range of applications. Chama is currently being used to design sensor networks 
-to monitor airborne pollutants and to monitor water quality in water distribution networks. 
+to monitor airborne pollutants and to monitor water quality in water distribution systems. 
 
 
 Contents

@@ -17,14 +17,13 @@ times and convert detection time to other damage metrics.
 
 Chama uses Pandas DataFrames [Mcki13]_ to store the impact assessment. Each
 DataFrame has three columns: Scenario, Sensor, and Impact. Exact column names
-must be used.  Note that **impact** can represent different metrics.
+must be used.  Note that the values in the Impact column can represent different metrics.
 
 Detection times
 ---------------
-While some scenarios can be detected by a single sensor multiple times, other
-scenarios can go undetected by all sensors. In general, detection depends on
-the scenario environmental conditions and the sensor location and operating
-conditions.
+In general, detection depends on the scenario environmental conditions, the sensor 
+location, and sensor operating conditions. While some scenarios can be detected by 
+a single sensor multiple times, other scenarios can go undetected by all sensors. 
 
 The following example demonstrates how to extract detection times 
 using a predefined signal, computed using the :ref:`transport` module,
@@ -171,5 +170,5 @@ Convert detection time to damage cost:
     8       S3      C   50000
 
 	
-Note that the ``translate`` function interpolates based on time, if needed. The
+Note that the 'translate' function interpolates based on time, if needed. The
 damage metric can be used in sensor placement optimization to minimize damage.

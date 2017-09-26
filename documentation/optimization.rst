@@ -67,20 +67,21 @@ always converges to a value of 0 or 1. Therefore, the number of binary
 variables that need to be considered by the solver is a function of the
 number of candidate sensors alone, and not the number of scenarios
 considered.  This formulation has been used to place sensors in large
-water distribution networks [USEPA12]_ and [USEPA15]_.
+water distribution networks [USEPA12]_ and [USEPA15]_ and for gas detection 
+in petrochemical facilities [LBSW12]_.
 
 The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
 :math:`p`, and (optionally) sensor cost, :math:`c_i` and the
 scenario probability, :math:`\alpha_a`, as described below:
 
 * Impact assessment: A single detection time (or other measure of damage) for 
-  each sensor that detects a scenario.  Impact is stored as a pandas DataFrmae, 
+  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrmae, 
   as described in the :ref:`impact` section.  
   
 * Sensor budget: The number of sensors to place, or total budget for sensors.  If the 
-  'use_sensor_cost' flag is True, a dollar amount is expected and the optimization
-  uses the cost of individual sensors.  If the use_sensor_cost' flag is False (default), 
-  the number of sensors is expected and the optimization does not use sensor cost.
+  'use_sensor_cost' flag is True, the sensor budget is a dollar amount and the optimization
+  uses the cost of individual sensors.  If the 'use_sensor_cost' flag is False (default), 
+  the sensor budget is a number of sensors and the optimization does not use sensor cost.
 
 * Sensor characteristics: Sensor characteristics include the cost of each sensor.
   Sensor characteristics are stored as a Pandas DataFrame with columns 'Sensor' and 'Cost'.  
@@ -88,8 +89,8 @@ scenario probability, :math:`\alpha_a`, as described below:
   
 * Scenario characteristics: Scenario characteristics include scenario probability and 
   the impact for undetected scenarios.  
-  Scenario characteristics are stored as a Pandas DataFrame with columns 'Scenario', 
-  'Undetected Impact', and 'Probability'.
+  Scenario characteristics are stored as a Pandas DataFrame with columns
+  'Scenario', 'Undetected Impact', and 'Probability'.
   Undetected Impact is required for each scenario. When minimizing detection time, 
   the undetected impact value can be set to a value larger than time horizon used for the study.
   Individual scenarios can also be given different undetected impact values.
@@ -97,12 +98,12 @@ scenario probability, :math:`\alpha_a`, as described below:
   
 Results are stored in a dictionary with the following information:
 
-* Sensors: A list of the selected sensors
+* Sensors: A list of selected sensors
 
-* Objective: The mean impact based on the selected sensors
+* Objective: The expected (mean) impact based on the selected sensors
 
 * Assessment: The impact value for each sensor-scenario pair.
-  The assessment is stored as a pandas DataFrame with columns 'Scenario', 'Sensor', and 
+  The assessment is stored as a Pandas DataFrame with columns 'Scenario', 'Sensor', and 
   'Impact' (same format as the input Impact assessment')
   If the selected sensors did not detect a particular scenario, the impact is set to 
   the Undetected Impact.
@@ -154,7 +155,7 @@ The following example demonstrates the use of P-median sensor placement:
 	
     >>> print(results['Sensors'])
     ['A']
-    >>> print(results['Objective']) # 2*0.25+3*0.6+100*0.15
+    >>> print(results['Objective'])
     17.3
     >>> print(results['Assessment'])
       Scenario Sensor  Impact
@@ -178,7 +179,10 @@ Data requirements for coverage are the same as data requirements for the P-media
 
 * Undetected Impact is not required for each scenario.
 
-The following example demonstrates the use of coverage sensor placement:
+The following example demonstrates the use of time coverage sensor placement.
+The results list scenario-time pairs that were detected by the sensor placement (listed 
+as a (time, scenario) tuple).  The impact value is 1 if the scenario-time pair was detected, 
+and 0 otherwise. 
 
 .. doctest::
 
@@ -208,11 +212,11 @@ The following example demonstrates the use of coverage sensor placement:
     0.5
     >>> print(results['Assessment'])
         Scenario Sensor  Impact
-    0  (4, 'S3')      B     0.0
-    1  (5, 'S3')      B     0.0
-    2  (6, 'S3')      B     0.0
-    3  (7, 'S3')      B     0.0
-    4  (2, 'S1')   None     1.0
-    5  (3, 'S1')   None     1.0
-    6  (3, 'S2')   None     1.0
-    7  (4, 'S1')   None     1.0
+    0  (4, 'S3')      B     1.0
+    1  (5, 'S3')      B     1.0
+    2  (6, 'S3')      B     1.0
+    3  (7, 'S3')      B     1.0
+    4  (2, 'S1')   None     0.0
+    5  (3, 'S1')   None     0.0
+    6  (3, 'S2')   None     0.0
+    7  (4, 'S1')   None     0.0

@@ -44,7 +44,7 @@ shown in :numref:`fig-flowchart`.
    :scale: 100 %
    :alt: Chama flowchart
    
-   Basic steps in sensor placement optimization using Chama.
+   Basic steps in sensor placement optimization using Chama
    
 * :ref:`transport`: Generate an ensemble of transport simulations
   representative of the system in which sensors will be deployed.

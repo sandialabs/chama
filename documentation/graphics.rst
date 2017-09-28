@@ -106,7 +106,7 @@ plotted as follows:
 .. figure:: figures/sensorloc.png
    :scale: 70 %
    
-   Mobile and stationary sensor locations
+   Mobile and stationary sensor locations plot
    
 Tradeoff curves
 ---------------------------
@@ -134,19 +134,19 @@ time to detection from several scenarios, given an optimal placement.
 
     >>> results = {}
     >>> results['Assessment'] = pd.DataFrame(data =  [['S1', 'A', 4], ['S2', 'A', 5],['S3', 'B', 10],['S4', 'C', 3],['S5', 'A', 1]],
-    ...    columns=['Scenario', 'Sensor', 'Assessment'])
+    ...    columns=['Scenario', 'Sensor', 'Impact'])
     >>> results['Assessment'] = results['Assessment'][['Scenario', 'Sensor', 'Impact']]
 	
 .. doctest::
 
     >>> print(results['Assessment'])
-      Scenario Sensor  Assessment
-    0       S1      A           4
-    1       S2      A           5
-    2       S3      B          10
-    3       S4      C           3
-    4       S5      A           1
-    >>> results['Assessment'].plot(kind='bar')
+      Scenario Sensor  Impact
+    0       S1      A       4
+    1       S2      A       5
+    2       S3      B      10
+    3       S4      C       3
+    4       S5      A       1
+    >>> results['Assessment'].plot(kind='bar') #doctest:+SKIP 
 
 .. doctest::
     :hide:
@@ -159,4 +159,4 @@ time to detection from several scenarios, given an optimal placement.
 .. figure:: figures/scenarioimpact.png
    :scale: 60 %
    
-   Scenario impact values based on sensor placement optimization
+   Scenario impact values based on optimal placement

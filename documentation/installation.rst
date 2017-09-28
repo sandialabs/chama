@@ -39,4 +39,4 @@ Optional Python package dependencies include:
 
 * Matplotlib [Hunt07]_: produce graphics, 
   http://matplotlib.org.
- 
+* nose: run software tests, http://nose.readthedocs.io

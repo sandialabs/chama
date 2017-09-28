@@ -444,7 +444,7 @@ class Coverage(Pmedian):
         Pyomo ConcreteModel ready to be solved
         """
 
-        impact, df_scenario = self._detection_times_to_coverage(impact)
+        impact, scenario = self._detection_times_to_coverage(impact)
 
         model = Pmedian.create_pyomo_model(self, sensor, scenario,
                                            impact, sensor_budget)

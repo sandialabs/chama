@@ -37,7 +37,7 @@ class Sensor(object):
                              'Sensor')
         self.detector = detector
 
-    def get_detected_signal(self, signal, interp_method='linear',
+    def get_detected_signal(self, signal, interp_method='nearest',
                             min_distance=10.0):
         """
         Returns the detected signal.

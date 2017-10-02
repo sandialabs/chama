@@ -1,5 +1,5 @@
 chama.optimize module
-===================
+=====================
 
 .. automodule:: chama.optimize
     :members:

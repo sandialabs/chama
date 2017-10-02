@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 
-def detection_times(signal, sensors, interp_method='linear', min_distance=10):
+def detection_times(signal, sensors, interp_method='nearest', min_distance=10):
     """
     Returns detection times from a signal and group of sensors.
 

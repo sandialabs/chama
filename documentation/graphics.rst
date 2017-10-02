@@ -16,7 +16,7 @@ Chama provides several functions to visualize signals described in the
 the signal was loaded/generated as expected, compare scenarios, and to 
 better understand optimal sensor placement.
 
-The convex hull of several scenarios can be generated as follows:
+The convex hull of several scenarios can be generated as follows (:numref:`fig-chull`):
 
 .. doctest::
     :hide:
@@ -41,7 +41,7 @@ The convex hull of several scenarios can be generated as follows:
    
    Convex hull plot
 
-The cross section of a single scenarios can be generated as follows:
+The cross section of a single scenarios can be generated as follows (:numref:`fig-xsection`):
 
 .. doctest::
 
@@ -58,7 +58,7 @@ Sensor graphics
 
 The position of fixed and mobile sensors, described in the :ref:`sensors` section, 
 can be plotted.  After grouping sensors in a dictionary, the locations can be 
-plotted as follows:
+plotted as follows (:numref:`fig-sensorloc`):
 
 .. doctest::
     :hide:
@@ -112,8 +112,8 @@ Tradeoff curves
 ---------------------------
 
 After running a series of sensor placement optimizations with increasing sensor budget, a tradeoff
-curve can be generated using the objective value (results['Objective']).  The following 
-plot compares the expected time to detection (using P-median) and scenario coverage as the sensor 
+curve can be generated using the objective value (results['Objective']).  :numref:`fig-tradeoff` 
+compares the expected time to detection (using P-median) and scenario coverage as the sensor 
 budget increases.
 
 .. _fig-tradeoff:
@@ -126,7 +126,7 @@ Scenario analysis
 ---------------------------
 
 The impact of individual scenarios can also be analyzed for a single sensor placement using the 
-impact assessment from the optimization (results['Assessment']).  The following plot compares
+optimization assessment (results['Assessment']).  numref:`fig-scenarioimpact`  compares
 time to detection from several scenarios, given an optimal placement.
 
 .. doctest::

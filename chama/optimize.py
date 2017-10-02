@@ -35,14 +35,23 @@ class Pmedian(object):
         self._scenario_df = None
         self._impact_df = None
         
-    def solve(self, sensor=None, scenario=None, impact=None,
-              sensor_budget=None, mip_solver_name='glpk',
-              pyomo_solver_options=None):
+    def solve(self, impact=None, sensor_budget=None, sensor=None, scenario=None, 
+              mip_solver_name='glpk', pyomo_solver_options=None):
         """
         Solves the sensor placement optimization.
 
         Parameters
         ----------
+        impact : pandas DataFrame
+            Impact assessment. A single detection time (or other measure 
+            of damage) for each sensor that detects a scenario. 
+            Impact is stored as a pandas DataFrmae with columns 'Scenario', 
+            'Sensor', 'Impact'.
+        sensor_budget : float
+            The total budget available for purchase/installation of sensors.
+            Solution will select a family of sensors whose combined cost is
+            below the sensor_budget. For a simple sensor budget of N sensors,
+            set this to N and the 'use_sensor_cost' to False.
         sensor : pandas DataFrame
             Sensor characteristics.  Contains sensor cost for each sensor. 
             Sensor characteristics are stored as a pandas DataFrame with 
@@ -55,18 +64,8 @@ class Pmedian(object):
             'Undetected Impact', and 'Probability'. Undetected Impact is 
             required for each scenario. Probability is used if the 
             'use_scenario_probability' flag is set to True.
-        impact : pandas DataFrame
-            Impact assessment. A single detection time (or other measure 
-            of damage) for each sensor that detects a scenario. 
-            Impact is stored as a pandas DataFrmae with columns 'Scenario', 
-            'Sensor', 'Impact'.
-        sensor_budget : float
-            The total budget available for purchase/installation of sensors.
-            Solution will select a family of sensors whose combined cost is
-            below the sensor_budget. For a simple sensor budget of N sensors,
-            set this to N and the 'use_sensor_cost' to False.
         mip_solver_name : str
-            Otimization solver name passed to Pyomo. The solver must be 
+            Optimization solver name passed to Pyomo. The solver must be 
             supported by Pyomo and support solution of mixed-integer 
             programming problems.
         pyomo_solver_options : dict
@@ -75,22 +74,25 @@ class Pmedian(object):
 
         Returns
         -------
-        A dictonary with the following keys:
+        A dictionary with the following keys:
             * Sensors: A list of the selected sensors
             * Objective: The mean impact based on the selected sensors
             * Assessment: The impact value for each sensor-scenario pair. 
               The assessment is stored as a pandas DataFrame with columns 
               'Scenario', 'Sensor', and 'Impact' (same format as the input 
               Impact assessment) If the selected sensors did not detect a 
-              particular scceanrio, the impact is set to the Undetected Impact.
+              particular scenario, the impact is set to the Undetected Impact.
         """
 
         if pyomo_solver_options is None:
             pyomo_solver_options = {}
         
+        #if type(self) is Coverage:
+        #    impact, scenario = self._detection_times_to_coverage(impact, scenario)
+            
         if self._model is None:
-            model = self.create_pyomo_model(sensor, scenario, impact,
-                                            sensor_budget)
+            model = self.create_pyomo_model(impact, sensor_budget, sensor, 
+                                            scenario)
         else:
             model = self._model
 
@@ -107,7 +109,7 @@ class Pmedian(object):
         Returns
         -------
         Dictionary containing objective value, selected sensors, and 
-        impact assesment.
+        impact assessment.
         """
         model = self._model
         impact_df = self._impact_df
@@ -149,22 +151,21 @@ class Pmedian(object):
                 'Sensors': selected_sensors,
                 'Assessment': selected_impact}
 
-    def create_pyomo_model(self, sensor, scenario, impact,
-                            sensor_budget):
+    def create_pyomo_model(self, impact, sensor_budget, sensor, scenario):
         """
         Returns the Pyomo model.
 
         Parameters
         ----------
-        sensor : pandas DataFrame
-            Sensor characteristics
-        scenario : pandas DataFrame
-            Scenario characteristics`
         impact : pandas DataFrame
             Impact assessment
         sensor_budget : float
             Sensor budget
-
+        sensor : pandas DataFrame
+            Sensor characteristics
+        scenario : pandas DataFrame
+            Scenario characteristics
+            
         Returns
         -------
         Pyomo ConcreteModel ready to be solved
@@ -416,54 +417,108 @@ class Coverage(Pmedian):
             Boolean indicating if scenario probability should be used in the optimization.
             If False, scenarios have equal probability.
         coverage_type : 'sceanrio' or 'time'
-            String indicating sceanrio or time based coverage.
+            String indicating scenario or time based coverage.
         """
         self.use_sensor_cost = use_sensor_cost
         self.use_scenario_probability = use_scenario_probability
         self.coverage_type = coverage_type
         Pmedian.__init__(self, use_sensor_cost, use_scenario_probability)
 
-    def create_pyomo_model(self, sensor, scenario, impact,
-                            sensor_budget):
+    def solve(self, impact=None, sensor_budget=None, sensor=None, scenario=None, 
+             mip_solver_name='glpk', pyomo_solver_options=None):
+        """
+        Solves the sensor placement optimization using Coverage.
+
+        Parameters
+        ----------
+        impact : pandas DataFrame
+            Impact assessment. A list of detection times for each sensor that detects a scenario.
+            Impact is stored as a pandas DataFrame with columns 'Scenario', 
+            'Sensor', and 'Impact'.
+        sensor_budget : float
+            The total budget available for purchase/installation of sensors.
+            Solution will select a family of sensors whose combined cost is
+            below the sensor_budget. For a simple sensor budget of N sensors,
+            set this to N and 'use_sensor_cost' to False.
+        sensor : pandas DataFrame
+            Sensor characteristics.  Contains sensor cost for each sensor. 
+            Sensor characteristics are stored as a pandas DataFrame with 
+            columns 'Sensor' and 'Cost'. Cost is used in the sensor 
+            placement optimization if the 'use_sensor_cost' flag is set to True.
+        scenario : pandas DataFrame
+            Scenario characteristics.  Contains scenario probability and (optionally)
+            impact for undetected scenarios. Scenario characteristics are 
+            stored as a pandas DataFrame with columns 'Scenario', 
+            'Undetected Impact', and 'Probability'. Undetected Impact is 
+            not used for coverage. Probability is used if the 
+            'use_scenario_probability' flag is set to True.
+        mip_solver_name : str
+            Optimization solver name passed to Pyomo. The solver must be 
+            supported by Pyomo and support solution of mixed-integer 
+            programming problems.
+        pyomo_solver_options : dict
+            Solver specific options to pass through Pyomo. 
+            Defaults to an empty dictionary.
+
+        Returns
+        -------
+        A dictionary with the following keys:
+            * Sensors: A list of the selected sensors
+            * Objective: The mean impact based on the selected sensors
+            * Assessment: The impact value for each sensor-scenario pair. 
+              The assessment is stored as a pandas DataFrame with columns 
+              'Scenario', 'Sensor', and 'Impact' (same format as the input 
+              Impact assessment) If the selected sensors did not detect a 
+              particular scenario, the impact is set to the Undetected Impact.
+        """
+        
+        ret_dict = Pmedian.solve(self, impact, sensor_budget, sensor, scenario,
+                      mip_solver_name, pyomo_solver_options)
+        
+        return ret_dict
+    
+    def create_pyomo_model(self, impact, sensor_budget, sensor, scenario):
         """
         Returns the Pyomo model.
 
         Parameters
         ----------
-        sensor : pandas DataFrame
-            Sensor characteristics
-        scenario : pandas DataFrame
-            Scenario characteristics`
         impact : pandas DataFrame
             Impact assessment
         sensor_budget : float
             Sensor budget
-
+        sensor : pandas DataFrame
+            Sensor characteristics
+        scenario : pandas DataFrame
+            Scenario characteristics
+            
         Returns
         -------
         Pyomo ConcreteModel ready to be solved
         """
 
-        impact, scenario = self._detection_times_to_coverage(impact)
+        impact, scenario = self._detection_times_to_coverage(impact, scenario)
 
-        model = Pmedian.create_pyomo_model(self, sensor, scenario,
-                                           impact, sensor_budget)
+        model = Pmedian.create_pyomo_model(self, impact, sensor_budget, 
+                                           sensor, scenario)
         return model
 
-    def _detection_times_to_coverage(self, det_times):
+    def _detection_times_to_coverage(self, det_times, scenario):
     
-        temp = {'Scenario': [], 'Sensor': [], 'Impact': []}
+        temp = {'Scenario': [], 'Sensor': [], 'Impact': [], 'Probability':[]}
         for index, row in det_times.iterrows():
             if self.coverage_type=='scenario':
                 temp['Scenario'].append(row['Scenario'])
                 temp['Sensor'].append(row['Sensor'])
                 temp['Impact'].append(0.0)
+                temp['Probability'].append(scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0])
             elif self.coverage_type=='time':
                 for t in row['Impact']:
                     temp['Scenario'].append(str((t, row['Scenario'])))
                     temp['Sensor'].append(row['Sensor'])
                     temp['Impact'].append(0.0)
-
+                    temp['Probability'].append(scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0])
+                    
         coverage = pd.DataFrame()
         coverage['Scenario'] = temp['Scenario']
         coverage['Sensor'] = temp['Sensor']
@@ -471,8 +526,9 @@ class Coverage(Pmedian):
         coverage = coverage.sort_values('Scenario')
         coverage = coverage.reset_index(drop=True)
 
-        scenarios = pd.DataFrame()
-        scenarios['Scenario'] = coverage['Scenario'].unique()
-        scenarios['Undetected Impact'] = 1.0
+        updated_scenario = pd.DataFrame()
+        updated_scenario['Scenario'] = temp['Scenario']
+        updated_scenario['Probability'] = temp['Probability']
+        updated_scenario['Undetected Impact'] = 1.0
         
-        return coverage, scenarios
+        return coverage, updated_scenario

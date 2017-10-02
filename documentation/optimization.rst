@@ -151,7 +151,7 @@ The following example demonstrates the use of P-median sensor placement:
     2       S3              100.0         0.15
 	
     >>> pmedian = chama.optimize.Pmedian(use_scenario_probability=True, use_sensor_cost=True)
-    >>> results = pmedian.solve(sensor, scenario, min_det_time, 200)
+    >>> results = pmedian.solve(min_det_time, 200, sensor, scenario)
 	
     >>> print(results['Sensors'])
     ['A']
@@ -204,7 +204,7 @@ and 0 otherwise.
     2       S3              100.0         0.15
 	
     >>> coverage = chama.optimize.Coverage(use_sensor_cost=True, coverage_type='time')
-    >>> results = coverage.solve(sensor, scenario, det_times, 200)
+    >>> results = coverage.solve(det_times, 200, sensor, scenario)
 	
     >>> print(results['Sensors'])
     ['B']

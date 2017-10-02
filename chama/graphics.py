@@ -22,7 +22,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the tranpsort simulation.  
+        Signal data from the transport simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     scenarios: list
@@ -101,7 +101,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the tranpsort simulation.  
+        Signal data from the transport simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     signal_name: string
@@ -271,17 +271,6 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         Returns
         -------
         paths : `~matplotlib.collections.PathCollection`
-        
-        Examples
-        --------
-        a = np.arange(11)
-        circles(a, a, s=a*0.2, c=a, alpha=0.5, ec='none')
-        plt.colorbar()
-        
-        License
-        --------
-        This code is under [The BSD 3-Clause License]
-        (http://opensource.org/licenses/BSD-3-Clause)
         """
 
         if np.isscalar(c):

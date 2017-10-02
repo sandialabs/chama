@@ -177,7 +177,7 @@ class GaussianPlume:
         gravity: float
             Gravity (m2/s), default = 9.81 m2/s
         density_eff: float
-            Effective denisty of the leaked species (kg/m3),
+            Effective density of the leaked species (kg/m3),
             default = 0.769 kg/m3
         density_eff: float
             Effective density of air (kg/m3), default = 1.225 kg/m3
@@ -235,7 +235,7 @@ class GaussianPuff:
     def __init__(self, grid=None, source=None, atm=None, tpuff=1, tend=None,
                  tstep=10, gravity=9.81, density_eff=0.769, density_air=1.225):
         """
-        Defines the Guassian puff model.  
+        Defines the Gaussian puff model.  
         
         Parameters
         ---------------
@@ -257,10 +257,10 @@ class GaussianPuff:
         gravity: float
             Gravity (m2/s), default = 9.81 m2/s
         density_eff: float
-            Effective denisty of the leaked species (kg/m3),
+            Effective density of the leaked species (kg/m3),
             default = 0.769 kg/m3
         density_air: float
-            Effective denisty of air (kg/m3), default = 1.225 kg/m3
+            Effective density of air (kg/m3), default = 1.225 kg/m3
         """
         # TODO Do keyword checks, must have atm! Can't vary the stability class
 

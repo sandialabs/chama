@@ -14,10 +14,10 @@ def detection_times(signal, sensors, interp_method='linear', min_distance=10):
     Parameters
     ----------
     signal : pandas DataFrame
-        Signal data from the tranpsort simualtion
+        Signal data from the transport simulation
     
     sensors : dict
-        A dictonary of sensors with key:value pairs containing
+        A dictionary of sensors with key:value pairs containing
         {'sensor name': chama Sensor object}
     
     interp_method : 'linear' or 'nearest'

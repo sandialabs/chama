@@ -41,7 +41,7 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
+    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
                            pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
@@ -100,7 +100,7 @@ def test_water_network_example_with_scenario_prob():
     sensor_budget = 5
     use_prob = False
     solver = chama.optimize.Pmedian(use_scenario_probability=use_prob)
-    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
+    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 8760.59
     expected_selected_sensors = ["16", "21", "28", "38", "65"]
@@ -111,7 +111,7 @@ def test_water_network_example_with_scenario_prob():
     
     use_prob = True
     solver = chama.optimize.Pmedian(use_scenario_probability=use_prob)
-    results = solver.solve(df_sensor, df_scenario, df_impact, sensor_budget,
+    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
                            pyomo_solver_options={'tee': False})
     expected_objective_value = 9146.646
     expected_selected_sensors = ["16", "19", "38", "65", "68"]
@@ -151,8 +151,8 @@ def test_water_network_example_with_grouping_constraint():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    model = solver.create_pyomo_model(df_sensor, df_scenario, df_impact,
-                                      sensor_budget)
+    model = solver.create_pyomo_model(df_impact, sensor_budget, df_sensor, 
+                                      df_scenario)
     solver.add_grouping_constraint(['15', '16', '17'], select=2)
     solver.add_grouping_constraint(['16', '17', '18'], max_select=1)
     results = solver.solve()

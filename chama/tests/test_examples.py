@@ -55,8 +55,8 @@ def test_simple_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    results = solver.solve(df_sensor, df_scenario, df_impact,
-                           sensor_budget, pyomo_solver_options={'tee': False})
+    results = solver.solve(df_impact,sensor_budget, df_sensor, df_scenario, 
+                           pyomo_solver_options={'tee': False})
     
     expected_selected_sensors = ['Point Sensor 88', 'Point Sensor 89',
                                  'Point Sensor 90', 'Point Sensor 91',

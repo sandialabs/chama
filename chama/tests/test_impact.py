@@ -44,7 +44,6 @@ class TestImpact(unittest.TestCase):
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
                                 columns=['Scenario', 'Sensor', 'Impact'])
-        print(impact)
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)

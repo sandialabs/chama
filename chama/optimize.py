@@ -504,20 +504,22 @@ class Coverage(Pmedian):
         return model
 
     def _detection_times_to_coverage(self, det_times, scenario):
-    
-        temp = {'Scenario': [], 'Sensor': [], 'Impact': [], 'Probability':[]}
+        
+        temp = {'Scenario': [], 'Sensor': [], 'Impact': []}
+        prob_time = {}
         for index, row in det_times.iterrows():
             if self.coverage_type=='scenario':
                 temp['Scenario'].append(row['Scenario'])
                 temp['Sensor'].append(row['Sensor'])
                 temp['Impact'].append(0.0)
-                temp['Probability'].append(scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0])
             elif self.coverage_type=='time':
                 for t in row['Impact']:
-                    temp['Scenario'].append(str((t, row['Scenario'])))
+                    scen_name = str((t, row['Scenario']))
+                    temp['Scenario'].append(scen_name)
                     temp['Sensor'].append(row['Sensor'])
                     temp['Impact'].append(0.0)
-                    temp['Probability'].append(scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0])
+                    if self.use_scenario_probability:
+                        prob_time[scen_name] = scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0]
                     
         coverage = pd.DataFrame()
         coverage['Scenario'] = temp['Scenario']
@@ -526,9 +528,18 @@ class Coverage(Pmedian):
         coverage = coverage.sort_values('Scenario')
         coverage = coverage.reset_index(drop=True)
 
-        updated_scenario = pd.DataFrame()
-        updated_scenario['Scenario'] = temp['Scenario']
-        updated_scenario['Probability'] = temp['Probability']
-        updated_scenario['Undetected Impact'] = 1.0
+        updated_scenario = pd.DataFrame()  
+        if self.coverage_type=='scenario':
+            updated_scenario['Scenario'] = scenario['Scenario']
+            updated_scenario['Undetected Impact'] = 1.0
+            if self.use_scenario_probability:
+                updated_scenario['Probability'] = scenario['Probability']
+        else:          
+            updated_scenario['Scenario'] = coverage['Scenario'].unique()
+            updated_scenario['Undetected Impact'] = 1.0
+            if self.use_scenario_probability:
+                updated_scenario.set_index('Scenario', inplace=True)
+                updated_scenario['Probability'] = pd.Series(prob_time)
+                updated_scenario.reset_index(inplace=True)
         
         return coverage, updated_scenario

@@ -3,6 +3,7 @@ from nose.plugins.skip import SkipTest
 from os.path import abspath, dirname, join
 import pandas as pd
 import numpy as np
+from pandas.util.testing import assert_frame_equal
 import chama
 
 testdir = dirname(abspath(__file__))
@@ -163,3 +164,75 @@ def test_water_network_example_with_grouping_constraint():
                  expected_objective_value) / expected_objective_value)
     assert_less(error, 0.01)  # 1% error
     assert_list_equal(results['Sensors'], expected_selected_sensors)
+
+def test_detection_times_to_coverage_time():
+    scenario = pd.DataFrame({
+        'Scenario': ['S1', 'S2', 'S3'],
+        'Undetected Impact': [48.0, 250.0, 100.0],
+        'Probability': [0.25, 0.60, 0.15]})
+    impact = pd.DataFrame({
+        'Scenario': ['S1', 'S2', 'S3'],
+        'Sensor': ['A', 'A', 'B'],
+        'Impact': [[2, 3, 4], [3], [4, 5]]})
+
+    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
+                                       coverage_type='time')
+    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    impact_expected = pd.DataFrame([("(2, 'S1')", 'A', 0.0),
+                                    ("(3, 'S1')", 'A', 0.0),
+                                    ("(3, 'S2')", 'A', 0.0),
+                                    ("(4, 'S1')", 'A', 0.0),
+                                    ("(4, 'S3')", 'B', 0.0),
+                                    ("(5, 'S3')", 'B', 0.0)],
+                                columns=['Scenario', 'Sensor', 'Impact'])  
+    sceanrio_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
+                                      ("(3, 'S1')", 1.0, 0.25),
+                                      ("(3, 'S2')", 1.0, 0.6),
+                                      ("(4, 'S1')", 1.0, 0.25),
+                                      ("(4, 'S3')", 1.0, 0.15),
+                                      ("(5, 'S3')", 1.0, 0.15)],
+                                columns=['Scenario', 'Undetected Impact', 'Probability'])
+    
+    impact1.set_index('Scenario', inplace=True)
+    impact_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(impact1, impact_expected, check_dtype=False,
+                           check_like=True)
+    
+    scenario1.set_index('Scenario', inplace=True)
+    sceanrio_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
+                           check_like=True)
+
+def test_detection_times_to_coverage_scenario():
+    scenario = pd.DataFrame({
+        'Scenario': ['S1', 'S2', 'S3'],
+        'Undetected Impact': [48.0, 250.0, 100.0],
+        'Probability': [0.25, 0.60, 0.15]})
+    impact = pd.DataFrame({
+        'Scenario': ['S1', 'S2', 'S3'],
+        'Sensor': ['A', 'A', 'B'],
+        'Impact': [[2, 3, 4], [3], [4, 5]]})
+
+    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
+                                       coverage_type='scenario')
+    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    impact_expected = pd.DataFrame([('S1', 'A', 0.0),
+                                    ('S2', 'A', 0.0),
+                                    ('S3', 'B', 0.0)],
+                                columns=['Scenario', 'Sensor', 'Impact'])  
+    sceanrio_expected = pd.DataFrame([('S1', 1.0, 0.25),
+                                      ('S2', 1.0, 0.6),
+                                      ('S3', 1.0, 0.15)],
+                                columns=['Scenario', 'Undetected Impact', 'Probability'])
+    
+    impact1.set_index('Scenario', inplace=True)
+    impact_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(impact1, impact_expected, check_dtype=False,
+                           check_like=True)
+    
+    scenario1.set_index('Scenario', inplace=True)
+    sceanrio_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
+                           check_like=True)
+
+        

@@ -35,19 +35,24 @@ For example:
   the system, very detailed or simple models can be used. In this case, the
   **signal** is displacement.
   
-For each scenario, the time, location (x,y,z), and signal are recorded. 
+For each scenario, the time, location, and signal are recorded. 
 The points used to record time and location can be sparse to help reduce
-data size. Chama includes methods to interpolate sensor
-measurements that are not represented in the signal data.
-
-Chama uses Pandas DataFrames [Mcki13]_ to store the signal data. Pandas
+data size. Chama uses Pandas DataFrames [Mcki13]_ to store the signal data. Pandas
 includes many functions to easily populate DataFrames from a wide range of
 file formats. For example, DataFrames can be generated from Excel, CSV, and
-SQL files. An example signal DataFrame is shown below using a simple 
-2x2x2 system with three time steps and fabricated data for three scenarios.
-X, Y, and Z describe the location, T is the simulation time, and Sn is
+SQL files. 
+Signal data can be stored in XYZ or J format, as described below.
+
+XYZ format
+------------
+In XYZ format, the X, Y, and Z location is stored for each entry.
+In the DataFrame, X, Y, and Z describe the location, T is the simulation time, and Sn is
 the signal for scenario n.  Exact column names must be used for X, Y, Z, and T. 
 The scenario names can be defined by the user.
+When using this format, Chama can interpolate sensor
+measurements that are not represented in the signal data.
+An example signal DataFrame in XYZ format is shown below using a simple 
+2x2x2 system with three time steps and fabricated data for three scenarios.
 
 .. doctest::
     :hide:
@@ -90,6 +95,49 @@ The scenario names can be defined by the user.
     22  2  2  2  10  0.00  0.00  0.00
     23  2  2  2  20  0.00  0.00  0.00
 
+J format
+---------
+In J format, a location index is stored for each entry.
+This format is useful when working with sparse systems, such as nodes in a networks.
+In the DataFrame, J is the location index, T is the simulation time, and Sn is
+the signal for scenario n.  Exact column names must be used for J and T. 
+The scenario names can be defined by the user.
+J can be a name or value.  
+When using this format, Chama does not interpolate sensor
+measurements and only stationary point sensors can be used to extract detection time.
+An example signal DataFrame in J format is shown below using 4 nodes
+with three time steps and fabricated data for three scenarios.
+
+.. doctest::
+    :hide:
+
+    >>> j, t = np.meshgrid([1, 2, 3, 4], [0, 10, 20])
+    >>> signal = pd.DataFrame({'J': j.flatten(), 'T': t.flatten(),
+    ...		'S1': [0,0,0,0.2,0.32,0.45,0.23,0.64,0.25,0.44,0.25,0.82],
+    ...		'S2': [0,0,0,0.2,0.14,0.58,0.47,0.12,0.54,0.15,0.28,0.12],
+    ...		'S3': [0,0.01,0,0.2,0.14,0.58,0.47,0.12,0.54,0.45,0.68,0.12]})
+    >>> signal = signal[['J', 'T', 'S1','S2', 'S3']]
+    >>> signal['J'] =['Node'+str(j) for j in signal['J']]
+    >>> signal = signal.sort_values('J')
+    >>> signal.reset_index(drop=True, inplace=True)
+
+.. doctest::
+
+    >>> print(signal)
+            J   T    S1    S2    S3
+    0   Node1   0  0.00  0.00  0.00
+    1   Node1  10  0.32  0.14  0.14
+    2   Node1  20  0.25  0.54  0.54
+    3   Node2   0  0.00  0.00  0.01
+    4   Node2  10  0.45  0.58  0.58
+    5   Node2  20  0.44  0.15  0.45
+    6   Node3   0  0.00  0.00  0.00
+    7   Node3  10  0.23  0.47  0.47
+    8   Node3  20  0.25  0.28  0.68
+    9   Node4   0  0.20  0.20  0.20
+    10  Node4  10  0.64  0.12  0.12
+    11  Node4  20  0.82  0.12  0.12
+	
 Internal simulation engines
 ---------------------------
 Chama includes methods to run simple Gaussian plume and Gaussian puff atmospheric

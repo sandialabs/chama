@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 
-def detection_times(signal, sensors, interp_method='nearest', min_distance=10):
+def detection_times(signal, sensors, interp_method=None, min_distance=10):
     """
     Returns detection times from a signal and group of sensors.
 
@@ -20,7 +20,7 @@ def detection_times(signal, sensors, interp_method='nearest', min_distance=10):
         A dictionary of sensors with key:value pairs containing
         {'sensor name': chama Sensor object}
     
-    interp_method : 'linear' or 'nearest'
+    interp_method : 'linear', 'nearest', or None
         Method used to interpolate the signal if needed.  
         A value of 'linear' will use griddata to interpolate missing
         sample points. A value of 'nearest' will set the sample point to
@@ -38,11 +38,19 @@ def detection_times(signal, sensors, interp_method='nearest', min_distance=10):
     """
     # Extracting a subset of the signal in the sensor module is fastest
     # using multiindex even though setting the index initially is slow
-    txyz = ['T', 'X', 'Y', 'Z']
-    # check if the signal is already in multiindex form
+    # check if the signal is already in multiindex form 
     if not isinstance(signal.index, pd.MultiIndex):
-        signal = signal.set_index(txyz)
-
+        if set(['T', 'X', 'Y', 'Z']) < set(list(signal.columns)):
+            signal = signal.set_index(['T', 'X', 'Y', 'Z'])
+        elif set(['T', 'J']) < set(list(signal.columns)):
+            signal = signal.set_index(['T', 'J'])
+        else:
+            raise ValueError('Unrecognized signal format')
+            return
+    
+    if 'J' in signal.index.names:
+        interp_method = None
+        
     temp_det_times = {'Scenario': [], 'Sensor': [], 'Impact': []}
 
     for (name, sensor) in sensors.items():  # loop over sensors

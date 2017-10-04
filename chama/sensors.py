@@ -37,7 +37,7 @@ class Sensor(object):
                              'Sensor')
         self.detector = detector
 
-    def get_detected_signal(self, signal, interp_method='nearest',
+    def get_detected_signal(self, signal, interp_method=None, 
                             min_distance=10.0):
         """
         Returns the detected signal.
@@ -54,15 +54,15 @@ class Position(object):
     
         Parameters
         ----------
-        location : (x,y,z) tuple
-            The location of the Position object represented by (x,y,z)
-            coordinates
+        location : (x,y,z) tuple or index
+            The location of the Position object defined as an (x,y,z) tuple 
+            or location index, which can be a string or integer
         """
         self.location = location
 
     def __call__(self, time):
         """
-        Returns the location (x,y,z) at the specified time.
+        Returns the location at the specified time
 
         Parameters
         ----------
@@ -70,12 +70,13 @@ class Position(object):
 
         Returns
         -------
-        tuple
-            The (x,y,z) location
+        Location tuple (x,y,z) or (j)
 
         """
-        return tuple(self.location)
-
+        if isinstance(self.location, tuple):
+            return tuple(self.location)
+        else:
+            return tuple([self.location])
 
 class Stationary(Position):
     """
@@ -181,7 +182,7 @@ class Detector(object):
 
     def get_sample_points(self, position):
         """
-        Returns the sensor sample points in the form (t,x,y,z)
+        Returns the sensor sample points in the form (t,x,y,z) or (t,j)
 
         Parameters
         ----------
@@ -190,7 +191,7 @@ class Detector(object):
             
         Returns
         -------
-        A list of sample points in the form (t,x,y,z)
+        A list of sample points in the form (t,x,y,z) or (t,j)
         """
 
         if self.sample_points is None:
@@ -206,11 +207,11 @@ class Detector(object):
         Parameters
         ----------
         signal : pandas DataFrame
-            DataFrame with the multi-index (T, X, Y, Z) and columns
+            DataFrame with the multi-index (T, X, Y, Z) or (T,J) and columns
             containing the concentrations for different scenarios
         position : chama Position
             The position of the sensor
-        interp_method : 'linear' or 'nearest'
+        interp_method : 'linear', 'nearest', or None
             Method used to interpolate the signal if needed.  
             A value of 'linear' will use griddata to interpolate missing
             sample points. A value of 'nearest' will set the sample point to
@@ -235,9 +236,15 @@ class Detector(object):
         # Reset the index
         signal_sample = signal_sample.reset_index()
 
-        # At this point we don't need the X,Y,Z columns
-        signal_sample.drop(['X', 'Y', 'Z'], inplace=True, axis=1)
-
+        # At this point we don't need the X,Y,Z or J columns
+        if set(['X', 'Y', 'Z']) < set(list(signal_sample.columns)):
+            signal_sample.drop(['X', 'Y', 'Z'], inplace=True, axis=1)
+        elif set(['J']) < set(list(signal_sample.columns)):
+            signal_sample.drop(['J'], inplace=True, axis=1)
+        else:
+            raise ValueError('Unrecognized signal format')
+            return
+            
         # Set T as the index
         signal_sample = signal_sample.set_index('T')
 
@@ -272,7 +279,7 @@ class Point(Detector):
 
         sample_points : list of tuples
 
-        interp_method : 'linear' or 'nearest'
+        interp_method : 'linear', 'nearest', or None
 
         min_distance : float
 
@@ -292,9 +299,9 @@ class Point(Detector):
         temp = signal_subset.isnull().any(axis=1)  # Get rows containing NaN
         interp_points = list(signal_subset[temp].index)  # Get their index
 
-        if len(interp_points) == 0:
+        if (interp_method is None) or (len(interp_points) == 0):
             return signal_subset
-
+        
         # TODO: Revisit the distance calculation.
         # Scaling issue by including both time and xyz location in distance
         # calculation. Manually select the signal times bordering

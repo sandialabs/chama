@@ -55,10 +55,9 @@ Detector options
   the signal within the camera's field of view, converting that signal to
   pixels, and comparing that to the detector's threshold in terms of pixels.
   
-Chama includes methods to interpolate sensor measurements that are not represented 
+*When using signal data in XYZ format*, Chama can interpolate sensor measurements that are not represented 
 in the signal data.  However, the sample time of a Camera detectors must be represented 
 in the signal data (i.e. only X, Y, and Z can be interpolated).
-
 
 For example, a **stationary point sensor**, can be defined as follows:
 
@@ -96,6 +95,16 @@ A **mobile camera sensor**, can be defined as follows:
     >>> pos4 = chama.sensors.Mobile(locations=[(0,1,1),(0.1,1.2,1),(1,3,0),(1,2,1)],speed=0.5)
     >>> det4 = chama.sensors.Camera(threshold=100, sample_times=[0,3,6,9], direction=(1,1,1))
     >>> mobile_camera_sensor = chama.sensors.Sensor(position=pos4, detector=det4)
+
+*When using signal data in J format*, Chama does not interpolate sensor measurements 
+that are not represented in the signal data and only stationary point sensor can be used.
+When using J format, a **stationary point sensor**, can be defined as follows:
+
+.. doctest::
+
+    >>> pos1 = chama.sensors.Stationary(location='Node1')
+    >>> det1 = chama.sensors.Point(threshold=0.001, sample_times=[0,2,4,6,8,10])
+    >>> stationary_pt_sensor = chama.sensors.Sensor(position=pos1, detector=det1)
 
 Note that the units for time, location, speed, and threshold need to match
 the units from the transport simulation.

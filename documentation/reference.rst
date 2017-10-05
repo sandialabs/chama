@@ -20,7 +20,7 @@ References
 
 .. [Mcki13] McKinney W. (2013). Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython. O'Reilly Media, 1 edition, 466P.
 
-.. [RaWB16] Ravikumar, A.P., Wang, J., Brandr, A.R. (2016). Are Optical Gas Imaging Technologies Effective For Methane Leak Detection? Environmental science and technology 51 (1), 718-724.
+.. [RaWB16] Ravikumar, A.P., Wang, J., Brandt, A.R. (2016). Are Optical Gas Imaging Technologies Effective For Methane Leak Detection? Environmental science and technology 51 (1), 718-724.
 
 .. [Ross00] Rossman, L.A. (2000). EPANET 2 Users Manual. U. S. Environmental Protection Agency Technical Report, EPA/600/R--00/057, 200p.
 

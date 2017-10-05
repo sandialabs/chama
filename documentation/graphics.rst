@@ -126,7 +126,7 @@ Scenario analysis
 ---------------------------
 
 The impact of individual scenarios can also be analyzed for a single sensor placement using the 
-optimization assessment (results['Assessment']).  numref:`fig-scenarioimpact`  compares
+optimization assessment (results['Assessment']).  :numref:`fig-scenarioimpact`  compares
 time to detection from several scenarios, given an optimal placement.
 
 .. doctest::

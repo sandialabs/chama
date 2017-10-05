@@ -42,13 +42,13 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     if not isinstance(signal.index, pd.MultiIndex):
         if set(['T', 'X', 'Y', 'Z']) < set(list(signal.columns)):
             signal = signal.set_index(['T', 'X', 'Y', 'Z'])
-        elif set(['T', 'J']) < set(list(signal.columns)):
-            signal = signal.set_index(['T', 'J'])
+        elif set(['T', 'Node']) < set(list(signal.columns)):
+            signal = signal.set_index(['T', 'Node'])
         else:
             raise ValueError('Unrecognized signal format')
             return
     
-    if 'J' in signal.index.names:
+    if 'Node' in signal.index.names:
         interp_method = None
         
     temp_det_times = {'Scenario': [], 'Sensor': [], 'Impact': []}

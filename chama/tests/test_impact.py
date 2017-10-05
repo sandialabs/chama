@@ -60,7 +60,7 @@ class TestImpact_J(unittest.TestCase):
     def setUpClass(self):
     
         j, t = np.meshgrid([1, 2, 3, 4], [0, 10, 20])
-        self.signal = pd.DataFrame({'J': j.flatten(),
+        self.signal = pd.DataFrame({'Node': j.flatten(),
                                     'T': t.flatten(),
                                     'S': t.flatten() * t.flatten()})
 
@@ -95,18 +95,18 @@ class TestImpact_J(unittest.TestCase):
                            check_like=True)
 
     def test_extract2(self):
-        self.signal['J'] =['Node'+str(j) for j in self.signal['J']]
+        self.signal['Node'] =['n'+str(j) for j in self.signal['Node']]
          
         sensors = {}
-        pos1 = chama.sensors.Stationary(location='Node1')
+        pos1 = chama.sensors.Stationary(location='n1')
         det1 = chama.sensors.Point(sample_times=[0], threshold=0)
         sensors['A'] = chama.sensors.Sensor(position=pos1, detector=det1)
 
-        pos2 = chama.sensors.Stationary(location='Node2')
+        pos2 = chama.sensors.Stationary(location='n2')
         det2 = chama.sensors.Point(sample_times=[0, 10], threshold=2)
         sensors['B'] = chama.sensors.Sensor(position=pos2, detector=det2)
 
-        pos3 = chama.sensors.Stationary(location='Node3')
+        pos3 = chama.sensors.Stationary(location='n3')
         det3 = chama.sensors.Point(sample_times=[0, 10, 20], threshold=40)
         sensors['C'] = chama.sensors.Sensor(position=pos3, detector=det3)
         

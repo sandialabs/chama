@@ -96,9 +96,9 @@ A **mobile camera sensor**, can be defined as follows:
     >>> det4 = chama.sensors.Camera(threshold=100, sample_times=[0,3,6,9], direction=(1,1,1))
     >>> mobile_camera_sensor = chama.sensors.Sensor(position=pos4, detector=det4)
 
-*When using signal data in J format*, Chama does not interpolate sensor measurements 
+*When using signal data in Node format*, Chama does not interpolate sensor measurements 
 that are not represented in the signal data and only stationary point sensor can be used.
-When using J format, a **stationary point sensor**, can be defined as follows:
+When using Node format, a **stationary point sensor**, can be defined as follows:
 
 .. doctest::
 

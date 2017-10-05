@@ -236,11 +236,11 @@ class Detector(object):
         # Reset the index
         signal_sample = signal_sample.reset_index()
 
-        # At this point we don't need the X,Y,Z or J columns
+        # At this point we don't need the X,Y,Z or Node columns
         if set(['X', 'Y', 'Z']) < set(list(signal_sample.columns)):
             signal_sample.drop(['X', 'Y', 'Z'], inplace=True, axis=1)
-        elif set(['J']) < set(list(signal_sample.columns)):
-            signal_sample.drop(['J'], inplace=True, axis=1)
+        elif set(['Node']) < set(list(signal_sample.columns)):
+            signal_sample.drop(['Node'], inplace=True, axis=1)
         else:
             raise ValueError('Unrecognized signal format')
             return

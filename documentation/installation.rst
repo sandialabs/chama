@@ -5,7 +5,7 @@
 Installation
 ======================================
 
-Chama requires Python (2.7, 3.4, or 3.5) along with several Python package dependencies.  
+Chama requires Python (2.7, 3.4, 3.5, or 3.6) along with several Python package dependencies.  
 Information on installing and using Python can be found at 
 https://www.python.org/.  
 Python distributions, such as Anaconda, are recommended to manage the Python interface.  

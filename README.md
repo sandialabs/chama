@@ -1,8 +1,8 @@
 Chama
 =======================================
 
-[![TravisCI](https://travis-ci.org/kaklise/chama.svg?branch=master)](https://travis-ci.org/kaklise/chama)
-[![Coverage Status](https://coveralls.io/repos/github/kaklise/chama/badge.svg?branch=master)](https://coveralls.io/github/kaklise/chama?branch=master)
+[![TravisCI](https://travis-ci.org/sandialabs/chama.svg?branch=master)](https://travis-ci.org/sandialabs/chama)
+[![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=master)](https://coveralls.io/github/sandialabs/chama?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/chama/badge/?version=latest)](http://chama.readthedocs.io/en/latest/?badge=latest)
 
 Continuous or regularly scheduled monitoring has the potential to quickly 

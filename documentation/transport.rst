@@ -25,8 +25,9 @@ For example:
   a water network model can be used to simulate hydraulics and water quality. 
   Multiple scenarios capture uncertainty in the location, rate, start time, 
   and duration of the injection along with uncertainty in customer demands. 
-  EPANET, or similar water network models, are typically used to run this 
-  type of analysis. In this case, the **signal** is concentration. 
+  EPANET [Ross00]_, WNTR [KHMB17]_, or similar water network simulators, can be 
+  used to run this type of analysis. In this case, the **signal** is 
+  concentration. 
   
 * **To place sensors to detect a seismic event**, a wave propagation model can
   be used to simulate displacement. Multiple scenarios capture uncertainty
@@ -212,8 +213,8 @@ Initialize the Gaussian puff model and run:
 External simulation engines
 ---------------------------
 Transport simulations can also be generated from a wide range of external
-simulation engines, for example, atmospheric dispersion can be simulated using AERMOD
-[USEPA04]_ or CALPUFF [ScSY00]_ or using detailed CFD models, transport in pipe networks can be simulated
-using EPANET [Ross00]_, and groundwater transport can be simulated using
-MODFLOW [McHa88]_. Output from external simulation engines can be easily
-formatted and imported into Chama.
+simulation engines, for example, atmospheric dispersion can be simulated using 
+AERMOD [USEPA04]_ or CALPUFF [ScSY00]_ or using detailed CFD models, transport 
+in pipe networks can be simulated using EPANET [Ross00]_ or WNTR [KHMB17]_, and 
+groundwater transport can be simulated using MODFLOW [McHa88]_. Output from 
+external simulation engines can be easily formatted and imported into Chama.

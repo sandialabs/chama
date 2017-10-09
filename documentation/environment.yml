@@ -1,0 +1,9 @@
+name: chama
+dependencies:
+    - python=2.7
+    - numpy
+    - scipy
+    - pandas
+    - sphinx
+    - numpydoc
+    - matplotlib

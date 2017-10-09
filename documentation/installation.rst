@@ -33,10 +33,10 @@ Required Python package dependencies include:
 * Numpy [VaCV11]_: support large, multi-dimensional arrays and matrices, 
   http://www.numpy.org.
 * Scipy [VaCV11]_: support efficient routines for numerical analysis, 
-  http://www.scipy.org/
+  http://www.scipy.org.
   
 Optional Python package dependencies include:
 
 * Matplotlib [Hunt07]_: produce graphics, 
   http://matplotlib.org.
-* nose: run software tests, http://nose.readthedocs.io
+* nose: run software tests, http://nose.readthedocs.io.

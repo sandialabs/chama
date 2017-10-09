@@ -12,6 +12,8 @@ References
 
 .. [Hunt07] Hunter, J.D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 3(9), 90-95.
    
+.. [KHMB17] Klise, K.A., Hart, D.B., Moriarty, D., Bynum, M., Murray, R., Burkhardt, J., Haxton, T. (2017). Water Network Tool for Resilience (WNTR) User Manual, U.S. Environmental Protection Agency Technical Report, EPA/600/R-17/264, 47p.
+
 .. [LBSW12] Legg, S.W., Benavides-Serrano, A.J., Siirola, J.D., Watson, J.P., Davis, S.G., Bratteteig, A., & Laird, C.D. (2012) A Stochastic Programming Approach for Gas Detector Placement Using CFD-Based Dispersion Simulations, Computers & Chemical Engineering, Volume 47, Pages 194-201.
 
 .. [Makh10] Makhorin, A. (2010). GNU Linear Programming Kit Reference Manual for GLPK Version 4.45, Department for Applied Informatics, Moscow Aviation Institute, Moscow, Russia.

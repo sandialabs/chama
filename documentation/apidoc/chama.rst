@@ -15,10 +15,10 @@ Submodules
 
 .. toctree::
 
-   chama.transport
-   chama.sensors
-   chama.impact
-   chama.optimize
-   chama.graphics
-   chama.utils
+   chama.transport.rst
+   chama.sensors.rst
+   chama.impact.rst
+   chama.optimize.rst
+   chama.graphics.rst
+   chama.utils.rst
 

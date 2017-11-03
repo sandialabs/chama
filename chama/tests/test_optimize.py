@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from pandas.util.testing import assert_frame_equal
 import chama
+import pyomo.environ as pe
 
 testdir = dirname(abspath(__file__))
 datadir = join(testdir, 'data')
@@ -42,7 +43,7 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
+    results = solver.solve(df_impact, df_sensor, df_scenario, sensor_budget=sensor_budget,
                            pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
@@ -100,9 +101,9 @@ def test_water_network_example_with_scenario_prob():
     # Solve sensor placement
     sensor_budget = 5
     use_prob = False
-    solver = chama.optimize.Pmedian(use_scenario_probability=use_prob)
-    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
-                           pyomo_solver_options={'tee': False})
+    solver = chama.optimize.Pmedian()
+    results = solver.solve(df_impact, df_sensor, df_scenario, sensor_budget=sensor_budget,
+                           use_scenario_probability=use_prob, pyomo_solver_options={'tee': False})
     expected_objective_value = 8760.59
     expected_selected_sensors = ["16", "21", "28", "38", "65"]
     error = abs((results['Objective'] -
@@ -111,9 +112,9 @@ def test_water_network_example_with_scenario_prob():
     assert_list_equal(results['Sensors'], expected_selected_sensors)
     
     use_prob = True
-    solver = chama.optimize.Pmedian(use_scenario_probability=use_prob)
-    results = solver.solve(df_impact, sensor_budget, df_sensor, df_scenario, 
-                           pyomo_solver_options={'tee': False})
+    solver = chama.optimize.Pmedian()
+    results = solver.solve(df_impact, df_sensor, df_scenario,sensor_budget=sensor_budget,
+                           use_scenario_probability=use_prob, pyomo_solver_options={'tee': False})
     expected_objective_value = 9146.646
     expected_selected_sensors = ["16", "19", "38", "65", "68"]
     error = abs((results['Objective'] -
@@ -152,12 +153,15 @@ def test_water_network_example_with_grouping_constraint():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    model = solver.create_pyomo_model(df_impact, sensor_budget, df_sensor, 
-                                      df_scenario)
+
+    model = solver.create_pyomo_model(df_impact, df_sensor, df_scenario, sensor_budget=sensor_budget)
+
     solver.add_grouping_constraint(['15', '16', '17'], select=2)
     solver.add_grouping_constraint(['16', '17', '18'], max_select=1)
-    results = solver.solve()
 
+    solver_results = solver.solve_pyomo_model()
+
+    results = solver.create_solution_summary()
     expected_objective_value = 9400.531
     expected_selected_sensors = ["15", "16", "19", "38", "65"]
     error = abs((results['Objective'] -
@@ -175,9 +179,10 @@ def test_detection_times_to_coverage_time():
         'Sensor': ['A', 'A', 'B'],
         'Impact': [[2, 3, 4], [3], [4, 5]]})
 
-    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
-                                       coverage_type='time')
-    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    coverage = chama.optimize.Coverage()
+    impact1,scenario1 = coverage.convert_detection_times_to_coverage(impact, scenario,
+                                                                    use_scenario_probability=True,
+                                                                     coverage_type='scenario-time')
     impact_expected = pd.DataFrame([("(2, 'S1')", 'A', 0.0),
                                     ("(3, 'S1')", 'A', 0.0),
                                     ("(3, 'S2')", 'A', 0.0),
@@ -213,9 +218,11 @@ def test_detection_times_to_coverage_scenario():
         'Sensor': ['A', 'A', 'B'],
         'Impact': [[2, 3, 4], [3], [4, 5]]})
 
-    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
-                                       coverage_type='scenario')
-    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    coverage = chama.optimize.Coverage()
+    impact1,scenario1 = coverage.convert_detection_times_to_coverage(impact, scenario,
+                                                              use_scenario_probability=True,
+                                                              coverage_type='scenario'
+                                                              )
     impact_expected = pd.DataFrame([('S1', 'A', 0.0),
                                     ('S2', 'A', 0.0),
                                     ('S3', 'B', 0.0)],
@@ -236,3 +243,7 @@ def test_detection_times_to_coverage_scenario():
                            check_like=True)
 
         
+
+if __name__ == '__main__':
+#    test_water_network_example()
+    test_detection_times_to_coverage_scenario()

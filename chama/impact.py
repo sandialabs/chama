@@ -70,47 +70,34 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     det_times['Sensor'] = temp_det_times['Sensor']
     det_times['Impact'] = temp_det_times['Impact']
 
-    det_times = det_times.sort_values('Scenario')
+    det_times = det_times.sort_values(['Scenario', 'Sensor'])
     det_times = det_times.reset_index(drop=True)
     
     return det_times
 
 
-def detection_time_stats(det_times, statistic=None):
+def detection_time_stats(det_times):
     """
-    Returns detection times from a signal and group of sensors.
+    Returns detection times statistics (min, max, median, and mean).
 
     Parameters
     ----------
     det_times : pandas DataFrame
         Detection times returned from detection_times
-    statistic : 'min', 'mean', 'median'
-        Statistic to extract
         
     Returns
     ----------
-    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Impact'.  
-    The Impact column contains the min, mean, or median detection time.
+    pandas DataFrame with columns 'Scenario', 'Sensor', 'Min', 'Max', 'Median' and 'Mean'.  
     """
-    if statistic == 'min' or statistic is None:
-        statistic = np.min
-    elif statistic == 'mean':
-        statistic = np.mean
-    elif statistic == 'median':
-        statistic = np.median
-    else:
-        raise ValueError('Unrecognized detection time statistic "%s"'
-                         % statistic)
-
     det_t = det_times.copy()
-    for index, row in det_t.iterrows():
-        row['Impact'] = statistic(row['Impact'])
-    
-    det_t['Impact'] = det_t['Impact'].apply(pd.to_numeric)
+    det_t['Min'] = det_t['Impact'].apply(np.min)
+    det_t['Max'] = det_t['Impact'].apply(np.max)
+    det_t['Median'] = det_t['Impact'].apply(np.median)
+    det_t['Mean'] = det_t['Impact'].apply(np.mean)
+    del det_t['Impact']
     
     return det_t
-
-
+ 
 def translate(det_t, damage):
     """
     Returns impact translated from detection time to a damage metric.

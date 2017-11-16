@@ -7,6 +7,7 @@ import pyomo.environ as pe
 import chama.utils as cu
 import numpy as np
 import pandas as pd
+from pyomo.opt import SolverStatus, TerminationCondition
 
 dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
 
@@ -21,6 +22,9 @@ class Pmedian(object):
         self._impact = None
         self._sensor = None
         self._scenario = None
+        self._use_scenario_probability = False
+        self._use_sensor_cost = False
+        self._solved = False
 
     def solve(self, impact=None, sensor=None, scenario=None,
               sensor_budget=None, use_sensor_cost=False,
@@ -126,6 +130,8 @@ class Pmedian(object):
         Pyomo ConcreteModel ready to be solved
         """
         # reset the internal model and data attributes
+        # BLN: Why do we reset these when they will be overwritten at the
+        # end of this method anyway?
         self._model = None
         self._impact = None
         self._sensor = None
@@ -177,8 +183,6 @@ class Pmedian(object):
         # is undetected
         sensor_list.append(dummy_sensor_name)
 
-        # FIXME: Looks like df_dummy starts as a copy of the scenario
-        # dataframe with a column name change. Rework implementation
         df_dummy = pd.DataFrame(scenario_list, columns=['Scenario'])
         df_dummy = df_dummy.set_index(['Scenario'])
 
@@ -227,12 +231,12 @@ class Pmedian(object):
         # objective function minimize the sum impact across all scenarios
         if use_scenario_probability:
             scenario.set_index(['Scenario'], inplace=True)
-            model.obj = pe.Objective(expr = \
+            model.obj = pe.Objective(expr= \
                 sum(float(scenario.at[a, 'Probability']) *
                 float(impact[impact_col_name].loc[a, i]) * model.x[a, i]
-                for (a, i) in scenario_sensor_pairs) )
+                for (a, i) in scenario_sensor_pairs))
         else:
-            model.obj = pe.Objective(expr = \
+            model.obj = pe.Objective(expr= \
                 1.0 / float(len(scenario_list)) *
                 sum(float(impact[impact_col_name].loc[a, i]) * model.x[a, i]
                 for (a, i) in scenario_sensor_pairs))
@@ -263,6 +267,9 @@ class Pmedian(object):
         self._use_sensor_cost = use_sensor_cost
         self._use_scenario_probability = use_scenario_probability
 
+        # Any changes to the model require re-solving
+        self._solved = False
+
         return model
 
     def add_grouping_constraint(self, sensor_list, select=None,
@@ -272,11 +279,13 @@ class Pmedian(object):
         constraint forces a certain number of sensors to be selected from a
         particular subset of all the possible sensors.
 
-        The keyword argument 'select' enforces an equality constraint, while 'min_select' and 'max_select'
-        correspond to lower and upper bounds on the grouping constraints, respectively. You can specify
+        The keyword argument 'select' enforces an equality constraint,
+        while 'min_select' and 'max_select' correspond to lower and upper
+        bounds on the grouping constraints, respectively. You can specify
         one or both of 'min_select' and 'max_select' OR use 'select'
 
-        # TODO: Should we make this easier by just allowing lower bound and upper bound and do an equality if they are the same?
+        # TODO: Should we make this easier by just allowing lower bound and
+        upper bound and do an equality if they are the same?
 
         Parameters
         ----------
@@ -349,8 +358,11 @@ class Pmedian(object):
                 raise ValueError('Cannot select a negative number of sensors')
             gconlist.add(sensor_sum <= max_select)
 
+        # Any changes to the model require re-solving
+        self._solved = False
+
     def solve_pyomo_model(self, sensor_budget=None, mip_solver_name='glpk',
-                           pyomo_solver_options=None):
+                          pyomo_solver_options=None):
         """
         Solves the Pyomo model created to perform the sensor placement.
 
@@ -374,8 +386,8 @@ class Pmedian(object):
             pyomo_solver_options = {}
 
         if self._model is None:
-            raise RuntimeError('Cannot call solve_pyomo_model before the model '
-                               'is created with create_pyomo_model'
+            raise RuntimeError('Cannot call solve_pyomo_model before the model'
+                               ' is created with create_pyomo_model'
                                )
 
         # change the sensor budget if necessary
@@ -385,8 +397,20 @@ class Pmedian(object):
         # create the solver
         opt = pe.SolverFactory(mip_solver_name)
 
+        # TODO: Update description of pyomo_solver_options because technically
+        # solver-specific options would have to be passed as {'tee':True,
+        # 'options':{dict with solver options}}
         # solve the problem and return the result
-        return opt.solve(self._model, **pyomo_solver_options)
+        results = opt.solve(self._model, **pyomo_solver_options)
+
+        # Check solver status
+        if (results.solver.status == SolverStatus.ok) and \
+           (results.solver.termination_condition == TerminationCondition.optimal):
+            self._solved = True
+        else:
+            print('The solver was unable to find an optimal solution')
+
+        return results
 
     def create_solution_summary(self):
         """
@@ -398,9 +422,10 @@ class Pmedian(object):
         Dictionary containing objective value, selected sensors, and
         impact assessment.
         """
-        if self._model is None or self._impact is None or self._scenario is None:
-            raise RuntimeError('Cannot call create_solution_model before the model '
-                               'is created and solved.'
+
+        if self._model is None or not self._solved:
+            raise RuntimeError('Cannot call create_solution_model before the '
+                               'model is created and solved.'
                                )
 
         model = self._model

@@ -22,9 +22,10 @@ class Pmedian(object):
         self._sensor = None
         self._scenario = None
 
-    def solve(self, impact=None, sensor=None, scenario=None, sensor_budget=None,
-              use_sensor_cost=False, use_scenario_probability=False,
-              impact_col_name='Impact', mip_solver_name='glpk', pyomo_solver_options=None):
+    def solve(self, impact=None, sensor=None, scenario=None,
+              sensor_budget=None, use_sensor_cost=False,
+              use_scenario_probability=False, impact_col_name='Impact',
+              mip_solver_name='glpk', pyomo_solver_options=None):
         """
         Solves the sensor placement optimization.
 
@@ -36,10 +37,10 @@ class Pmedian(object):
             Impact is stored as a pandas DataFrmae with columns 'Scenario',
             'Sensor', 'Impact'.
         sensor : pandas DataFrame
-            Sensor characteristics.  Contains sensor cost for each sensor.
+            Sensor characteristics. Contains sensor cost for each sensor.
             Sensor characteristics are stored as a pandas DataFrame with
-            columns 'Sensor' and 'Cost'. Cost is used in the sensor
-            placement optimization if the 'use_sensor_cost' flag is set to True.
+            columns 'Sensor' and 'Cost'. Cost is used in the sensor placement
+            optimization if the 'use_sensor_cost' flag is set to True.
         scenario : pandas DataFrame
             Scenario characteristics.  Contains scenario probability and the
             impact for undetected scenarios. Scenario characteristics are
@@ -53,11 +54,11 @@ class Pmedian(object):
             below the sensor_budget. For a simple sensor budget of N sensors,
             set this to N and the 'use_sensor_cost' to False.
         use_sensor_cost : bool
-            Boolean indicating if sensor cost should be used in the optimization.
-            If False, sensors have equal cost of 1.
+            Boolean indicating if sensor cost should be used in the
+            optimization. If False, sensors have equal cost of 1.
         use_scenario_probability : bool
-            Boolean indicating if scenario probability should be used in the optimization.
-            If False, scenarios have equal probability.
+            Boolean indicating if scenario probability should be used in the
+            optimization. If False, scenarios have equal probability.
         impact_col_name : str
             The name of the column containing the impact data to be used
             in the objective function.
@@ -81,20 +82,24 @@ class Pmedian(object):
               particular scenario, the impact is set to the Undetected Impact.
         """
 
-        self.create_pyomo_model(impact, sensor, scenario, sensor_budget, use_sensor_cost, use_scenario_probability, impact_col_name)
+        self.create_pyomo_model(impact, sensor, scenario, sensor_budget,
+                                use_sensor_cost, use_scenario_probability,
+                                impact_col_name)
 
-        self.solve_pyomo_model(sensor_budget, mip_solver_name, pyomo_solver_options)
+        self.solve_pyomo_model(sensor_budget, mip_solver_name,
+                               pyomo_solver_options)
 
         results_dict = self.create_solution_summary()
 
         return results_dict
 
-
     def create_pyomo_model(self, impact, sensor, scenario, sensor_budget,
-                           use_sensor_cost=False, use_scenario_probability=False,
+                           use_sensor_cost=False,
+                           use_scenario_probability=False,
                            impact_col_name='Impact'):
         """
-        Returns the Pyomo model. See :py:meth:`Pmedian.solve` for more information on arguments.
+        Returns the Pyomo model. See :py:meth:`Pmedian.solve` for more
+        information on arguments.
 
         Parameters
         ----------
@@ -106,6 +111,15 @@ class Pmedian(object):
             Scenario characteristics
         sensor_budget : float
             Sensor budget
+        use_sensor_cost : bool
+            Boolean indicating if sensor cost should be used. Defaults to
+            False, meaning sensors have equal cost of 1.
+        use_scenario_probability : bool
+            Boolean indicating if scenario probability should be used.
+            Defaults to False, meaning scenarios have equal probability.
+        impact_col_name : str
+            The name of the column containing the impact data to be used
+            in the objective function.
 
         Returns
         -------
@@ -119,28 +133,33 @@ class Pmedian(object):
 
         # validate the pandas dataframe input
         cu._df_columns_required('sensor', sensor,
-                               {'Sensor': np.object,
-                                'Cost': [np.float64, np.int64]})
+                                {'Sensor': np.object})
         cu._df_nans_not_allowed('sensor', sensor)
         cu._df_columns_required('scenario', scenario,
-                               {'Scenario': np.object,
-                                'Undetected Impact': [np.float64, np.int64]})
+                                {'Scenario': np.object,
+                                 'Undetected Impact': [np.float64, np.int64]})
         cu._df_nans_not_allowed('scenario', scenario)
         cu._df_columns_required('impact', impact,
-                               {'Scenario': np.object,
-                                'Sensor': np.object,
-                                impact_col_name: [np.float64, np.int64]})
+                                {'Scenario': np.object,
+                                 'Sensor': np.object,
+                                 impact_col_name: [np.float64, np.int64]})
         cu._df_nans_not_allowed('impact', impact)
 
         # validate optional columns in pandas dataframe input
         if use_scenario_probability:
             cu._df_columns_required('scenario', scenario,
-                                   {'Probability': np.float64})
+                                    {'Probability': np.float64})
 
+        if use_sensor_cost:
+            cu._df_columns_required('sensor', sensor,
+                                    {'Cost': [np.float64, np.int64]})
+
+        # Notice, setting the index here
         impact = impact.set_index(['Scenario', 'Sensor'])
         assert(impact.index.names[0] == 'Scenario')
         assert(impact.index.names[1] == 'Sensor')
 
+        # Notice, setting the index here
         sensor = sensor.set_index('Sensor')
         assert(sensor.index.names[0] == 'Sensor')
 
@@ -158,6 +177,8 @@ class Pmedian(object):
         # is undetected
         sensor_list.append(dummy_sensor_name)
 
+        # FIXME: Looks like df_dummy starts as a copy of the scenario
+        # dataframe with a column name change. Rework implementation
         df_dummy = pd.DataFrame(scenario_list, columns=['Scenario'])
         df_dummy = df_dummy.set_index(['Scenario'])
 
@@ -170,11 +191,11 @@ class Pmedian(object):
         impact = impact.append(df_dummy)
         sensor_cost[dummy_sensor_name] = 0.0
 
-        # create a list of tuples for all the scenario/sensor pairs where
+        # Create a list of tuples for all the scenario/sensor pairs where
         # detection has occurred
         scenario_sensor_pairs = impact.index.tolist()
 
-        # create the (jagged) index set of sensors that were able to detect a
+        # Create the (jagged) index set of sensors that were able to detect a
         # particular scenario
         scenario_sensors = dict()
         for (a, i) in scenario_sensor_pairs:
@@ -203,12 +224,11 @@ class Pmedian(object):
         # y_i variable indicates if a sensor is installed or not
         model.y = pe.Var(model.sensor_set, within=pe.Binary)
 
-
         # objective function minimize the sum impact across all scenarios
         if use_scenario_probability:
             scenario.set_index(['Scenario'], inplace=True)
             model.obj = pe.Objective(expr = \
-                sum(float(scenario.loc[a, 'Probability']) *
+                sum(float(scenario.at[a, 'Probability']) *
                 float(impact[impact_col_name].loc[a, i]) * model.x[a, i]
                 for (a, i) in scenario_sensor_pairs) )
         else:
@@ -673,7 +693,7 @@ class OldPmedian(object):
         # in current formulation all scenarios are equally probable 
         def obj_rule(m):
             return 1.0 / float(len(scenario_list)) * \
-                   sum(float(impact.loc[a, i]) * m.x[a, i]
+                   sum(float(impact.at[a, i]) * m.x[a, i]
                        for (a, i) in scenario_sensor_pairs)
 
         # Modify the objective function to include scenario probabilities
@@ -681,8 +701,8 @@ class OldPmedian(object):
             scenario.set_index(['Scenario'], inplace=True)
 
             def obj_rule(m):
-                return sum(float(scenario.loc[a, 'Probability']) *
-                           float(impact.loc[a, i]) * m.x[a, i]
+                return sum(float(scenario.at[a, 'Probability']) *
+                           float(impact.at[a, i]) * m.x[a, i]
                            for (a, i) in scenario_sensor_pairs)
 
         model.obj = pe.Objective(rule=obj_rule)

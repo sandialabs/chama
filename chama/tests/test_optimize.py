@@ -43,7 +43,8 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    results = solver.solve(df_impact, df_sensor, df_scenario, sensor_budget=sensor_budget,
+    results = solver.solve(df_impact, df_sensor, df_scenario,
+                           sensor_budget=sensor_budget,
                            pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
@@ -190,7 +191,7 @@ def test_detection_times_to_coverage_time():
                                     ("(4, 'S3')", 'B', 0.0),
                                     ("(5, 'S3')", 'B', 0.0)],
                                 columns=['Scenario', 'Sensor', 'Impact'])  
-    sceanrio_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
+    scenario_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
                                       ("(3, 'S1')", 1.0, 0.25),
                                       ("(3, 'S2')", 1.0, 0.6),
                                       ("(4, 'S1')", 1.0, 0.25),
@@ -204,8 +205,8 @@ def test_detection_times_to_coverage_time():
                            check_like=True)
     
     scenario1.set_index('Scenario', inplace=True)
-    sceanrio_expected.set_index('Scenario', inplace=True)
-    assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
+    scenario_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(scenario1, scenario_expected, check_dtype=False,
                            check_like=True)
 
 def test_detection_times_to_coverage_scenario():

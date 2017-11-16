@@ -2,6 +2,7 @@
 The utils module contains a collection of utility functions.
 """
 
+
 def _scalar_or_list_to_list(data):
         if isinstance(data, list):
             return [i for i in data]

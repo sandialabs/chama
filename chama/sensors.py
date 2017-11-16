@@ -344,7 +344,7 @@ class Point(Detector):
                                          'Make sure that all sensor '
                                          'locations are contained in the '
                                          'area spanned by the signal data.')
-                    signal_subset.loc[interp_points[i], j] = interp_signal
+                    signal_subset.at[interp_points[i], j] = interp_signal
 
         elif interp_method == 'nearest':
 
@@ -356,7 +356,7 @@ class Point(Detector):
                     # Loop over scenarios
                     for j in signal.columns:
                         interp_signal = 0.0
-                        signal_subset.loc[interp_points[i], j] = interp_signal
+                        signal_subset.at[interp_points[i], j] = interp_signal
                 else:
                     temp2 = temp[temp < min_distance]
                     temp_signal = signal.loc[temp2.index, :]
@@ -370,7 +370,7 @@ class Point(Detector):
                                                  method=interp_method,
                                                  rescale=True)
 
-                        signal_subset.loc[interp_points[i], j] = interp_signal
+                        signal_subset.at[interp_points[i], j] = interp_signal
         else:
             raise ValueError('Unrecognized or unsupported interpolation method'
                              ' "%s" was specified. Only "linear" or "nearest" '
@@ -618,7 +618,7 @@ class Camera(Detector):
                 # count back to the original scale
                 pixel_final = 16 * pixels
 
-                detected_pixels.loc[point, scen] = pixel_final
+                detected_pixels.at[point, scen] = pixel_final
 
         # print(detected_pixels)
         return detected_pixels

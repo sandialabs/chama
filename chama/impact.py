@@ -135,7 +135,7 @@ def translate(det_t, damage):
     
     det_damage = det_t.copy()
     for index, row in det_damage.iterrows():
-        det_damage.loc[index, 'Impact'] = damage.loc[row['Impact'],
+        det_damage.at[index, 'Impact'] = damage.at[row['Impact'],
                                                      row['Scenario']]
 
     return det_damage

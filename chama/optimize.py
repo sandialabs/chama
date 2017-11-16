@@ -408,6 +408,7 @@ class Pmedian(object):
            (results.solver.termination_condition == TerminationCondition.optimal):
             self._solved = True
         else:
+            self._solved = False
             print('The solver was unable to find an optimal solution')
 
         return results
@@ -424,8 +425,8 @@ class Pmedian(object):
         """
 
         if self._model is None or not self._solved:
-            raise RuntimeError('Cannot call create_solution_model before the '
-                               'model is created and solved.'
+            raise RuntimeError('Cannot call create_solution_summary before '
+                               'the model is created and solved.'
                                )
 
         model = self._model

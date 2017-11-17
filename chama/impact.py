@@ -6,7 +6,6 @@ from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 
-
 def detection_times(signal, sensors, interp_method=None, min_distance=10):
     """
     Returns detection times from a signal and group of sensors.
@@ -101,7 +100,7 @@ def detection_time_stats(det_times):
     del det_t['Detection Times']
     
     return det_t
- 
+
 def translate(det_t, damage):
     """
     Returns impact translated from detection time to a damage metric.
@@ -122,13 +121,11 @@ def translate(det_t, damage):
     damage = damage.set_index('T')
     allT = list(set(det_t['T']) | set(damage.index))
     damage = damage.reindex(allT)
-    damage.apply(pd.Series.interpolate)
+    damage.sort_index(inplace=True)
+    damage.interpolate(inplace=True)
     
     det_damage = det_t.copy()
-    for index, row in det_damage.iterrows():
-        det_damage.loc[index, 'T'] = damage.loc[row['T'],
-                                                row['Scenario']]
-    
+    det_damage['T'] = damage.lookup(det_t['T'], det_t['Scenario'])
     det_damage.rename(columns = {'T':'Damage'}, inplace = True)
 
     return det_damage

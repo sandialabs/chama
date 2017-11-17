@@ -67,7 +67,7 @@ always converges to a value of 0 or 1. Therefore, the number of binary
 variables that need to be considered by the solver is a function of the
 number of candidate sensors alone, and not the number of scenarios
 considered.  This formulation has been used to place sensors in large
-water distribution networks [USEPA12]_ and [USEPA15]_ and for gas detection 
+water distribution networks [BHPU06]_ [USEPA12]_ [USEPA15]_ and for gas detection 
 in petrochemical facilities [LBSW12]_.
 
 The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
@@ -75,7 +75,7 @@ The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
 scenario probability, :math:`\alpha_a`, as described below:
 
 * Impact assessment: A single detection time (or other measure of damage) for 
-  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrmae, 
+  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrame, 
   as described in the :ref:`impact` section.  
   
 * Sensor budget: The number of sensors to place, or total budget for sensors.  If the 

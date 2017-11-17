@@ -14,7 +14,9 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     Parameters
     ----------
     signal : pandas DataFrame
-        Signal data from the transport simulation
+        Signal data from the transport simulation.  The DataFrame has columns  
+        'T', 'X','Y', 'Z', or 'T', 'Node' along with one column for each 
+        scenario (user defined names).
     
     sensors : dict
         A dictionary of sensors with key:value pairs containing
@@ -33,8 +35,7 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     
     Returns
     -------
-    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Impact'.  
-    The Impact column contains a list of detection times.
+    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Detection Times'.
     """
     # Extracting a subset of the signal in the sensor module is fastest
     # using multiindex even though setting the index initially is slow
@@ -51,7 +52,7 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     if 'Node' in signal.index.names:
         interp_method = None
         
-    temp_det_times = {'Scenario': [], 'Sensor': [], 'Impact': []}
+    det_times_dict = {'Scenario': [], 'Sensor': [], 'Detection Times': []}
 
     for (name, sensor) in sensors.items():  # loop over sensors
         # Get detected signal
@@ -61,14 +62,12 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
         # If the sensor detected something
         if detected.shape[0] > 0:
             for scenario_name, group in detected.groupby(level=[1]):
-                temp_det_times['Scenario'].append(scenario_name)
-                temp_det_times['Sensor'].append(name)
-                temp_det_times['Impact'].append(group.index.get_level_values(0).tolist())
+                det_times_dict['Scenario'].append(scenario_name)
+                det_times_dict['Sensor'].append(name)
+                det_times_dict['Detection Times'].append(group.index.get_level_values(0).tolist())
             
-    det_times = pd.DataFrame()
-    det_times['Scenario'] = temp_det_times['Scenario']
-    det_times['Sensor'] = temp_det_times['Sensor']
-    det_times['Impact'] = temp_det_times['Impact']
+    det_times = pd.DataFrame(det_times_dict)
+    det_times = det_times[['Scenario', 'Sensor', 'Detection Times']] # reorder
 
     det_times = det_times.sort_values(['Scenario', 'Sensor'])
     det_times = det_times.reset_index(drop=True)
@@ -78,23 +77,28 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
 
 def detection_time_stats(det_times):
     """
-    Returns detection times statistics (min, max, median, and mean).
+    Returns detection times statistics (min, mean, median, max, and count).
 
     Parameters
     ----------
     det_times : pandas DataFrame
-        Detection times returned from detection_times
+        Detection times for each scenario-sensor pair. The DataFrame has 
+        columns  'Scenario', 'Sensor', and 'Detection Times', see 
+        :class:`~chama.impact.detection_times`.
         
     Returns
     ----------
-    pandas DataFrame with columns 'Scenario', 'Sensor', 'Min', 'Max', 'Median' and 'Mean'.  
+    pandas DataFrame with columns 'Scenario', 'Sensor', 'Min', 'Mean', 
+    'Median', 'Max', and 'Count'.  
     """
     det_t = det_times.copy()
-    det_t['Min'] = det_t['Impact'].apply(np.min)
-    det_t['Max'] = det_t['Impact'].apply(np.max)
-    det_t['Median'] = det_t['Impact'].apply(np.median)
-    det_t['Mean'] = det_t['Impact'].apply(np.mean)
-    del det_t['Impact']
+    det_t['Min'] = det_t['Detection Times'].apply(np.min)
+    det_t['Mean'] = det_t['Detection Times'].apply(np.mean)
+    det_t['Median'] = det_t['Detection Times'].apply(np.median)
+    det_t['Max'] = det_t['Detection Times'].apply(np.max)
+    det_t['Count'] = det_t['Detection Times'].apply(len)
+    
+    del det_t['Detection Times']
     
     return det_t
  
@@ -105,24 +109,26 @@ def translate(det_t, damage):
     Parameters
     ----------
     det_t : pandas DataFrame
-        Detection times returned from detection_time_stats
+        Detection time for each scenario-sensor pair. The DataFrame has 
+        columns 'Scenario', 'Sensor', and 'T'. 
     damage : pandas DataFrame
         Damage values for each scenario and time.  The DataFrame has 
-        columns 'T' and one column for each scenario (user defined names)
+        columns 'T' and one column for each scenario (user defined names).
         
     Returns
     ----------
-    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Impact'.  
-    The Impact column contains damage at the time of detection.
+    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Damage'.  
     """
     damage = damage.set_index('T')
-    allT = list(set(det_t['Impact']) | set(damage.index))
+    allT = list(set(det_t['T']) | set(damage.index))
     damage = damage.reindex(allT)
     damage.apply(pd.Series.interpolate)
     
     det_damage = det_t.copy()
     for index, row in det_damage.iterrows():
-        det_damage.loc[index, 'Impact'] = damage.loc[row['Impact'],
-                                                     row['Scenario']]
+        det_damage.loc[index, 'T'] = damage.loc[row['T'],
+                                                row['Scenario']]
+    
+    det_damage.rename(columns = {'T':'Damage'}, inplace = True)
 
     return det_damage

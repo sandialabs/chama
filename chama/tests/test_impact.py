@@ -43,7 +43,7 @@ class TestImpact_XYZ(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
@@ -87,7 +87,7 @@ class TestImpact_J(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
@@ -115,7 +115,7 @@ class TestImpact_J(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)

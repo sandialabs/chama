@@ -178,6 +178,7 @@ def test_detection_times_to_coverage_time():
     coverage = chama.optimize.Coverage(use_scenario_probability=True, 
                                        coverage_type='time')
     impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    
     impact_expected = pd.DataFrame([("(2, 'S1')", 'A', 0.0),
                                     ("(3, 'S1')", 'A', 0.0),
                                     ("(3, 'S2')", 'A', 0.0),
@@ -185,7 +186,7 @@ def test_detection_times_to_coverage_time():
                                     ("(4, 'S3')", 'B', 0.0),
                                     ("(5, 'S3')", 'B', 0.0)],
                                 columns=['Scenario', 'Sensor', 'Impact'])  
-    sceanrio_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
+    scenario_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
                                       ("(3, 'S1')", 1.0, 0.25),
                                       ("(3, 'S2')", 1.0, 0.6),
                                       ("(4, 'S1')", 1.0, 0.25),
@@ -199,8 +200,8 @@ def test_detection_times_to_coverage_time():
                            check_like=True)
     
     scenario1.set_index('Scenario', inplace=True)
-    sceanrio_expected.set_index('Scenario', inplace=True)
-    assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
+    scenario_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(scenario1, scenario_expected, check_dtype=False,
                            check_like=True)
 
 def test_detection_times_to_coverage_scenario():

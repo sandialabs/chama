@@ -7,6 +7,7 @@ import pyomo.environ as pe
 import chama.utils as cu
 import numpy as np
 import pandas as pd
+import itertools
 
 dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
 
@@ -504,42 +505,61 @@ class Coverage(Pmedian):
         return model
 
     def _detection_times_to_coverage(self, det_times, scenario):
-        
-        temp = {'Scenario': [], 'Sensor': [], 'Impact': []}
-        prob_time = {}
-        for index, row in det_times.iterrows():
-            if self.coverage_type=='scenario':
-                temp['Scenario'].append(row['Scenario'])
-                temp['Sensor'].append(row['Sensor'])
-                temp['Impact'].append(0.0)
-            elif self.coverage_type=='time':
-                for t in row['Impact']:
-                    scen_name = str((t, row['Scenario']))
-                    temp['Scenario'].append(scen_name)
-                    temp['Sensor'].append(row['Sensor'])
-                    temp['Impact'].append(0.0)
-                    if self.use_scenario_probability:
-                        prob_time[scen_name] = scenario[scenario['Scenario'] == row['Scenario']]['Probability'].values[0]
-                    
-        coverage = pd.DataFrame()
-        coverage['Scenario'] = temp['Scenario']
-        coverage['Sensor'] = temp['Sensor']
-        coverage['Impact'] = temp['Impact']
-        coverage = coverage.sort_values('Scenario')
-        coverage = coverage.reset_index(drop=True)
 
-        updated_scenario = pd.DataFrame()  
         if self.coverage_type=='scenario':
-            updated_scenario['Scenario'] = scenario['Scenario']
-            updated_scenario['Undetected Impact'] = 1.0
+            coverage = det_times
+        else: # self.coverage_type=='time':
+            # Add scenario probability to det_times
+            det_times.set_index('Scenario')
+            scenario.set_index('Scenario')
+            det_times['Probability'] = scenario['Probability']
+            det_times.reset_index(drop=True)
+            
+            # To avoid strange behavoir in df.apply, add a dummy first row 
+            # that has 1 value for Impact
+            dummy = pd.DataFrame({
+                'Scenario': ['dummy'],
+                'Sensor': ['dummy'],
+                'Impact': [[0]]})
+            det_times = pd.concat([dummy, det_times], ignore_index=True)
+            
+            # Expand times
+            times = list(itertools.chain.from_iterable(det_times['Impact'].values))
+            
+            def expand_values(row, col_name):
+                return [row[col_name]]*len(row['Impact'])
+            
+            # Expand scenarios
+            scenarios = det_times.apply(expand_values, col_name='Scenario', axis=1)
+            scenarios = list(itertools.chain.from_iterable(scenarios.values))
+            
+            # Expand sensors
+            sensors = det_times.apply(expand_values, col_name='Sensor', axis=1)
+            sensors = list(itertools.chain.from_iterable(sensors.values))
+            
+            # Expand probabilities
             if self.use_scenario_probability:
-                updated_scenario['Probability'] = scenario['Probability']
-        else:          
-            updated_scenario['Scenario'] = coverage['Scenario'].unique()
-            updated_scenario['Undetected Impact'] = 1.0
+                probability = det_times.apply(expand_values, col_name='Probability', axis=1)
+                probability = list(itertools.chain.from_iterable(probability.values))
+            
+            # Updated scenario dataframe
+            scenario = pd.DataFrame({'Scenario': list(zip(times, scenarios))})
             if self.use_scenario_probability:
-                updated_scenario.set_index('Scenario', inplace=True)
-                updated_scenario['Probability'] = pd.Series(prob_time)
-                updated_scenario.reset_index(inplace=True)
+                scenario['Probability'] = probability
+            scenario.drop(0, inplace=True) # drop dummy
+            scenario = scenario.sort_values('Scenario')
+            scenario = scenario.reset_index(drop=True)
+            scenario['Scenario'] = scenario['Scenario'].apply(str)
+            
+            # Updated impact dataframe
+            coverage = pd.DataFrame({'Scenario': list(zip(times, scenarios)), 
+                                     'Sensor': sensors})
+            coverage.drop(0, inplace=True) # drop dummy
+            coverage = coverage.sort_values('Scenario')
+            coverage = coverage.reset_index(drop=True)
+            coverage['Scenario'] = coverage['Scenario'].apply(str)
+            
+        coverage['Impact'] = 0.0
+        scenario['Undetected Impact'] = 1.0
         
-        return coverage, updated_scenario
+        return coverage, scenario

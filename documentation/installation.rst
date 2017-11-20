@@ -40,3 +40,7 @@ Optional Python package dependencies include:
 * Matplotlib [Hunt07]_: produce graphics, 
   http://matplotlib.org.
 * nose: run software tests, http://nose.readthedocs.io.
+
+In addition, **a Pyomo supported MIP solver is required** to solve the
+optimization problems formulated in Chama. Examples of solvers that meet
+this requirement include GLPK [Makh10]_, Gurobi [GUROBI]_, and CPLEX [CPLEX]_.

@@ -17,13 +17,15 @@ times and convert detection time to other damage metrics.
 
 Chama uses Pandas DataFrames [Mcki13]_ to store the impact assessment. Each
 DataFrame has three columns: Scenario, Sensor, and Impact. Exact column names
-must be used.  Note that the values in the Impact column can represent different metrics.
+must be used.  Note that the values in the Impact column can represent
+different metrics.
 
 Detection times
 ---------------
-In general, detection depends on the scenario environmental conditions, the sensor 
-location, and sensor operating conditions. While some scenarios can be detected by 
-a single sensor multiple times, other scenarios can go undetected by all sensors. 
+In general, detection depends on the scenario environmental conditions, the
+sensor location, and sensor operating conditions. While some scenarios can
+be detected by a single sensor multiple times, other scenarios can go
+undetected by all sensors.
 
 The following example demonstrates how to extract detection times 
 using a predefined signal, computed using the :ref:`transport` module,
@@ -98,7 +100,7 @@ detected by Sensor B and time 30 and Sensor C at times 10, 20, 30 and 40.
 Scenario S2 was detected by Sensors A, B, and C. Scenario S3 was detected by
 Sensors A, B, and C. Sensor D did not detect any scenarios.
 
-This information can be used directly to optimization a sensor layout that
+This information can be used directly to optimize a sensor layout that
 maximizes coverage. To optimize a sensor layout that minimizes detection
 time, the minimum time can be extracted from the list of detection times, as 
 shown below.  
@@ -155,7 +157,7 @@ Extract the minimum detection time from the statistics computed above:
 
 .. doctest::
     
-	>>> min_det_time = det_time_stats[['Scenario','Sensor','Min']]
+    >>> min_det_time = det_time_stats[['Scenario','Sensor','Min']]
     >>> min_det_time.rename(columns = {'Min':'T'}, inplace = True)
     >>> print(min_det_time)
       Scenario Sensor   T

@@ -18,9 +18,10 @@ The P-median formulation is used to determine optimal sensor
 placement and type that minimizes impact, where impact can be detection time or 
 some other measure of damage.
 The P-median formulation is written in Pyomo [HLWW12]_ and solved
-using open source or commercial solvers.  The open source GLPK solver
-[Makh10]_ is used by default.  
-The P-median sensor placement formulation is described below:
+using an open source or commercial MIP solver such as GLPK [Makh10]_,
+Gurobi [GUROBI]_, or CPLEX [CPLEX]_.
+The open source GLPK solver is used by default. The P-median sensor
+placement formulation is described below:
 
 .. math::
    

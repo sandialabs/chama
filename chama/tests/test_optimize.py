@@ -180,10 +180,10 @@ def test_detection_times_to_coverage_time():
         'Sensor': ['A', 'A', 'B'],
         'Impact': [[2, 3, 4], [3], [4, 5]]})
 
-    coverage = chama.optimize.Coverage()
-    impact1,scenario1 = coverage.convert_detection_times_to_coverage(impact, scenario,
-                                                                    use_scenario_probability=True,
-                                                                     coverage_type='scenario-time')
+    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
+                                       coverage_type='time')
+    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    
     impact_expected = pd.DataFrame([("(2, 'S1')", 'A', 0.0),
                                     ("(3, 'S1')", 'A', 0.0),
                                     ("(3, 'S2')", 'A', 0.0),

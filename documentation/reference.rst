@@ -8,6 +8,12 @@ References
 
 .. [Arya99] Arya, S.P. (1999). Air pollution meteorology and dispersion (Vol. 6). New York: Oxford University Press.
 
+.. [CPLEX] CPLEX. Home page. http://www.cplex.com, 2017
+
+.. [BHPU06] Berry, J., Hart, W. E., Phillips, C. E., Uber, J. G., & Watson, J.-P. (2006). Sensor placement in municipal water networks with temporal integer programming models. J. Water Resources Planning and Management, 132(4), 218-224.
+
+.. [GUROBI] GUROBI. Gurobi Optimization, Inc. http://www.gurobi.com, 2017
+
 .. [HLWW12] Hart, W.E., Laird, C, Watson, J.P., & Woodruff D.L. (2012). Pyomo -- Optimization Modeling in Python, Volume 67 of Springer Optimization and Its Applications, Springer Science & Business Media.
 
 .. [Hunt07] Hunter, J.D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 3(9), 90-95.

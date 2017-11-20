@@ -13,11 +13,11 @@ datadir = join(testdir, 'data')
 def test_water_network_example():
     # This test replicates WST sp_ex1
     impact_file = join(datadir, 'Net3_ec.impact')
-    
+
     # read the impact file from the water simulations
     impact_data = pd.read_csv(impact_file, skiprows=2, sep=' ',
-                               usecols=[0, 1, 3],
-                               names=['Scenario', 'Sensor', 'Impact'])
+                              usecols=[0, 1, 3],
+                              names=['Scenario', 'Sensor', 'Impact'])
 
     # convert the scenario names to strings
     impact_data['Scenario'] = impact_data['Scenario'].apply(str)
@@ -29,7 +29,7 @@ def test_water_network_example():
                              columns=['Sensor'])
     # remove the "-1" sensors (used to indicate undetected impact)
     df_sensor = df_sensor[df_sensor.Sensor != "-1"]
-    df_sensor['Cost'] = 1.0     # define the cost
+    df_sensor['Cost'] = 1.0  # define the cost
 
     # Define scenario dataframe
     df_scenario = impact_data[impact_data.Sensor == "-1"]
@@ -43,7 +43,8 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.Pmedian()
-    results = solver.solve(df_impact, df_sensor, df_scenario, sensor_budget=sensor_budget,
+    results = solver.solve(df_impact, df_sensor, df_scenario,
+                           sensor_budget=sensor_budget,
                            pyomo_solver_options={'tee': False})
 
     expected_objective_value = 8655.80
@@ -89,13 +90,13 @@ def test_water_network_example_with_scenario_prob():
     # Add scenario probabilities
     df_scenario['Probability'] = 0.0041
     df_scenario.set_index('Scenario', inplace=True)
-    df_scenario.loc['165', 'Probability'] = \
+    df_scenario.at['165', 'Probability'] = \
         1.0 - sum(df_scenario.iloc[1:].Probability)
     # Changing the undetected impact of scenario 165 such that the scenario
     # is not detected when scenario probabilities are ignored but forces a
     # different selection of sensors when scenario probabilities are
     # incorporated. 
-    df_scenario.loc['165', 'Undetected Impact'] = 30000.0
+    df_scenario.at['165', 'Undetected Impact'] = 30000.0
     df_scenario.reset_index(inplace=True)
 
     # Solve sensor placement
@@ -179,10 +180,10 @@ def test_detection_times_to_coverage_time():
         'Sensor': ['A', 'A', 'B'],
         'Impact': [[2, 3, 4], [3], [4, 5]]})
 
-    coverage = chama.optimize.Coverage()
-    impact1,scenario1 = coverage.convert_detection_times_to_coverage(impact, scenario,
-                                                                    use_scenario_probability=True,
-                                                                     coverage_type='scenario-time')
+    coverage = chama.optimize.Coverage(use_scenario_probability=True, 
+                                       coverage_type='time')
+    impact1,scenario1 = coverage._detection_times_to_coverage(impact, scenario)
+    
     impact_expected = pd.DataFrame([("(2, 'S1')", 'A', 0.0),
                                     ("(3, 'S1')", 'A', 0.0),
                                     ("(3, 'S2')", 'A', 0.0),
@@ -190,7 +191,7 @@ def test_detection_times_to_coverage_time():
                                     ("(4, 'S3')", 'B', 0.0),
                                     ("(5, 'S3')", 'B', 0.0)],
                                 columns=['Scenario', 'Sensor', 'Impact'])  
-    sceanrio_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
+    scenario_expected = pd.DataFrame([("(2, 'S1')", 1.0, 0.25),
                                       ("(3, 'S1')", 1.0, 0.25),
                                       ("(3, 'S2')", 1.0, 0.6),
                                       ("(4, 'S1')", 1.0, 0.25),
@@ -204,8 +205,8 @@ def test_detection_times_to_coverage_time():
                            check_like=True)
     
     scenario1.set_index('Scenario', inplace=True)
-    sceanrio_expected.set_index('Scenario', inplace=True)
-    assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
+    scenario_expected.set_index('Scenario', inplace=True)
+    assert_frame_equal(scenario1, scenario_expected, check_dtype=False,
                            check_like=True)
 
 def test_detection_times_to_coverage_scenario():

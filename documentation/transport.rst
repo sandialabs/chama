@@ -183,7 +183,8 @@ Define the atmospheric conditions:
     ...                     'Wind Speed': [1.2, 1], 
     ...                     'Stability Class': ['A', 'A']}, index=[0, 10])
 
-Initialize the Gaussian plume model and run (the first 5 rows of the signal DataFrame are printed):
+Initialize the Gaussian plume model and run (the first 5 rows of the signal
+ DataFrame are printed):
 
 .. doctest::
 

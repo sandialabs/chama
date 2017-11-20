@@ -18,9 +18,10 @@ The P-median formulation is used to determine optimal sensor
 placement and type that minimizes impact, where impact can be detection time or 
 some other measure of damage.
 The P-median formulation is written in Pyomo [HLWW12]_ and solved
-using open source or commercial solvers.  The open source GLPK solver
-[Makh10]_ is used by default.  
-The P-median sensor placement formulation is described below:
+using an open source or commercial MIP solver such as GLPK [Makh10]_,
+Gurobi [GUROBI]_, or CPLEX [CPLEX]_.
+The open source GLPK solver is used by default. The P-median sensor
+placement formulation is described below:
 
 .. math::
    
@@ -67,7 +68,7 @@ always converges to a value of 0 or 1. Therefore, the number of binary
 variables that need to be considered by the solver is a function of the
 number of candidate sensors alone, and not the number of scenarios
 considered.  This formulation has been used to place sensors in large
-water distribution networks [USEPA12]_ and [USEPA15]_ and for gas detection 
+water distribution networks [BHPU06]_ [USEPA12]_ [USEPA15]_ and for gas detection 
 in petrochemical facilities [LBSW12]_.
 
 The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
@@ -75,7 +76,7 @@ The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
 scenario probability, :math:`\alpha_a`, as described below:
 
 * Impact assessment: A single detection time (or other measure of damage) for 
-  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrmae, 
+  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrame, 
   as described in the :ref:`impact` section.  
   
 * Sensor budget: The number of sensors to place, or total budget for sensors.  If the 
@@ -150,8 +151,11 @@ The following example demonstrates the use of P-median sensor placement:
     1       S2              250.0         0.60
     2       S3              100.0         0.15
 	
-    >>> pmedian = chama.optimize.Pmedian(use_scenario_probability=True, use_sensor_cost=True)
-    >>> results = pmedian.solve(min_det_time, 200, sensor, scenario)
+    >>> pmedian = chama.optimize.Pmedian()
+    >>> results = pmedian.solve(impact=min_det_time, sensor_budget=200,
+    ...                         sensor=sensor, scenario=scenario,
+    ...                         use_scenario_probability=True,
+    ...                         use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
     ['A']

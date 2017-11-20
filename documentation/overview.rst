@@ -13,7 +13,7 @@ Chama is an open source Python package which includes sensor placement
 optimization methods for a wide range of applications.  
 Some of the methods in Chama were originally developed by Sandia 
 National Laboratories and the U.S. Environmental Protection Agency to 
-design sensor networks to detect contamination in water distribution systems [USEPA12]_ [USEPA15]_. 
+design sensor networks to detect contamination in water distribution systems [BHPU06]_ [USEPA12]_ [USEPA15]_. 
 In this context, contamination scenarios are 
 precomputed using a water network model, feasible sensor locations and thresholds are defined, 
 and the optimization method selects a set of sensors to minimize a given objective.

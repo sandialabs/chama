@@ -6,6 +6,7 @@ import numpy as np
 from pandas.util.testing import assert_frame_equal
 import chama
 import pyomo.environ as pe
+import six
 
 testdir = dirname(abspath(__file__))
 datadir = join(testdir, 'data')
@@ -243,8 +244,20 @@ def test_detection_times_to_coverage_scenario():
     assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
                            check_like=True)
 
-        
+def test_max_coverage_formulation():
+    coverage_dict = {'A': [1, 2, 3], 'B': [1,2], 'C': [3,5], 'D': [4,5], 'E': [2]}
+    coverage_dict_reform = {'Sensor': [], 'Coverage': []}
+    for key, value in six.iteritems(coverage_dict):
+        coverage_dict_reform['Sensor'].append(key)
+        coverage_dict_reform['Coverage'].append(value)
+    coverage = pd.DataFrame(coverage_dict_reform)
+
+    cov_opt = chama.optimize.MaxCoverage()
+    results = cov_opt.solve(coverage, sensor_budget=2) #pyomo_solver_options={'tee':True})
+    print(results)
 
 if __name__ == '__main__':
 #    test_water_network_example()
-    test_detection_times_to_coverage_scenario()
+#    test_detection_times_to_coverage_scenario()
+    test_max_coverage_formulation()
+

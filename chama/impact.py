@@ -129,3 +129,91 @@ def translate(det_t, damage):
     det_damage.rename(columns = {'T':'Damage'}, inplace = True)
 
     return det_damage
+
+
+def detection_times_to_coverage(detection_times, coverage_type='scenario'):
+    """
+    Convert a detection times DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
+    
+    Parameters
+    ----------
+    detection_times : pandas DataFrame
+        DataFrame containing three columns. 'Scenario' is the name of the scenarios, 'Sensor' is the name of 
+        the sensors, and 'Detection Times' contains a list of the detection times.
+    coverage_type : str
+        Sets the coverage type: 'scenario' builds a coverage matrix designed to ensure coverage of the scenario
+        ignoring the time it was detected, while 'scenario-time' builds a coverage matrix where every scenario-time
+        pair is included as a new scenario - thereby ensuring coverage over all scenarios and times.
+
+    Returns
+    -------
+    DataFrame : coverage DataFrame to be used an input to a coverage-based sensor placement solver.
+
+    """
+    if coverage_type == 'scenario':
+        coverage = det_times
+        # remove any entries where detection times is an empty list
+        coverage = coverage[coverage.apply(lambda x: len(x['Detection Times']) != 0, axis=1)]
+        # drop the detection times
+        coverage.drop('Detection Times', axis=1, inplace=True)
+    else:  # coverage_type=='scenario-time':
+        # Add scenario probability to det_times
+        det_times.set_index('Scenario')
+        scenario.set_index('Scenario')
+        det_times['Probability'] = scenario['Probability']
+        det_times.reset_index(drop=True)
+
+            # To avoid strange behavoir in df.apply, add a dummy first row
+            # that has 1 value for Impact
+            dummy = pd.DataFrame({
+                'Scenario': ['dummy'],
+                'Sensor': ['dummy'],
+                'Impact': [[0]]})
+            det_times = pd.concat([dummy, det_times], ignore_index=True)
+
+            # Expand times
+            times = list(itertools.chain.from_iterable(det_times['Impact'].values))
+
+            def expand_values(row, col_name):
+                return [row[col_name]] * len(row['Impact'])
+
+            # Expand scenarios
+            scenarios = det_times.apply(expand_values, col_name='Scenario', axis=1)
+            scenarios = list(itertools.chain.from_iterable(scenarios.values))
+
+            # Expand sensors
+            sensors = det_times.apply(expand_values, col_name='Sensor', axis=1)
+            sensors = list(itertools.chain.from_iterable(sensors.values))
+
+            # Expand probabilities
+            if self.use_scenario_probability:
+                probability = det_times.apply(expand_values, col_name='Probability', axis=1)
+                probability = list(itertools.chain.from_iterable(probability.values))
+
+            # Updated scenario dataframe
+            scenario = pd.DataFrame({'Scenario': list(zip(times, scenarios))})
+            if self.use_scenario_probability:
+                scenario['Probability'] = probability
+            scenario.drop(0, inplace=True)  # drop dummy
+            scenario = scenario.sort_values('Scenario')
+            scenario = scenario.reset_index(drop=True)
+            scenario['Scenario'] = scenario['Scenario'].apply(str)
+
+            # Updated impact dataframe
+            coverage = pd.DataFrame({'Scenario': list(zip(times, scenarios)),
+                                     'Sensor': sensors})
+            coverage.drop(0, inplace=True)  # drop dummy
+            coverage = coverage.sort_values('Scenario')
+            coverage = coverage.reset_index(drop=True)
+            coverage['Scenario'] = coverage['Scenario'].apply(str)
+
+        coverage['Impact'] = 0.0
+        scenario['Undetected Impact'] = 1.0
+
+        return coverage, scenario
+
+
+def impact_to_coverage():
+    CRASH HERE!
+
+

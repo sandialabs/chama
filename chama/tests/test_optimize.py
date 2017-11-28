@@ -55,7 +55,7 @@ def test_water_network_example():
     
     expected_selected_sensors = ["16", "21", "28", "38", "65"]
     assert_list_equal(results['Sensors'], expected_selected_sensors)
-    
+
 
 def test_water_network_example_with_scenario_prob():
     # This test replicates WST sp_ex1
@@ -171,6 +171,7 @@ def test_water_network_example_with_grouping_constraint():
     assert_less(error, 0.01)  # 1% error
     assert_list_equal(results['Sensors'], expected_selected_sensors)
 
+
 def test_detection_times_to_coverage_time():
     scenario = pd.DataFrame({
         'Scenario': ['S1', 'S2', 'S3'],
@@ -210,6 +211,7 @@ def test_detection_times_to_coverage_time():
     assert_frame_equal(scenario1, scenario_expected, check_dtype=False,
                            check_like=True)
 
+
 def test_detection_times_to_coverage_scenario():
     scenario = pd.DataFrame({
         'Scenario': ['S1', 'S2', 'S3'],
@@ -244,6 +246,7 @@ def test_detection_times_to_coverage_scenario():
     assert_frame_equal(scenario1, sceanrio_expected, check_dtype=False,
                            check_like=True)
 
+
 def test_max_coverage_formulation():
     coverage_dict = {'A': [1, 2, 3], 'B': [1,2], 'C': [3,5], 'D': [4,5], 'E': [2]}
     coverage_dict_reform = {'Sensor': [], 'Coverage': []}
@@ -252,9 +255,10 @@ def test_max_coverage_formulation():
         coverage_dict_reform['Coverage'].append(value)
     coverage = pd.DataFrame(coverage_dict_reform)
 
-    cov_opt = chama.optimize.MaxCoverage()
-    results = cov_opt.solve(coverage, sensor_budget=2) #pyomo_solver_options={'tee':True})
+    cov_opt = chama.optimize.CoverageSolver()
+    results = cov_opt.solve(coverage, sensor_budget=3, n_to_detect=2) #pyomo_solver_options={'tee':True})
     print(results)
+
 
 if __name__ == '__main__':
 #    test_water_network_example()

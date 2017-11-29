@@ -181,6 +181,10 @@ class ImpactSolver(object):
                                     {'Probability': np.float64})
 
         if use_sensor_cost:
+            if sensor is None:
+                raise ValueError(
+                    'ImpactSolver formulation: use_sensor_cost cannot be '
+                    'True if "sensor" DataFrame is not provided.')
             cu._df_columns_required('sensor', sensor,
                                     {'Cost': [np.float64, np.int64]})
 
@@ -192,14 +196,10 @@ class ImpactSolver(object):
         # Python set will extract the unique Scenario and Sensor values
         scenario_list = sorted(scenario['Scenario'].unique())
 
-        sensor_list = None
-        if sensor is None:
-            if use_sensor_cost:
-                raise ValueError('ImpactSolver formulation: use_sensor_cost cannot be True if'
-                                 '"sensor" DataFrame is not provided.')
-            sensor_list = sorted(set(impact.index.get_level_values('Sensor')))
-        else:
-            sensor_list = sorted(set(sensor.index.get_level_values('Sensor')))
+        # Always get sensor list from impact DataFrame in case there are
+        # sensors in the sensor DataFrame that didn't detect anything and
+        # therefore do not appear in the impact DataFrame
+        sensor_list = sorted(set(impact.index.get_level_values('Sensor')))
 
         if use_sensor_cost:
             sensor_cost = sensor['Cost']
@@ -576,15 +576,15 @@ class CoverageSolver(object):
         else:
             entity_list = sorted(entities['Entity'].unique())
 
+        # TODO: Add DataFrame column checks like in the ImpactSolver
 
-        sensor_list=None
-        if sensor is None:
-            if use_sensor_cost:
-                raise ValueError('CoverageSolver: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
-            # build the list of sensors from the coverage DataFrame
-            sensor_list = sorted(coverage['Sensor'].unique())
-        else:
-            sensor_list = sorted(sensor['Sensor'].unique())
+        if sensor is None and use_sensor_cost:
+            raise ValueError('CoverageSolver: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
+
+        # Always get sensor list from coverage DataFrame in case there are
+        # sensors in the sensor DataFrame that didn't detect anything and
+        # therefore do not appear in the coverage DataFrame
+        sensor_list = sorted(coverage['Sensor'].unique())
 
         # make a series of the coverage column (for faster access)
         coverage_series = coverage.set_index('Sensor')[coverage_col_name]
@@ -655,7 +655,7 @@ class CoverageSolver(object):
 
         (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name,
                                                pyomo_options=pyomo_options, solver_options=solver_options)
-        print('#######', solved)
+
         self._model.solved = solved
 
     def create_solution_summary(self):

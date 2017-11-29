@@ -20,8 +20,8 @@ def _df_columns_required(df_name, df, col_type_dict):
 
     for k,v in col_type_dict.items():
         if not _df_columns_exist(df, {k:v}):
-            raise TypeError('Expected column "{0}" of type {1} in DataFrame \
-                            "{2}."'.format(k, v, df_name))
+            raise TypeError('Expected column "{0}" of type {1} in DataFrame '
+                            '"{2}".'.format(k, v, df_name))
 
 
 def _df_columns_exist(df, col_type_dict):
@@ -49,8 +49,7 @@ def _df_nans_not_allowed(df_name, df):
         raise TypeError('Expected DataFrame {}'.format(df_name))
 
     if df.isnull().values.any():
-        raise TypeError('Found unexpected NaN values in DataFrame "{0}"\
-                        .'.format(df_name))
+        raise TypeError('Found unexpected NaN values in DataFrame "{0}".'.format(df_name))
 
 
 def _df_columns_nans_not_allowed(df_name, df, col_list):
@@ -64,8 +63,8 @@ def _df_columns_nans_not_allowed(df_name, df, col_list):
     new_col_list = _scalar_or_list_to_list(col_list)
     for name in new_col_list:
         if _df_columns_has_nans(df, [name]):
-            raise TypeError('Found unexpected NaN values in column "{0}" of \
-                            DataFrame "{1}".'.format(name, df_name))
+            raise TypeError('Found unexpected NaN values in column "{0}" of '
+                            'DataFrame "{1}".'.format(name, df_name))
 
 
 def _df_columns_has_nans(df, col_list):
@@ -75,12 +74,12 @@ def _df_columns_has_nans(df, col_list):
     new_col_list = _scalar_or_list_to_list(col_list)
     for name in new_col_list:
         if name not in df.keys():
-            raise TypeError('Test for NAN in column %s that does not exist in \
-                            DataFrame' % (name))
+            raise TypeError('Test for NAN in column %s that does not exist in '
+                            'DataFrame' % (name))
         if df[name].isnull().values.any():
             return True
     
     return False
 
-def unqiue_items_from_list_of_lists(l):
+def unique_items_from_list_of_lists(l):
     return set(item for sub_list in l for item in sub_list)

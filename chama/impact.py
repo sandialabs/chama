@@ -131,7 +131,7 @@ def translate(det_t, damage):
     return det_damage
 
 
-def detection_times_to_coverage(detection_times, coverage_type='scenario'):
+def detection_times_to_coverage(detection_times, coverage_type='scenario', scenario=None):
     """
     Convert a detection times DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
     
@@ -150,70 +150,64 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario'):
     DataFrame : coverage DataFrame to be used an input to a coverage-based sensor placement solver.
 
     """
+    # remove any entries where detection times is an empty list
+    detection_times = detection_times[detection_times.apply(lambda x: len(x['Detection Times']) != 0, axis=1)]
     if coverage_type == 'scenario':
-        coverage = det_times
-        # remove any entries where detection times is an empty list
-        coverage = coverage[coverage.apply(lambda x: len(x['Detection Times']) != 0, axis=1)]
+        coverage = detection_times
         # drop the detection times
         coverage.drop('Detection Times', axis=1, inplace=True)
-    else:  # coverage_type=='scenario-time':
-        # Add scenario probability to det_times
-        det_times.set_index('Scenario')
-        scenario.set_index('Scenario')
-        det_times['Probability'] = scenario['Probability']
-        det_times.reset_index(drop=True)
+        coverage = coverage.groupby('Sensor')['Scenario'].unique()
+        coverage = coverage.reset_index()
+        coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
+        return coverage
+    elif coverage_type=='scenario-time':
+        # create a series that has the Detection Times as the main data
+        det_series = detection_times.set_index(['Scenario', 'Sensor'])['Detection Times']
 
-            # To avoid strange behavoir in df.apply, add a dummy first row
-            # that has 1 value for Impact
-            dummy = pd.DataFrame({
-                'Scenario': ['dummy'],
-                'Sensor': ['dummy'],
-                'Impact': [[0]]})
-            det_times = pd.concat([dummy, det_times], ignore_index=True)
+        # turn the Detection times list into a series. This creates a new
+        # DataFrame with additional columns equal to the maximum number of detection times with NaNs
+        df = det_series.apply(pd.Series)
 
-            # Expand times
-            times = list(itertools.chain.from_iterable(det_times['Impact'].values))
+        # turn the additional columns into additional rows - This will add an additional
+        # index to the multi-index whose value is the original column number
+        # we also set the names appropriately
+        df.columns.name = 'Detection Time Idx'
+        df = df.stack()
+        df.name = 'Detection Time'
 
-            def expand_values(row, col_name):
-                return [row[col_name]] * len(row['Impact'])
+        # make all the indices columns again
+        df = df.reset_index()
 
-            # Expand scenarios
-            scenarios = det_times.apply(expand_values, col_name='Scenario', axis=1)
-            scenarios = list(itertools.chain.from_iterable(scenarios.values))
+        # add in the probabilities column if scenario DataFrame is provided
+        if scenario is not None:
+            df = pd.merge(df, scenario, how='left', on='Scenario')
 
-            # Expand sensors
-            sensors = det_times.apply(expand_values, col_name='Sensor', axis=1)
-            sensors = list(itertools.chain.from_iterable(sensors.values))
+        # rename the scenarios
+        def rename_with_detection_times(row, col_name):
+            value = row['Detection Time']
+            return '{0}-{1}'.format(row[col_name], value)
 
-            # Expand probabilities
-            if self.use_scenario_probability:
-                probability = det_times.apply(expand_values, col_name='Probability', axis=1)
-                probability = list(itertools.chain.from_iterable(probability.values))
+        df['Scenario'] = df.apply(rename_with_detection_times, col_name='Scenario', axis=1)
 
-            # Updated scenario dataframe
-            scenario = pd.DataFrame({'Scenario': list(zip(times, scenarios))})
-            if self.use_scenario_probability:
-                scenario['Probability'] = probability
-            scenario.drop(0, inplace=True)  # drop dummy
-            scenario = scenario.sort_values('Scenario')
-            scenario = scenario.reset_index(drop=True)
-            scenario['Scenario'] = scenario['Scenario'].apply(str)
+        # drop the unnecessary columns
+        df.drop(['Detection Time Idx', 'Detection Time'], inplace=True, axis=1)
+        new_scenario = df.copy()
+        new_scenario.drop(['Sensor'], inplace=True, axis=1)
 
-            # Updated impact dataframe
-            coverage = pd.DataFrame({'Scenario': list(zip(times, scenarios)),
-                                     'Sensor': sensors})
-            coverage.drop(0, inplace=True)  # drop dummy
-            coverage = coverage.sort_values('Scenario')
-            coverage = coverage.reset_index(drop=True)
-            coverage['Scenario'] = coverage['Scenario'].apply(str)
+        # group all the scenarios for each sensor into a list
+        coverage = df[['Scenario', 'Sensor']].groupby('Sensor')['Scenario'].unique()
+        coverage = coverage.reset_index()
 
-        coverage['Impact'] = 0.0
-        scenario['Undetected Impact'] = 1.0
+        # rename the columns for coverage
+        coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
+        return coverage, new_scenario
 
-        return coverage, scenario
+    raise ValueError("coverage_type must be 'scenario' or 'scenario-time'")
 
 
-def impact_to_coverage():
-    CRASH HERE!
-
+def impact_to_coverage(impact):
+    coverage = impact.drop('Impact')
+    coverage = coverage.groupby('Sensor')['Scenario'].unique()
+    coverage = coverage.reset_index()
+    return coverage
 

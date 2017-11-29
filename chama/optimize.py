@@ -167,7 +167,7 @@ class ImpactSolver(object):
                                    {'Sensor': np.object})
             cu._df_nans_not_allowed('sensor', sensor)
 
-            sensor.set_index('Sensor', inplace=True)
+            sensor = sensor.set_index('Sensor')
             assert(sensor.index.names[0] == 'Sensor')
 
         cu._df_columns_required('scenario', scenario,
@@ -185,7 +185,7 @@ class ImpactSolver(object):
                                     {'Cost': [np.float64, np.int64]})
 
         # Notice, setting the index here
-        impact.set_index(['Scenario', 'Sensor'], inplace=True)
+        impact = impact.set_index(['Scenario', 'Sensor'])
         assert(impact.index.names[0] == 'Scenario')
         assert(impact.index.names[1] == 'Sensor')
 
@@ -213,7 +213,7 @@ class ImpactSolver(object):
         df_dummy = pd.DataFrame(scenario_list, columns=['Scenario'])
         df_dummy = df_dummy.set_index(['Scenario'])
 
-        scenario.set_index(['Scenario'], inplace=True)
+        scenario = scenario.set_index(['Scenario'])
         df_dummy[impact_col_name] = scenario['Undetected Impact']
         scenario.reset_index(level=[0], inplace=True)
 
@@ -236,7 +236,7 @@ class ImpactSolver(object):
 
         # create the model container
         model = pe.ConcreteModel()
-        model._scenario_sensors = scenario_sensors
+        model.scenario_sensors = scenario_sensors
 
         # Pyomo does not create an ordered dummy set when passed a list - do
         # this for now as a workaround
@@ -281,7 +281,7 @@ class ImpactSolver(object):
                           rule=detect_only_if_sensor_rule)
 
         # limit the number of sensors
-        model.total_sensor_cost = pe.Expression(sum(float(sensor_cost[i]) * model.y[i] for i in sensor_list))
+        model.total_sensor_cost = pe.Expression(expr=sum(float(sensor_cost[i]) * model.y[i] for i in sensor_list))
         model.sensor_budget_con = pe.Constraint(expr= model.total_sensor_cost <= model.sensor_budget)
 
         self._model = model
@@ -403,9 +403,9 @@ class ImpactSolver(object):
         if sensor_budget is not None:
             self._model.sensor_budget = sensor_budget
 
-        results = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name, pyomo_options=pyomo_options,
+        (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name, pyomo_options=pyomo_options,
                                      solver_options=solver_options)
-        return results
+        self._solved = solved
 
     def create_solution_summary(self):
         """
@@ -461,7 +461,7 @@ class ImpactSolver(object):
 
         frac_detected = 0
         for a in model.scenario_set:
-            detected = sum(pe.value(model.x[a,i]) for i in model.sensor_set if i != dummy_sensor_name)
+            detected = sum(pe.value(model.x[a,i]) for i in model.scenario_sensors[a] if i != dummy_sensor_name)
             eps = 1e-6
             assert(detected >= 0-eps and detected <= 1+eps)
             if detected > 0.5:
@@ -564,8 +564,6 @@ class CoverageSolver(object):
         self._model = None
 
         model = pe.ConcreteModel()
-        if use_entity_weights:
-            raise NotImplementedError('use_entity_weights not implemented for CoverageSolver yet')
 
         entity_list = None
         if entities is None:
@@ -576,7 +574,8 @@ class CoverageSolver(object):
             covered_items = coverage['Coverage'].tolist()
             entity_list = sorted(cu.unique_items_from_list_of_lists(covered_items))
         else:
-            entity_list = sorted(entities[coverage_col_name].unique())
+            entity_list = sorted(entities['Entity'].unique())
+
 
         sensor_list=None
         if sensor is None:
@@ -604,7 +603,11 @@ class CoverageSolver(object):
             model.x = pe.Var(entity_list, bounds=(0,1))
         model.y = pe.Var(sensor_list, within=pe.Binary)
 
-        model.obj = pe.Objective(expr=sum(model.x[e] for e in entity_list), sense=pe.maximize)
+        if use_entity_weights:
+            entity_weights = entities.set_index('Entity')['Weight']
+            model.obj = pe.Objective(expr=sum(float(entity_weights[e])*model.x[e] for e in entity_list), sense=pe.maximize)
+        else:
+            model.obj = pe.Objective(expr=sum(model.x[e] for e in entity_list), sense=pe.maximize)
 
         def entity_covered_rule(m, e):
             if redundancy > 0:
@@ -620,9 +623,9 @@ class CoverageSolver(object):
 
         if use_sensor_cost:
             sensor_cost = sensor.set_index('Sensor')['Cost']
-            model.total_sensor_cost = pe.Expression(sum(sensor_cost[s]*model.y[s] for s in sensor_list))
+            model.total_sensor_cost = pe.Expression(expr=sum(sensor_cost[s]*model.y[s] for s in sensor_list))
         else:
-            model.total_sensor_cost = pe.Expression(sum(model.y[s] for s in sensor_list))
+            model.total_sensor_cost = pe.Expression(expr=sum(model.y[s] for s in sensor_list))
         model.sensor_upper_limit = pe.Constraint(expr= model.total_sensor_cost <= model.sensor_budget)
 
         model.entity_list = entity_list
@@ -652,6 +655,7 @@ class CoverageSolver(object):
 
         (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name,
                                                pyomo_options=pyomo_options, solver_options=solver_options)
+        print('#######', solved)
         self._model.solved = solved
 
     def create_solution_summary(self):
@@ -715,13 +719,12 @@ class CoverageSolver(object):
                 'SensorAssessment': sensor_assessment}
 
 
-
 class ScenarioCoverageSolver(CoverageSolver):
     def __init__(self):
         super(ScenarioCoverageSolver,self).__init__()
 
-    def solve(self, coverage, sensor=None, scenario=None, sensor_budget=None,
-              use_sensor_cost=False, use_scenario_probability=False,
+    def solve(self, coverage, formulation='max-coverage', sensor=None, scenario=None, sensor_budget=None,
+              use_sensor_cost=False, use_scenario_probability=False, redundancy=0,
               coverage_col_name='Coverage', mip_solver_name='glpk', pyomo_options=None,
               solver_options=None):
 
@@ -782,12 +785,11 @@ class ScenarioCoverageSolver(CoverageSolver):
         if scenario is not None:
             scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
 
-        return super(ScenarioCoverageSolver,self).solve(coverage, formulation, sensor=sensor, entities=scenario,
+        return super(ScenarioCoverageSolver,self).solve(coverage, formulation=formulation, sensor=sensor, entities=scenario,
                                                  sensor_budget=sensor_budget, use_sensor_cost=use_sensor_cost,
-                                                 use_entity_weights=use_scenario_probability, n_to_detect=n_to_detect,
+                                                 use_entity_weights=use_scenario_probability, redundancy=redundancy,
                                                  coverage_col_name=coverage_col_name, mip_solver_name=mip_solver_name,
                                                  pyomo_options=pyomo_options, solver_options=solver_options)
-
 
 
 class GeographicCoverageSolver(CoverageSolver):
@@ -864,6 +866,7 @@ class GeographicCoverageSolver(CoverageSolver):
                                                          mip_solver_name=mip_solver_name,
                                                          pyomo_options=pyomo_options, solver_options=solver_options)
 
+
 def _solve_pyomo_model(model, mip_solver_name='glpk', pyomo_options=None, solver_options=None):
     """
     Internal method to solve the Pyomo model and check the optimization status
@@ -895,26 +898,3 @@ def _solve_pyomo_model(model, mip_solver_name='glpk', pyomo_options=None, solver
 
     return (solved, results)
 
-
-"""
-def scenario_coverage_solve(...):
-    pass
-
-def geographic_max_coverage_solve(...):
-    pass
-
-def geographic_min_sensor_coverage_solve(...):
-    pass
-
-
-
-detection_times (Scenario, Sensor, list of detection times)
-
-impact (Scenario, Sensor, impact)
-
-coverage (Entity, Sensor)
-
-coverage (sensor, list of entities covered)
-
-geographic coverage (sensor, list of grids covered)
-"""

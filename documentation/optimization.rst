@@ -5,7 +5,7 @@
 .. _optimization:
 
 Optimization
-===========================
+============
 
 The :mod:`chama.optimize` module contains **P-median** and **coverage** sensor
 placement optimization. Additional methods could be added to this
@@ -83,7 +83,7 @@ scenario probability, :math:`\alpha_a`, as described below:
   If the 'use_sensor_cost' flag is True, the sensor budget is a dollar amount
   and the optimization uses the cost of individual sensors.  If the
   'use_sensor_cost' flag is False (default), the sensor budget is a number of
-   sensors and the optimization does not use sensor cost.
+  sensors and the optimization does not use sensor cost.
 
 * Sensor characteristics: Sensor characteristics include the cost of each
   sensor. Sensor characteristics are stored as a Pandas DataFrame with columns
@@ -127,8 +127,8 @@ The following example demonstrates the use of P-median sensor placement:
     >>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
     >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                           'Sensor': ['A', 'A', 'B'],
-    ...                           'Impact': [[2, 3, 4], [3], [4, 5, 6, 7]]})
-	>>> det_times = det_times[['Scenario', 'Sensor', 'Impact']]
+    ...                           'Detection Times': [[2, 3, 4], [3], [4, 5, 6, 7]]})
+    >>> det_times = det_times[['Scenario', 'Sensor', 'Detection Times']]
     >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                              'Sensor': ['A', 'A', 'B'],
     ...                              'Impact': [2.0,3.0,4.0]})
@@ -155,9 +155,9 @@ The following example demonstrates the use of P-median sensor placement:
 	
     >>> impactsolver = chama.optimize.ImpactSolver()
     >>> results = impactsolver.solve(impact=min_det_time, sensor_budget=200,
-    ...                         sensor=sensor, scenario=scenario,
-    ...                         use_scenario_probability=True,
-    ...                         use_sensor_cost=True)
+    ...                              sensor=sensor, scenario=scenario,
+    ...                              use_scenario_probability=True,
+    ...                              use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
     ['A']
@@ -194,7 +194,6 @@ the scenario-time pair was detected, and 0 otherwise.
 
 .. doctest::
 
-    >>> det_times.rename(columns={'Impact':'Detection Times'}, inplace=True)
     >>> print(det_times)
       Scenario Sensor Detection Times
     0       S1      A       [2, 3, 4]
@@ -242,18 +241,26 @@ the scenario-time pair was detected, and 0 otherwise.
     4.0
     >>> print(results['FractionDetected'])
     0.5
-    >>> from six import print_
-    >>> sa = results['SensorAssessment']
-    >>> for key in sorted(sa): print_('Sensor', key, 'detected', sa[key])
-    Sensor A detected ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']
-    >>> ea = results['EntityAssessment']
-    >>> for key in sorted(ea): print_('Scenario', key, 'detected by', ea[key])
-    Scenario S1-2.0 detected by ['A']
-    Scenario S1-3.0 detected by ['A']
-    Scenario S1-4.0 detected by ['A']
-    Scenario S2-3.0 detected by ['A']
-    Scenario S3-4.0 detected by []
-    Scenario S3-5.0 detected by []
-    Scenario S3-6.0 detected by []
-    Scenario S3-7.0 detected by []
+    >>> print(results['SensorAssessment'])  # doctest: +SKIP
+    {'A': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']}
+    >>> print(results['EntityAssessment'])  # doctest: +SKIP
+    {'S3-6.0': [], 'S3-7.0': [], 'S2-3.0': ['A'], 'S1-4.0': ['A'], 'S3-4.0': [], 'S3-5.0': [], 'S1-3.0': ['A'], 'S1-2.0': ['A']}
 
+..
+    The following test checks a subset of the results in the SensorAssessment
+    and the EntityAssessment dictionaries. These cannot be tested using the
+    above print statements because of Python 2/3 compatibility issues and
+    non-deterministic dictionary ordering.
+.. doctest::
+    :hide:
+
+    >>> print(results['SensorAssessment']['A'])
+    ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']
+    >>> print(results['EntityAssessment']['S3-6.0'])
+    []
+    >>> print(results['EntityAssessment']['S3-7.0'])
+    []
+    >>> print(results['EntityAssessment']['S2-3.0'])
+    ['A']
+    >>> print(results['EntityAssessment']['S1-4.0'])
+    ['A']

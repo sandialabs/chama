@@ -595,14 +595,21 @@ class CoverageSolver(object):
         entity_sensors = {e:set() for e in entity_list}
         for s in sensor_list:
             s_entities = coverage_series[s]
+
             for e in s_entities:
-                entity_sensors[e].update(s)
+                entity_sensors[e].add(s)
+
+        for e in entity_sensors.keys():
+            entity_sensors[e] = list(sorted(entity_sensors[e]))
+
+        model.entity_list = pe.Set(initialize=entity_list, ordered=True)
+        model.sensor_list = pe.Set(initialize=sensor_list, ordered=True)
 
         if redundancy > 0:
-            model.x = pe.Var(entity_list, within=pe.Binary)
+            model.x = pe.Var(model.entity_list, within=pe.Binary)
         else:
-            model.x = pe.Var(entity_list, bounds=(0,1))
-        model.y = pe.Var(sensor_list, within=pe.Binary)
+            model.x = pe.Var(model.entity_list, bounds=(0,1))
+        model.y = pe.Var(model.sensor_list, within=pe.Binary)
 
         if use_entity_weights:
             entity_weights = entities.set_index('Entity')['Weight']
@@ -614,7 +621,7 @@ class CoverageSolver(object):
             if redundancy > 0:
                 return (redundancy + 1.0)*m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
             return m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
-        model.entity_covered = pe.Constraint(entity_list, rule=entity_covered_rule)
+        model.entity_covered = pe.Constraint(model.entity_list, rule=entity_covered_rule)
 
         if sensor_budget is None:
             if use_sensor_cost:
@@ -629,8 +636,6 @@ class CoverageSolver(object):
             model.total_sensor_cost = pe.Expression(expr=sum(model.y[s] for s in sensor_list))
         model.sensor_upper_limit = pe.Constraint(expr= model.total_sensor_cost <= model.sensor_budget)
 
-        model.entity_list = entity_list
-        model.sensor_list = sensor_list
         model.entity_sensors = entity_sensors
         model.solved = False
         self._model = model

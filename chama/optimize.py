@@ -468,11 +468,12 @@ class ImpactSolver(object):
                 frac_detected += 1
         frac_detected = float(frac_detected)/float(len(model.scenario_set))
 
-        return {'Objective': obj_value,
-                'Sensors': selected_sensors,
-                'FractionDetected': frac_detected,
-                'TotalSensorCost': pe.value(model.total_sensor_cost),
-                'Assessment': selected_impact}
+        return {'Solved': self._solved,
+                 'Objective': obj_value,
+                 'Sensors': selected_sensors,
+                 'FractionDetected': frac_detected,
+                 'TotalSensorCost': pe.value(model.total_sensor_cost),
+                 'Assessment': selected_impact}
 
 
 class CoverageSolver(object):
@@ -563,7 +564,7 @@ class CoverageSolver(object):
                            use_entity_weights=False, redundancy=0, coverage_col_name='Coverage'):
         self._model = None
 
-        model = pe.ConcreteModel()
+        self._model= model = pe.ConcreteModel()
 
         entity_list = None
         if entities is None:
@@ -589,8 +590,8 @@ class CoverageSolver(object):
         # make a series of the coverage column (for faster access)
         coverage_series = coverage.set_index('Sensor')[coverage_col_name]
 
-        # create a dictionary of sets where the key is the entity, and the value is the set of sensors that covers
-        # that entity
+        # create a dictionary of sets where the key is the entity, and the
+        # value is the set of sensors that covers that entity
         entity_sensors = {e:set() for e in entity_list}
         for s in sensor_list:
             s_entities = coverage_series[s]
@@ -613,7 +614,7 @@ class CoverageSolver(object):
             if redundancy > 0:
                 return (redundancy + 1.0)*m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
             return m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
-        model.entity_coverered = pe.Constraint(entity_list, rule=entity_covered_rule)
+        model.entity_covered = pe.Constraint(entity_list, rule=entity_covered_rule)
 
         if sensor_budget is None:
             if use_sensor_cost:

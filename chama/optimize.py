@@ -181,6 +181,10 @@ class ImpactSolver(object):
                                     {'Probability': np.float64})
 
         if use_sensor_cost:
+            if sensor is None:
+                raise ValueError(
+                    'ImpactSolver formulation: use_sensor_cost cannot be '
+                    'True if "sensor" DataFrame is not provided.')
             cu._df_columns_required('sensor', sensor,
                                     {'Cost': [np.float64, np.int64]})
 
@@ -192,14 +196,10 @@ class ImpactSolver(object):
         # Python set will extract the unique Scenario and Sensor values
         scenario_list = sorted(scenario['Scenario'].unique())
 
-        sensor_list = None
-        if sensor is None:
-            if use_sensor_cost:
-                raise ValueError('ImpactSolver formulation: use_sensor_cost cannot be True if'
-                                 '"sensor" DataFrame is not provided.')
-            sensor_list = sorted(set(impact.index.get_level_values('Sensor')))
-        else:
-            sensor_list = sorted(set(sensor.index.get_level_values('Sensor')))
+        # Always get sensor list from impact DataFrame in case there are
+        # sensors in the sensor DataFrame that didn't detect anything and
+        # therefore do not appear in the impact DataFrame
+        sensor_list = sorted(set(impact.index.get_level_values('Sensor')))
 
         if use_sensor_cost:
             sensor_cost = sensor['Cost']
@@ -468,11 +468,12 @@ class ImpactSolver(object):
                 frac_detected += 1
         frac_detected = float(frac_detected)/float(len(model.scenario_set))
 
-        return {'Objective': obj_value,
-                'Sensors': selected_sensors,
-                'FractionDetected': frac_detected,
-                'TotalSensorCost': pe.value(model.total_sensor_cost),
-                'Assessment': selected_impact}
+        return {'Solved': self._solved,
+                 'Objective': obj_value,
+                 'Sensors': selected_sensors,
+                 'FractionDetected': frac_detected,
+                 'TotalSensorCost': pe.value(model.total_sensor_cost),
+                 'Assessment': selected_impact}
 
 
 class CoverageSolver(object):
@@ -563,7 +564,7 @@ class CoverageSolver(object):
                            use_entity_weights=False, redundancy=0, coverage_col_name='Coverage'):
         self._model = None
 
-        model = pe.ConcreteModel()
+        self._model= model = pe.ConcreteModel()
 
         entity_list = None
         if entities is None:
@@ -576,21 +577,21 @@ class CoverageSolver(object):
         else:
             entity_list = sorted(entities['Entity'].unique())
 
+        # TODO: Add DataFrame column checks like in the ImpactSolver
 
-        sensor_list=None
-        if sensor is None:
-            if use_sensor_cost:
-                raise ValueError('CoverageSolver: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
-            # build the list of sensors from the coverage DataFrame
-            sensor_list = sorted(coverage['Sensor'].unique())
-        else:
-            sensor_list = sorted(sensor['Sensor'].unique())
+        if sensor is None and use_sensor_cost:
+            raise ValueError('CoverageSolver: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
+
+        # Always get sensor list from coverage DataFrame in case there are
+        # sensors in the sensor DataFrame that didn't detect anything and
+        # therefore do not appear in the coverage DataFrame
+        sensor_list = sorted(coverage['Sensor'].unique())
 
         # make a series of the coverage column (for faster access)
         coverage_series = coverage.set_index('Sensor')[coverage_col_name]
 
-        # create a dictionary of sets where the key is the entity, and the value is the set of sensors that covers
-        # that entity
+        # create a dictionary of sets where the key is the entity, and the
+        # value is the set of sensors that covers that entity
         entity_sensors = {e:set() for e in entity_list}
         for s in sensor_list:
             s_entities = coverage_series[s]
@@ -613,7 +614,7 @@ class CoverageSolver(object):
             if redundancy > 0:
                 return (redundancy + 1.0)*m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
             return m.x[e] <= sum(m.y[b] for b in entity_sensors[e])
-        model.entity_coverered = pe.Constraint(entity_list, rule=entity_covered_rule)
+        model.entity_covered = pe.Constraint(entity_list, rule=entity_covered_rule)
 
         if sensor_budget is None:
             if use_sensor_cost:
@@ -655,7 +656,7 @@ class CoverageSolver(object):
 
         (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name,
                                                pyomo_options=pyomo_options, solver_options=solver_options)
-        print('#######', solved)
+
         self._model.solved = solved
 
     def create_solution_summary(self):

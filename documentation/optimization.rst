@@ -5,7 +5,7 @@
 .. _optimization:
 
 Optimization
-===========================
+============
 
 The :mod:`chama.optimize` module contains **P-median** and **coverage** sensor
 placement optimization. Additional methods could be added to this
@@ -68,8 +68,8 @@ always converges to a value of 0 or 1. Therefore, the number of binary
 variables that need to be considered by the solver is a function of the
 number of candidate sensors alone, and not the number of scenarios
 considered.  This formulation has been used to place sensors in large
-water distribution networks [BHPU06]_ [USEPA12]_ [USEPA15]_ and for gas detection 
-in petrochemical facilities [LBSW12]_.
+water distribution networks [BHPU06]_ [USEPA12]_ [USEPA15]_ and for gas
+detection in petrochemical facilities [LBSW12]_.
 
 The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
 :math:`p`, and (optionally) sensor cost, :math:`c_i` and the
@@ -79,23 +79,25 @@ scenario probability, :math:`\alpha_a`, as described below:
   each sensor that detects a scenario.  Impact is stored as a Pandas DataFrame, 
   as described in the :ref:`impact` section.  
   
-* Sensor budget: The number of sensors to place, or total budget for sensors.  If the 
-  'use_sensor_cost' flag is True, the sensor budget is a dollar amount and the optimization
-  uses the cost of individual sensors.  If the 'use_sensor_cost' flag is False (default), 
-  the sensor budget is a number of sensors and the optimization does not use sensor cost.
+* Sensor budget: The number of sensors to place, or total budget for sensors.
+  If the 'use_sensor_cost' flag is True, the sensor budget is a dollar amount
+  and the optimization uses the cost of individual sensors.  If the
+  'use_sensor_cost' flag is False (default), the sensor budget is a number of
+  sensors and the optimization does not use sensor cost.
 
-* Sensor characteristics: Sensor characteristics include the cost of each sensor.
-  Sensor characteristics are stored as a Pandas DataFrame with columns 'Sensor' and 'Cost'.  
-  Cost is used in the sensor placement optimization if the 'use_sensor_cost' flag is set to True.  
+* Sensor characteristics: Sensor characteristics include the cost of each
+  sensor. Sensor characteristics are stored as a Pandas DataFrame with columns
+  'Sensor' and 'Cost'. Cost is used in the sensor placement optimization if the
+  'use_sensor_cost' flag is set to True.
   
-* Scenario characteristics: Scenario characteristics include scenario probability and 
-  the impact for undetected scenarios.  
-  Scenario characteristics are stored as a Pandas DataFrame with columns
-  'Scenario', 'Undetected Impact', and 'Probability'.
-  Undetected Impact is required for each scenario. When minimizing detection time, 
-  the undetected impact value can be set to a value larger than time horizon used for the study.
-  Individual scenarios can also be given different undetected impact values.
-  Probability is used if the 'use_scenario_probability' flag is set to True.
+* Scenario characteristics: Scenario characteristics include scenario
+  probability and the impact for undetected scenarios. Scenario characteristics
+  are stored as a Pandas DataFrame with columns 'Scenario', 'Undetected Impact'
+  , and 'Probability'. Undetected Impact is required for each scenario. When
+  minimizing detection time, the undetected impact value can be set to a value
+  larger than time horizon used for the study. Individual scenarios can also be
+  given different undetected impact values. Probability is used if the
+  'use_scenario_probability' flag is set to True.
   
 Results are stored in a dictionary with the following information:
 
@@ -125,8 +127,8 @@ The following example demonstrates the use of P-median sensor placement:
     >>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
     >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                           'Sensor': ['A', 'A', 'B'],
-    ...                           'Impact': [[2, 3, 4], [3], [4, 5, 6, 7]]})
-	>>> det_times = det_times[['Scenario', 'Sensor', 'Impact']]
+    ...                           'Detection Times': [[2, 3, 4], [3], [4, 5, 6, 7]]})
+    >>> det_times = det_times[['Scenario', 'Sensor', 'Detection Times']]
     >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                              'Sensor': ['A', 'A', 'B'],
     ...                              'Impact': [2.0,3.0,4.0]})
@@ -151,11 +153,11 @@ The following example demonstrates the use of P-median sensor placement:
     1       S2              250.0         0.60
     2       S3              100.0         0.15
 	
-    >>> pmedian = chama.optimize.Pmedian()
-    >>> results = pmedian.solve(impact=min_det_time, sensor_budget=200,
-    ...                         sensor=sensor, scenario=scenario,
-    ...                         use_scenario_probability=True,
-    ...                         use_sensor_cost=True)
+    >>> impactsolver = chama.optimize.ImpactSolver()
+    >>> results = impactsolver.solve(impact=min_det_time, sensor_budget=200,
+    ...                              sensor=sensor, scenario=scenario,
+    ...                              use_scenario_probability=True,
+    ...                              use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
     ['A']
@@ -170,31 +172,33 @@ The following example demonstrates the use of P-median sensor placement:
 Coverage
 --------
 
-Sensors can also be placed to maximize coverage.  Coverage uses the P-median formulation
-and translates the impact assessment internally.
-The 'use_sensor_cost' and 'use_scenario_probability' flags can be used with coverage.  
-The user can also select if sensors are placed to maximize scenario coverage or time coverage 
-using the 'coverage_type' flag (set to 'scenario' or 'time').
+Sensors can also be placed to maximize coverage.  Coverage uses the P-median
+formulation and translates the impact assessment internally. The
+'use_sensor_cost' and 'use_scenario_probability' flags can be used with
+coverage. The user can also select if sensors are placed to maximize
+scenario coverage or time coverage using the 'coverage_type' flag (set to
+'scenario' or 'time').
 
-Data requirements for coverage are the same as data requirements for the P-median formulation with the following exceptions:
+Data requirements for coverage are the same as data requirements for the
+P-median formulation with the following exceptions:
 
-* If 'coverage_type' is set to 'time', then the impact assessment must be a list of detection times for 
-  each sensor that detects a scenario.  
+* If 'coverage_type' is set to 'time', then the impact assessment must be a
+  list of detection times for each sensor that detects a scenario.
 
 * Undetected Impact is not required for each scenario.
 
 The following example demonstrates the use of time coverage sensor placement.
-The results list scenario-time pairs that were detected by the sensor placement (listed 
-as a (time, scenario) tuple).  The impact value is 1 if the scenario-time pair was detected, 
-and 0 otherwise. 
+The results list scenario-time pairs that were detected by the sensor
+placement (listed as a (time, scenario) tuple).  The impact value is 1 if
+the scenario-time pair was detected, and 0 otherwise.
 
 .. doctest::
 
     >>> print(det_times)
-      Scenario Sensor        Impact
-    0       S1      A     [2, 3, 4]
-    1       S2      A           [3]
-    2       S3      B  [4, 5, 6, 7]
+      Scenario Sensor Detection Times
+    0       S1      A       [2, 3, 4]
+    1       S2      A             [3]
+    2       S3      B    [4, 5, 6, 7]
     >>> print(sensor)
       Sensor    Cost
     0      A   100.0
@@ -206,21 +210,57 @@ and 0 otherwise.
     0       S1               48.0         0.25
     1       S2              250.0         0.60
     2       S3              100.0         0.15
-	
-    >>> coverage = chama.optimize.Coverage(use_sensor_cost=True, coverage_type='time')
-    >>> results = coverage.solve(det_times, 200, sensor, scenario)
+    >>> scenario_time, new_scenario = chama.impact.detection_times_to_coverage(
+    ...                                         det_times,
+    ...                                         coverage_type='scenario-time',
+    ...                                         scenario=scenario)
+
+    >>> print(scenario_time)
+      Sensor                          Coverage
+    0      A  [S1-2.0, S1-3.0, S1-4.0, S2-3.0]
+    1      B  [S3-4.0, S3-5.0, S3-6.0, S3-7.0]
+    >>> print(new_scenario)
+      Scenario  Undetected Impact  Probability
+    0   S1-2.0               48.0         0.25
+    1   S1-3.0               48.0         0.25
+    2   S1-4.0               48.0         0.25
+    3   S2-3.0              250.0         0.60
+    4   S3-4.0              100.0         0.15
+    5   S3-5.0              100.0         0.15
+    6   S3-6.0              100.0         0.15
+    7   S3-7.0              100.0         0.15
+
+    >>> coverage = chama.optimize.ScenarioCoverageSolver()
+    >>> results = coverage.solve(coverage=scenario_time, sensor_budget=200,
+    ...                          sensor=sensor, scenario=new_scenario,
+    ...                          use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
-    ['B']
+    ['A']
     >>> print(results['Objective'])
+    4.0
+    >>> print(results['FractionDetected'])
     0.5
-    >>> print(results['Assessment'])
-        Scenario Sensor  Impact
-    0  (4, 'S3')      B     1.0
-    1  (5, 'S3')      B     1.0
-    2  (6, 'S3')      B     1.0
-    3  (7, 'S3')      B     1.0
-    4  (2, 'S1')   None     0.0
-    5  (3, 'S1')   None     0.0
-    6  (3, 'S2')   None     0.0
-    7  (4, 'S1')   None     0.0
+    >>> print(results['SensorAssessment'])  # doctest: +SKIP
+    {'A': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']}
+    >>> print(results['EntityAssessment'])  # doctest: +SKIP
+    {'S3-6.0': [], 'S3-7.0': [], 'S2-3.0': ['A'], 'S1-4.0': ['A'], 'S3-4.0': [], 'S3-5.0': [], 'S1-3.0': ['A'], 'S1-2.0': ['A']}
+
+..
+    The following test checks a subset of the results in the SensorAssessment
+    and the EntityAssessment dictionaries. These cannot be tested using the
+    above print statements because of Python 2/3 compatibility issues and
+    non-deterministic dictionary ordering.
+.. doctest::
+    :hide:
+
+    >>> print(results['SensorAssessment']['A'])
+    ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']
+    >>> print(results['EntityAssessment']['S3-6.0'])
+    []
+    >>> print(results['EntityAssessment']['S3-7.0'])
+    []
+    >>> print(results['EntityAssessment']['S2-3.0'])
+    ['A']
+    >>> print(results['EntityAssessment']['S1-4.0'])
+    ['A']

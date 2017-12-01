@@ -134,11 +134,11 @@ def translate(det_t, damage):
 def detection_times_to_coverage(detection_times, coverage_type='scenario', scenario=None):
     """
     Convert a detection times DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
-    
+
     Parameters
     ----------
     detection_times : pandas DataFrame
-        DataFrame containing three columns. 'Scenario' is the name of the scenarios, 'Sensor' is the name of 
+        DataFrame containing three columns. 'Scenario' is the name of the scenarios, 'Sensor' is the name of
         the sensors, and 'Detection Times' contains a list of the detection times.
     coverage_type : str
         Sets the coverage type: 'scenario' builds a coverage matrix designed to ensure coverage of the scenario
@@ -206,6 +206,26 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario', scena
 
 
 def impact_to_coverage(impact):
+    """
+    Convert an impact DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
+
+    Parameters
+    ----------
+    impact : pandas DataFrame
+            Impact assessment 
+            Impact is stored as a pandas DataFrmae with columns 'Scenario',
+            'Sensor', 'Impact'. See :py:class:`chama.Impactsolver` for more information
+    coverage_type : str
+        Sets the coverage type: 'scenario' builds a coverage matrix designed to ensure coverage of the scenario
+        ignoring the time it was detected, while 'scenario-time' builds a coverage matrix where every scenario-time
+        pair is included as a new scenario - thereby ensuring coverage over all scenarios and times.
+
+    Returns
+    -------
+    DataFrame : coverage DataFrame to be used an input to a coverage-based sensor placement solver.
+
+    """
+
     coverage = impact.drop('Impact')
     coverage = coverage.groupby('Sensor')['Scenario'].unique()
     coverage = coverage.reset_index()

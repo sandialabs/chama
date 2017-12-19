@@ -24,21 +24,122 @@ dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
 
 # ToDo: lookup how to reference a method in rst.
 
+class BasePyomoSolver(object):
+    def __init__(self):
+        self._model = None
+        self._solved = False
 
-class ImpactSolver(object):
+    def _add_subset_selection_constraint(self, sensor_var, sensor_list, lower_bound=None, upper_bound=None):
+        """
+        Adds a subset selection constraint to the sensor placement model. This
+        constraint forces a certain number of sensors to be selected from a
+        particular subset of all the possible sensors.
+
+        The constraint will allow us to require at least (lower bound) and no more than (upper bound) number of
+        sensors from the sensor_list. Either lower_bound or upper_bound can be set to None, or both can be set
+        (to set a range including both lower and upper bounds).
+
+        Parameters
+        ----------
+        sensor_var : Pyomo Var
+            The variable on the Pyomo model that should be included in the constraint (the sensor yes/no variable)
+        sensor_list : list of strings
+            List containing the string names of the subset of the sensors to be included in the subset selection
+            constraint
+        lower_bound : int or None
+            Lower bound on the number of sensors that must be selected from sensor_list
+        upper_bound : int or None
+            Upper bound on the number of sensors that must be selected from sensor_list
+        """
+        # ensure the incoming bounds are None or integer - if not, exception will be raised
+        if lower_bound is not None:
+            lower_bound = int(lower_bound)
+        if upper_bound is not None:
+            upper_bound = int(upper_bound)
+        if lower_bound is None and upper_bound is None:
+            raise ValueError('At least one of upper_bound or lower_bound must be set when adding subset'
+                             ' selection constraint.')
+
+        # check that model is not None
+        if self._model is None:
+            raise ValueError('Cannot add a subset selection constraint to a'
+                               'nonexistent model. Please ensure a valid Pyomo model '
+                               'is created before trying to add additional constraints.'
+                               )
+
+        # find the ConstraintList used to store these constraints or build a new one if required
+        subset_con_list = self._model.find_component('_subset_con_list')
+        if subset_con_list is None:
+            self._model._subset_con_list = pe.ConstraintList()
+            subset_con_list = self._model._subset_con_list
+
+        # Check to make sure all sensors are valid and build sum expression
+        sensor_sum = sum(sensor_var[k] for k in sensor_list)
+
+        # add the appropriate constraint
+        if lower_bound == upper_bound:
+            # bounds are equal - add equality constraint
+            subset_con_list.add(sensor_sum == lower_bound)
+        else:
+            if lower_bound is not None:
+                subset_con_list.add(sensor_sum >= lower_bound)
+            if upper_bound is not None:
+                subset_con_list.add(sensor_sum <= upper_bound)
+
+        # Any changes to the model require re-solving
+        # ToDo: discuss this object model - this is done differently in ImpactSolver and CoverageSolver
+        self._solved = False
+
+    def _add_integer_cut_from_model_solution(self, binary_var):
+        """
+        Adds a constraint to ensure that the current solution will not be valid in future solves,
+        forcing the optimization to find the 'next best' solution.
+
+        Parameters
+        ----------
+        model : Pyomo model
+            The Pyomo model where the constraint should be added
+
+        binary_var : Pyomo Var
+            The Pyomo Var object (indexed) to use in the constraint. The current 0-1 values in
+
+        Returns
+        -------
+
+        """
+        key_list_0 = []
+        key_list_1 = []
+
+        for k in binary_var:
+            if pe.value(binary_var[k]) < 0.5:
+                key_list_0.append(k)
+            else:
+                key_list_1.append(k)
+
+        # find the ConstraintList used to store these constraints or build a new one if required
+        integer_cut_con_list = self._model.find_component('_integer_cut_con_list')
+        if integer_cut_con_list is None:
+            self._model._integer_cut_con_list = pe.ConstraintList()
+            integer_cut_con_list = self._model._integer_cut_con_list
+        integer_cut_con_list.add(expr= sum(binary_var[k] for k in key_list_0)
+                                       - sum( (1.0-binary_var[k]) for k in key_list_1 ) >= 1)
+
+        self._solved = False
+
+
+class ImpactSolver(BasePyomoSolver):
     """
     Sensor placement based on minimizing average impact of a set of scenarios. Uses Pyomo to build and solve
     the optimization problem. See :py:meth:ImpactSolver.solve for usage details.
     """
 
     def __init__(self):
-        self._model = None
+        super(ImpactSolver, self).__init__()
         self._impact = None
         self._sensor = None
         self._scenario = None
         self._use_scenario_probability = False
         self._use_sensor_cost = False
-        self._solved = False
 
     def solve(self, impact=None, sensor=None, scenario=None,
               sensor_budget=None, use_sensor_cost=False,
@@ -148,14 +249,6 @@ class ImpactSolver(object):
         -------
         Pyomo ConcreteModel ready to be solved
         """
-        # reset the internal model and data attributes
-        # BLN: Why do we reset these when they will be overwritten at the
-        # end of this method anyway?
-        self._model = None
-        self._impact = None
-        self._sensor = None
-        self._scenario = None
-
         # validate the pandas dataframe input
         cu._df_columns_required('impact', impact,
                                 {'Scenario': np.object,
@@ -292,100 +385,31 @@ class ImpactSolver(object):
         self._scenario = scenario
         self._use_sensor_cost = use_sensor_cost
         self._use_scenario_probability = use_scenario_probability
-
-        # Any changes to the model require re-solving
         self._solved = False
 
         return model
 
-    def add_grouping_constraint(self, sensor_list, select=None,
-                                min_select=None, max_select=None):
+    def add_subset_selection_constraint(self, sensor_list, lower_bound=None, upper_bound=None):
         """
-        Adds a sensor grouping constraint to the sensor placement model. This
+        Adds a subset selection constraint to the sensor placement model. This
         constraint forces a certain number of sensors to be selected from a
         particular subset of all the possible sensors.
 
-        The keyword argument 'select' enforces an equality constraint,
-        while 'min_select' and 'max_select' correspond to lower and upper
-        bounds on the grouping constraints, respectively. You can specify
-        one or both of 'min_select' and 'max_select' OR use 'select'
-
-        # TODO: Should we make this easier by just allowing lower bound and
-        upper bound and do an equality if they are the same?
+        The constraint will allow us to require at least (lower bound) and no more than (upper bound) number of
+        sensors from the sensor_list. Either lower_bound or upper_bound can be set to None, or both can be set
+        (to set a range including both lower and upper bounds).
 
         Parameters
         ----------
         sensor_list : list of strings
-            List containing the string names of a subset of the sensors
-        select : positive integer or None
-            The exact number of sensors from the sensor_list that should
-            be selected
-        min_select : positive integer or None
-            The minimum number of sensors from the sensor_list that should
-            be selected
-        max_select : positive integer or None
-            The maximum number of sensors from the sensor_list that should
-            be selected
+            List containing the string names of the subset of the sensors to be included in the subset selection
+            constraint
+        lower_bound : int or None
+            Lower bound on the number of sensors that must be selected from sensor_list
+        upper_bound : int or None
+            Upper bound on the number of sensors that must be selected from sensor_list
         """
-        if self._model is None:
-            raise RuntimeError('Cannot add a grouping constraint to a'
-                               'nonexistent model. Please call the '
-                               'create_pyomo_model function before trying to '
-                               'add grouping constraints')
-
-        if select is not None and min_select is not None:
-            raise ValueError('Invalid keyword arguments for adding grouping '
-                             'constraint. Cannot specify both a "select" '
-                             'value and a "min_select" value')
-
-        if select is not None and max_select is not None:
-            raise ValueError('Invalid keyword arguments for adding grouping '
-                             'constraint. Cannot specify both a "select" '
-                             'value and a "max_select" value')
-
-        if select is None and max_select is None and min_select is None:
-            raise ValueError('Must specify a sensor selection limit for the '
-                             'grouping constraint.')
-
-        gconlist = self._model.find_component('_groupingconlist')
-        if gconlist is None:
-            self._model._groupingconlist = pe.ConstraintList()
-            gconlist = self._model._groupingconlist
-
-        # Check to make sure all sensors are valid and build sum expression
-        sensor_sum = sum(self._model.y[i] for i in sensor_list)
-
-        if select is not None:
-            #  Select exactly 'select' sensors from sensor_list
-            if select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-
-            gconlist.add(sensor_sum == select)
-
-        elif min_select is not None and max_select is not None:
-            #  Select between min_select and max_select sensors from
-            #  sensor_list
-            if min_select < 0 or max_select:
-                raise ValueError('Cannot select a negative number of sensors')
-
-            if min_select > max_select:
-                raise ValueError('min_select must be less than max_select')
-
-            gconlist.add(min_select <= sensor_sum <= max_select)
-
-        elif min_select is not None:
-            #  Select at least min_select sensors from sensor list
-            if min_select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-            gconlist.add(min_select <= sensor_sum)
-        else:
-            #  Select at most max_select sensors from sensor list
-            if max_select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-            gconlist.add(sensor_sum <= max_select)
-
-        # Any changes to the model require re-solving
-        self._solved = False
+        self._add_subset_selection_constraint(self._model.y, sensor_list, lower_bound, upper_bound)
 
     def solve_pyomo_model(self, sensor_budget=None, mip_solver_name='glpk',
                           pyomo_options=None, solver_options=None):
@@ -406,6 +430,13 @@ class ImpactSolver(object):
         (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name, pyomo_options=pyomo_options,
                                      solver_options=solver_options)
         self._solved = solved
+
+    def add_integer_cut_from_model_solution(self):
+        """
+        Adds a constraint to ensure that the current solution will not be valid in future solves,
+        forcing the optimization to find the 'next best' solution.
+        """
+        self._add_integer_cut_from_model_solution(self._model.y)
 
     def create_solution_summary(self):
         """
@@ -476,9 +507,9 @@ class ImpactSolver(object):
                  'Assessment': selected_impact}
 
 
-class CoverageSolver(object):
+class CoverageSolver(BasePyomoSolver):
     def __init__(self):
-        self._model = None
+        super(CoverageSolver,self).__init__()
 
     def solve(self, coverage, formulation='max-coverage', sensor=None, entities=None, sensor_budget=None,
               use_sensor_cost=None, use_entity_weights=False, redundancy=0, coverage_col_name='Coverage',
@@ -559,12 +590,9 @@ class CoverageSolver(object):
 
         return results_dict
 
-
     def create_pyomo_model(self, coverage, sensor=None, entities=None, sensor_budget=None, use_sensor_cost=False,
                            use_entity_weights=False, redundancy=0, coverage_col_name='Coverage'):
-        self._model = None
-
-        self._model= model = pe.ConcreteModel()
+        model = pe.ConcreteModel()
 
         entity_list = None
         if entities is None:
@@ -636,10 +664,33 @@ class CoverageSolver(object):
             model.total_sensor_cost = pe.Expression(expr=sum(model.y[s] for s in sensor_list))
         model.sensor_upper_limit = pe.Constraint(expr= model.total_sensor_cost <= model.sensor_budget)
 
-        model.entity_sensors = entity_sensors
-        model.solved = False
         self._model = model
+        self._model.entity_sensors = entity_sensors
+        self._solved = False
         return model
+
+    def add_subset_selection_constraint(self, sensor_list, lower_bound=None, upper_bound=None):
+        """
+        Adds a subset selection constraint to the sensor placement model. This
+        constraint forces a certain number of sensors to be selected from a
+        particular subset of all the possible sensors.
+
+        The constraint will allow us to require at least (lower bound) and no more than (upper bound) number of
+        sensors from the sensor_list. Either lower_bound or upper_bound can be set to None, or both can be set
+        (to set a range including both lower and upper bounds).
+
+        Parameters
+        ----------
+        sensor_list : list of strings
+            List containing the string names of the subset of the sensors to be included in the subset selection
+            constraint
+        lower_bound : int or None
+            Lower bound on the number of sensors that must be selected from sensor_list
+        upper_bound : int or None
+            Upper bound on the number of sensors that must be selected from sensor_list
+        """
+        self._add_subset_selection_constraint(self._model.y, sensor_list, lower_bound, upper_bound)
+
 
     def solve_pyomo_model(self, sensor_budget=None, mip_solver_name='glpk',
                           pyomo_options=None, solver_options=None):
@@ -653,7 +704,7 @@ class CoverageSolver(object):
                                ' is created with create_pyomo_model'
                                )
 
-        self._model.solved = False
+        self._solved = False
 
         # change the sensor budget if necessary
         if sensor_budget is not None:
@@ -662,7 +713,14 @@ class CoverageSolver(object):
         (solved, results) = _solve_pyomo_model(self._model, mip_solver_name=mip_solver_name,
                                                pyomo_options=pyomo_options, solver_options=solver_options)
 
-        self._model.solved = solved
+        self._solved = solved
+
+    def add_integer_cut_from_model_solution(self):
+        """
+        Adds a constraint to ensure that the current solution will not be valid in future solves,
+        forcing the optimization to find the 'next best' solution.
+        """
+        self._add_integer_cut_from_model_solution(self._model.y)
 
     def create_solution_summary(self):
         """
@@ -687,14 +745,14 @@ class CoverageSolver(object):
                                'the model is created and solved.'
                                )
 
-        model = self._model
-        if not model.solved:
-            return {'Solved': model.solved,
+        if not self._solved:
+            return {'Solved': self._solved,
                     'Objective': None,
                     'Sensors': None,
                     'FractionDetected': None,
                     'EntityAssessment': None,
                     'SensorAssessment': None}
+        model = self._model
 
         selected_sensors = []
         for key in model.y:

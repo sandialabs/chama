@@ -1,5 +1,7 @@
 """
-The transport module contains Gaussian air dispersion models.
+The simulation module contains methods to run Gaussian air dispersion models. 
+Chama can also integrate simulations from third party software for additional
+sensor placement applications.
 """
 from __future__ import print_function, division
 import numpy as np

@@ -18,15 +18,15 @@ class TestSignalGraphics(unittest.TestCase):
         x_grid = np.linspace(-100, 100, 21)
         y_grid = np.linspace(-100, 100, 21)
         z_grid = np.linspace(0, 40, 21)
-        self.grid = chama.transport.Grid(x_grid, y_grid, z_grid)
+        self.grid = chama.simulation.Grid(x_grid, y_grid, z_grid)
 
-        self.source = chama.transport.Source(-20, 20, 1, 1.5)
+        self.source = chama.simulation.Source(-20, 20, 1, 1.5)
 
         self.atm = pd.DataFrame({'Wind Direction': [45,120,200], 
             'Wind Speed': [1.2,1,1.8], 'Stability Class': ['A','B','C']}, 
             index=[0,10,20])
     
-        gauss_plume = chama.transport.GaussianPlume(self.grid, self.source, 
+        gauss_plume = chama.simulation.GaussianPlume(self.grid, self.source, 
                                                     self.atm)
         self.signal = gauss_plume.conc
         

@@ -10,7 +10,7 @@ Impact assessment
 Impact assessment extracts the **impact** if a particular sensor detects a
 particular scenario. Impact can be measured using a wide range of metrics.
 In Chama, impact assessment starts by extracting the times when each sensor
-detects a transport scenario. Detection can be used in a wide range of
+detects a scenario. Detection can be used in a wide range of
 sensor placement optimizations, including maximizing coverage or minimizing
 detection time. The :mod:`chama.impact` module is used to extract detection
 times and convert detection time to other damage metrics.
@@ -28,7 +28,7 @@ be detected by a single sensor multiple times, other scenarios can go
 undetected by all sensors.
 
 The following example demonstrates how to extract detection times 
-using a predefined signal, computed using the :ref:`transport` module,
+using a predefined signal, computed using the :ref:`simulation` module,
 and a set of predefined sensors, constructed using the :ref:`sensors` module.
 
 Group sensors in a dictionary:
@@ -95,7 +95,7 @@ Extract detection times:
 
 	
 The example shows that Scenario S1 was detected by Sensor A at time 30
-(units of time depend on the transport simulation). Scenario S1 was also
+(units of time depend on the simulation). Scenario S1 was also
 detected by Sensor B and time 30 and Sensor C at times 10, 20, 30 and 40.
 Scenario S2 was detected by Sensors A, B, and C. Scenario S3 was detected by
 Sensors A, B, and C. Sensor D did not detect any scenarios.
@@ -125,7 +125,7 @@ Extract detection time statistics:
 
 Damage metrics
 --------------
-Depending on the information available from the transport simulation,
+Depending on the information available from the simulation,
 detection time can be converted to other measures of damage, such as damage
 cost, extent of contamination, or ability to protect critical assets and
 populations. These metrics can be used in sensor placement optimization to

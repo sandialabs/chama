@@ -1,5 +1,5 @@
 """
-The impact module contains methods to extract the impact of detecting transport
+The impact module contains methods to extract the impact of detecting
 simulations given a set of defined sensor technologies.
 """
 from __future__ import print_function, division
@@ -13,7 +13,7 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     Parameters
     ----------
     signal : pandas DataFrame
-        Signal data from the transport simulation.  The DataFrame has columns  
+        Signal data from the simulation.  The DataFrame has columns  
         'T', 'X','Y', 'Z', or 'T', 'Node' along with one column for each 
         scenario (user defined names).
     

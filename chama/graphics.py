@@ -22,7 +22,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the transport simulation.  
+        Signal data from the simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     scenarios: list
@@ -101,7 +101,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the transport simulation.  
+        Signal data from the simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     signal_name: string
@@ -337,7 +337,7 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
     Parameters
     -------------
     sensors : dict
-        A dictonary of sensors with key:value pairs containing
+        A dictionary of sensors with key:value pairs containing
         {'sensor name': chama Sensor object}
     x_range: tuple (optional)
         The x-axis limits for the plot

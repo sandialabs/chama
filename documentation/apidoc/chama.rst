@@ -15,7 +15,7 @@ Submodules
 
 .. toctree::
 
-   chama.transport
+   chama.simulation
    chama.sensors
    chama.impact
    chama.optimize

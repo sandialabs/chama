@@ -7,3 +7,4 @@ dependencies:
     - sphinx
     - numpydoc
     - matplotlib
+    - pyomo

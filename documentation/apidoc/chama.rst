@@ -1,24 +1,23 @@
-.. raw:: latex
-
-    \newpage
+.. _api_documentation:
 
 API documentation
 ===================
 
 .. automodule:: chama
     :members:
-    :undoc-members:
+    :no-undoc-members:
     :show-inheritance:
 
 Submodules
 ----------
 
 .. toctree::
-
-   chama.simulation
-   chama.sensors
-   chama.impact
-   chama.optimize
-   chama.graphics
-   chama.utils
+    :maxdepth: 1
+	
+    chama.simulation
+    chama.sensors
+    chama.impact
+    chama.optimize
+    chama.graphics
+    chama.utils
 

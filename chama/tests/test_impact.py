@@ -43,7 +43,7 @@ class TestImpact_XYZ(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
@@ -87,7 +87,7 @@ class TestImpact_J(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
@@ -115,9 +115,47 @@ class TestImpact_J(unittest.TestCase):
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
                                  ('S', 'C', [10,20])],
-                                columns=['Scenario', 'Sensor', 'Impact'])
+                                columns=['Scenario', 'Sensor', 'Detection Times'])
         
         impact.set_index('Sensor', inplace=True)
         expected.set_index('Sensor', inplace=True)
         assert_frame_equal(impact, expected, check_dtype=False,
                            check_like=True)
+
+class TestCoverageConversions(unittest.TestCase):
+    def test_impact_to_coverage(self):
+        pass
+
+    def test_detection_times_to_coverage(self):
+        scenario = pd.DataFrame({
+            'Scenario': ['S1', 'S2', 'S3'],
+            'Undetected Impact': [48.0, 250.0, 100.0],
+            'Probability': [0.1, 0.1, 0.8]})
+        detection_times = pd.DataFrame({
+            'Scenario': ['S1', 'S2', 'S3'],
+            'Sensor': ['A', 'A', 'B'],
+            'Detection Times': [[2, 3, 4], [3], [4, 5]]})
+
+        coverage1 = chama.impact.detection_times_to_coverage(detection_times=detection_times,
+                                                                        coverage_type='scenario')
+        coverage1_expected = pd.DataFrame({'Sensor': ['A', 'B'],
+                                           'Coverage': [['S1', 'S2'], ['S3']]
+                                           })
+        assert_frame_equal(coverage1.set_index('Sensor'), coverage1_expected.set_index('Sensor'))
+
+        coverage2, scenario2 = chama.impact.detection_times_to_coverage(detection_times=detection_times,
+                                                                        coverage_type='scenario-time')
+        coverage2_expected = pd.DataFrame({'Sensor': ['A', 'B'],
+                                           'Coverage': [['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0'], ['S3-4.0', 'S3-5.0']]})
+        scenario2_expected = pd.DataFrame({'Scenario': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0', 'S3-4.0', 'S3-5.0']})
+        assert_frame_equal(coverage2.set_index('Sensor'), coverage2_expected.set_index('Sensor'))
+        assert_frame_equal(scenario2.set_index('Scenario'), scenario2_expected.set_index('Scenario'))
+
+        coverage3, scenario3 = chama.impact.detection_times_to_coverage(detection_times=detection_times,
+                                                                        coverage_type='scenario-time',
+                                                                        scenario=scenario)
+        scenario3_expected = pd.DataFrame({'Scenario': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0', 'S3-4.0', 'S3-5.0'],
+                                           'Undetected Impact': [48.0, 48.0, 48.0, 250.0, 100.0, 100.0],
+                                           'Probability': [0.1, 0.1, 0.1, 0.1, 0.8, 0.8]})
+        assert_frame_equal(coverage3.set_index('Sensor'), coverage2_expected.set_index('Sensor'))
+        assert_frame_equal(scenario3.set_index('Scenario'), scenario3_expected.set_index('Scenario'))

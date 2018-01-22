@@ -2,32 +2,37 @@
 
     \newpage
 
-.. _transport:
+.. _simulation:
 
-Transport simulation
+Simulation
 ====================
 
-Chama requires a set of precomputed transport simulations to determine
-optimal sensor placement. The type of transport simulation depends on the
+Chama requires a set of precomputed simulations to determine
+optimal sensor placement. The type of simulation depends on the
 application and scale of interest. Multiple scenarios should be generated to
-capture uncertainty in the system. For each scenario, a **signal** is recorded.
+capture uncertainty in the system. Steady state or transient simulations 
+can be used, depending on the sensor placement objective. For example, 
+while transient simulations are required to minimize time to detection, steady
+state simulations are sufficient to maximize coverage.
+For each scenario, the **signal** of interest is recorded.  
 
-For example:
+The following examples illustrate the use of transient simulations that can be 
+used in a sensor placement optimization problem:
 
 * **To place sensors to detect a gas leak**, an atmospheric dispersion model can be 
   used to simulate gas concentrations. Multiple scenarios capture
   uncertainty in the leak rate, leak location, wind speed and direction.
   Depending on the region of interest and the complexity of the system, very
-  detailed or simple models can be used. In this case, the **signal** is
+  detailed or simple models can be used. In this case, the **signal** is gas
   concentration.
 
 * **To place sensors to detect contaminant in a water distribution system**, 
-  a water network model can be used to simulate hydraulics and water quality. 
+  a water distribution network model can be used to simulate hydraulics and water quality. 
   Multiple scenarios capture uncertainty in the location, rate, start time, 
   and duration of the injection along with uncertainty in customer demands. 
   EPANET [Ross00]_, WNTR [KHMB17]_, or similar water network simulators, can be 
-  used to run this type of analysis. In this case, the **signal** is 
-  concentration. 
+  used to run this type of analysis. In this case, the **signal** is contaminant 
+  concentration.
   
 * **To place sensors to detect a seismic event**, a wave propagation model can
   be used to simulate displacement. Multiple scenarios capture uncertainty
@@ -145,7 +150,7 @@ Chama includes methods to run simple Gaussian plume and Gaussian puff atmospheri
 dispersion models [Arya99]_. Both models assume that atmospheric dispersion follows a Gaussian
 distribution. Gaussian plume models are typically used to model steady state plumes,
 while Gaussian puff models are used to model non-continuous sources. 
-The :mod:`chama.transport` module has additional information on
+The :mod:`chama.simulation` module has additional information on
 running the Gaussian plume and Gaussian puff models.
 Note that many atmospheric dispersion applications require more sophisticated models.
 
@@ -167,13 +172,13 @@ Define the receptor grid:
     >>> x_grid = np.linspace(-100, 100, 21)
     >>> y_grid = np.linspace(-100, 100, 21)
     >>> z_grid = np.linspace(0, 40, 21)
-    >>> grid = chama.transport.Grid(x_grid, y_grid, z_grid)
+    >>> grid = chama.simulation.Grid(x_grid, y_grid, z_grid)
 
 Define the source:
 
 .. doctest::
 
-    >>> source = chama.transport.Source(-20, 20, 1, 1.5)
+    >>> source = chama.simulation.Source(-20, 20, 1, 1.5)
 
 Define the atmospheric conditions:
 
@@ -183,11 +188,12 @@ Define the atmospheric conditions:
     ...                     'Wind Speed': [1.2, 1], 
     ...                     'Stability Class': ['A', 'A']}, index=[0, 10])
 
-Initialize the Gaussian plume model and run (the first 5 rows of the signal DataFrame are printed):
+Initialize the Gaussian plume model and run (the first 5 rows of the signal
+ DataFrame are printed):
 
 .. doctest::
 
-    >>> gauss_plume = chama.transport.GaussianPlume(grid, source, atm)
+    >>> gauss_plume = chama.simulation.GaussianPlume(grid, source, atm)
     >>> gauss_plume.run()
     >>> signal = gauss_plume.conc
     >>> print(signal.head(5))
@@ -205,14 +211,14 @@ Initialize the Gaussian puff model and run:
 
 .. doctest::
 
-    >>> gauss_puff = chama.transport.GaussianPuff(grid, source, atm, tpuff=1, tend=10)
+    >>> gauss_puff = chama.simulation.GaussianPuff(grid, source, atm, tpuff=1, tend=10)
     >>> gauss_puff.run(grid, 10)
     >>> signal = gauss_puff.conc
 
 	
 External simulation engines
 ---------------------------
-Transport simulations can also be generated from a wide range of external
+Simulations can also be generated from a wide range of external
 simulation engines, for example, atmospheric dispersion can be simulated using 
 AERMOD [USEPA04]_ or CALPUFF [ScSY00]_ or using detailed CFD models, transport 
 in pipe networks can be simulated using EPANET [Ross00]_ or WNTR [KHMB17]_, and 

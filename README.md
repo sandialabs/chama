@@ -18,6 +18,15 @@ The software was developed to design sensor networks for water distribution netw
 but the methods are general and 
 can be applied to a wide range of applications.
 
+For more information, go to http://chama.readthedocs.io
+
+Citing Chama
+-----------------
+
+To cite Chama, use the following reference:
+
+* Klise, K.A., Nicholson, B., and Laird, C.D. (2017). Sensor Placement Optimization using Chama, Sandia Report SAND2017-11472, Sandia National Laboratories.
+
 License
 ------------
 

@@ -1,5 +1,7 @@
 """
-The transport module contains Gaussian air dispersion models.
+The simulation module contains methods to run Gaussian air dispersion models. 
+Chama can also integrate simulations from third party software for additional
+sensor placement applications.
 """
 from __future__ import print_function, division
 import numpy as np
@@ -199,9 +201,9 @@ class GaussianPlume:
         conc = pd.DataFrame()
         for t in self.atm.index:
             
-            wind_direction = self.atm.loc[t, 'Wind Direction']
-            wind_speed = self.atm.loc[t, 'Wind Speed']
-            stability_class = self.atm.loc[t, 'Stability Class']
+            wind_direction = self.atm.at[t, 'Wind Direction']
+            wind_speed = self.atm.at[t, 'Wind Speed']
+            stability_class = self.atm.at[t, 'Stability Class']
 
             X2, Y2, h = _modify_grid(self, wind_direction, wind_speed)
             sigmay, sigmaz = _calculate_sigma(X2, stability_class)
@@ -312,9 +314,9 @@ class GaussianPuff:
         for t in timepoints:
             
             if t - tpuff in self.atm.index:
-                wind_direction = self.atm.loc[int(t - tpuff), 'Wind Direction']
-                wind_speed = self.atm.loc[int(t - tpuff), 'Wind Speed']
-                stability_class = self.atm.loc[int(t - tpuff),
+                wind_direction = self.atm.at[int(t - tpuff), 'Wind Direction']
+                wind_speed = self.atm.at[int(t - tpuff), 'Wind Speed']
+                stability_class = self.atm.at[int(t - tpuff),
                                                'Stability Class']
                 
             # Update distances

@@ -21,7 +21,7 @@ Contents
 	
    overview
    installation
-   transport
+   simulation
    sensors
    impact
    optimization
@@ -31,6 +31,12 @@ Contents
    developers
    apidoc/chama
    reference
+
+Citing Chama
+-----------------
+To cite Chama, use the following reference:
+
+* Klise, K.A., Nicholson, B., and Laird, C.D. (2017). Sensor Placement Optimization using Chama, Sandia Report SAND2017-11472, Sandia National Laboratories.
 
 Indices and tables
 ==================

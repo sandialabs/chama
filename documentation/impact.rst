@@ -10,23 +10,25 @@ Impact assessment
 Impact assessment extracts the **impact** if a particular sensor detects a
 particular scenario. Impact can be measured using a wide range of metrics.
 In Chama, impact assessment starts by extracting the times when each sensor
-detects a transport scenario. Detection can be used in a wide range of
+detects a scenario. Detection can be used in a wide range of
 sensor placement optimizations, including maximizing coverage or minimizing
 detection time. The :mod:`chama.impact` module is used to extract detection
 times and convert detection time to other damage metrics.
 
 Chama uses Pandas DataFrames [Mcki13]_ to store the impact assessment. Each
 DataFrame has three columns: Scenario, Sensor, and Impact. Exact column names
-must be used.  Note that the values in the Impact column can represent different metrics.
+must be used.  Note that the values in the Impact column can represent
+different metrics.
 
 Detection times
 ---------------
-In general, detection depends on the scenario environmental conditions, the sensor 
-location, and sensor operating conditions. While some scenarios can be detected by 
-a single sensor multiple times, other scenarios can go undetected by all sensors. 
+In general, detection depends on the scenario environmental conditions, the
+sensor location, and sensor operating conditions. While some scenarios can
+be detected by a single sensor multiple times, other scenarios can go
+undetected by all sensors.
 
 The following example demonstrates how to extract detection times 
-using a predefined signal, computed using the :ref:`transport` module,
+using a predefined signal, computed using the :ref:`simulation` module,
 and a set of predefined sensors, constructed using the :ref:`sensors` module.
 
 Group sensors in a dictionary:
@@ -80,7 +82,7 @@ Extract detection times:
 .. doctest::
 
     >>> print(det_times)
-      Scenario Sensor            Impact
+      Scenario Sensor   Detection Times
     0       S1      A              [30]
     1       S1      B              [30]
     2       S1      C  [10, 20, 30, 40]
@@ -93,38 +95,37 @@ Extract detection times:
 
 	
 The example shows that Scenario S1 was detected by Sensor A at time 30
-(units of time depend on the transport simulation). Scenario S1 was also
+(units of time depend on the simulation). Scenario S1 was also
 detected by Sensor B and time 30 and Sensor C at times 10, 20, 30 and 40.
 Scenario S2 was detected by Sensors A, B, and C. Scenario S3 was detected by
 Sensors A, B, and C. Sensor D did not detect any scenarios.
 
-This information can be used directly to optimization a sensor layout that
+This information can be used directly to optimize a sensor layout that
 maximizes coverage. To optimize a sensor layout that minimizes detection
-time, each detected scenario-sensor pair must be represented by a single
-detection time.  This can be obtained by taking the minimum, mean, or median
-from the list of detection times.
+time, the minimum time can be extracted from the list of detection times, as 
+shown below.  
 
-Extract the minimum detection time:
+Extract detection time statistics:
 
 .. doctest::
 
-    >>> min_det_time = chama.impact.detection_time_stats(det_times, 'min')
-    >>> print(min_det_time)
-      Scenario Sensor  Impact
-    0       S1      A      30
-    1       S1      B      30
-    2       S1      C      10
-    3       S2      A      10
-    4       S2      B      20
-    5       S2      C      10
-    6       S3      A      20
-    7       S3      B      20
-    8       S3      C      20
+    >>> det_time_stats = chama.impact.detection_time_stats(det_times)
+    >>> print(det_time_stats)
+      Scenario Sensor  Min  Mean  Median  Max  Count
+    0       S1      A   30  30.0    30.0   30      1
+    1       S1      B   30  30.0    30.0   30      1
+    2       S1      C   10  25.0    25.0   40      4
+    3       S2      A   10  20.0    20.0   30      3
+    4       S2      B   20  25.0    25.0   30      2
+    5       S2      C   10  25.0    25.0   40      4
+    6       S3      A   20  25.0    25.0   30      2
+    7       S3      B   20  25.0    25.0   30      2
+    8       S3      C   20  30.0    30.0   40      3
 
 
 Damage metrics
 --------------
-Depending on the information available from the transport simulation,
+Depending on the information available from the simulation,
 detection time can be converted to other measures of damage, such as damage
 cost, extent of contamination, or ability to protect critical assets and
 populations. These metrics can be used in sensor placement optimization to
@@ -151,14 +152,30 @@ Example damage costs, associated with each scenario and time:
     2  20   40000  20000   50000
     3  30   80000  75000   95000
     4  40  100000  90000  150000
+
+Extract the minimum detection time from the statistics computed above:
+
+.. doctest::
+    
+    >>> min_det_time = det_time_stats[['Scenario','Sensor','Min']]
+    >>> min_det_time.rename(columns = {'Min':'T'}, inplace = True)
+    >>> print(min_det_time)
+      Scenario Sensor   T
+    0       S1      A  30
+    1       S1      B  30
+    2       S1      C  10
+    3       S2      A  10
+    4       S2      B  20
+    5       S2      C  10
+    6       S3      A  20
+    7       S3      B  20
+    8       S3      C  20
 	
 Convert detection time to damage cost:
 
-.. doctest::
-
     >>> damage_metric = chama.impact.translate(min_det_time, damage_cost)
     >>> print(damage_metric)
-      Scenario Sensor  Impact
+      Scenario Sensor  Damage
     0       S1      A   80000
     1       S1      B   80000
     2       S1      C   10000
@@ -168,7 +185,6 @@ Convert detection time to damage cost:
     6       S3      A   50000
     7       S3      B   50000
     8       S3      C   50000
-
 	
 Note that the 'translate' function interpolates based on time, if needed. The
 damage metric can be used in sensor placement optimization to minimize damage.

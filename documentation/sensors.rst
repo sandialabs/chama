@@ -22,7 +22,7 @@ The :mod:`chama.sensors` module can be used to define sensor technologies in
 Chama. The module is used to represent a variety of sensor properties
 including detector type, detection threshold, location, and sampling times.
 Additionally, every sensor object includes a function that accepts a `signal`, 
-described in the :ref:`transport` section, and returns the subset of that
+described in the :ref:`simulation` section, and returns the subset of that
 signal that is detected by a set of sensors. This information is then used
 to extract the `impact` of each sensor on each scenario, as described in the
 :ref:`impact` section. The sensor placement optimization uses this measure of 
@@ -107,4 +107,4 @@ When using Node format, a **stationary point sensor**, can be defined as follows
     >>> stationary_pt_sensor = chama.sensors.Sensor(position=pos1, detector=det1)
 
 Note that the units for time, location, speed, and threshold need to match
-the units from the transport simulation.
+the units from the simulation.

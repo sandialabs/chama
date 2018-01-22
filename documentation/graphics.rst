@@ -12,7 +12,7 @@ The :mod:`chama.graphics` module provides methods to help visualize results.
 Signal graphics
 ---------------------------
 Chama provides several functions to visualize signals described in the 
-:ref:`transport` section (XYZ format only). Visualization is useful to verify that
+:ref:`simulation` section (XYZ format only). Visualization is useful to verify that
 the signal was loaded/generated as expected, compare scenarios, and to 
 better understand optimal sensor placement.
 

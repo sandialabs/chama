@@ -1,0 +1,6 @@
+v0.1.1 (master)
+-----------------------
+
+* Added new optimization formulations for coverage (API change, see :class:`~chama.optimize`)
+* Renamed transport module to simulation module (API change)
+* Updated documentation

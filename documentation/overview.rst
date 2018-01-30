@@ -15,13 +15,13 @@ Some of the methods in Chama were originally developed by Sandia
 National Laboratories and the U.S. Environmental Protection Agency to 
 design sensor networks to detect contamination in water distribution systems [BHPU06]_ [USEPA12]_ [USEPA15]_. 
 In this context, contamination scenarios are 
-precomputed using a water network model, feasible sensor locations and thresholds are defined, 
+precomputed using a water distribution system model, feasible sensor locations and thresholds are defined, 
 and the optimization method selects a set of sensors to minimize a given objective.
 
 Chama was developed to be a general purpose sensor placement optimization
 software tool. 
-The software includes mixed-integer,
-stochastic programming formulations to determine sensor locations and
+The software includes mixed-integer
+linear programming formulations to determine sensor locations and
 technology that maximize monitoring effectiveness. 
 The software is intended to be used by regulatory agencies,
 industry, and the research community. Chama expands on previous software
@@ -40,8 +40,8 @@ for a wide range of applications.  Example applications are listed in :numref:`f
    Example sensor placement applications
 
 For each application, an appropriate model must be selected to represent the system.  For example, 
-atmospheric dispersion models might be used to place sensors to monitor oil and gas emissions, while 
-water distribution pipe network models might be used to place sensors to monitor drinking water quality.
+atmospheric dispersion models can be used to place sensors to monitor oil and gas emissions, while 
+water distribution system models can be used to place sensors to monitor drinking water quality.
 
 The basic steps required for sensor placement optimization using Chama are
 shown in :numref:`fig-flowchart`.  

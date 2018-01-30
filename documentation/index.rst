@@ -7,7 +7,7 @@ a limited number of sensors can be deployed. The physical placement of these sen
 along with the sensor technology and operating conditions, can have a large 
 impact on the performance of a monitoring strategy.  
 
-Chama is an open source Python package which includes mixed-integer, stochastic 
+Chama is an open source Python package which includes mixed-integer linear
 programming formulations to determine sensor locations and technology that maximize 
 monitoring effectiveness. The methods in Chama are general and can be applied 
 to a wide range of applications. Chama is currently being used to design sensor networks 

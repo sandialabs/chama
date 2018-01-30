@@ -7,21 +7,23 @@
 Optimization
 ============
 
-The :mod:`chama.optimize` module contains **P-median** and **coverage** sensor
-placement optimization. Additional methods could be added to this
+The :mod:`chama.optimize` module contains **Impact**,  **Scenario Coverage**, and **Geographic Coverage** 
+sensor placement optimization formulations. 
+The formulations are written in Pyomo [HLWW12]_ and solved
+using an open source or commercial solvers such as GLPK [Makh10]_,
+Gurobi [GUROBI]_, or CPLEX [CPLEX]_.
+The open source GLPK solver is used by default. 
+Additional optimization formulations could be added to this
 module. 
 
-P-median
+Impact
 --------
 
-The P-median formulation is used to determine optimal sensor
-placement and type that minimizes impact, where impact can be detection time or 
-some other measure of damage.
-The P-median formulation is written in Pyomo [HLWW12]_ and solved
-using an open source or commercial MIP solver such as GLPK [Makh10]_,
-Gurobi [GUROBI]_, or CPLEX [CPLEX]_.
-The open source GLPK solver is used by default. The P-median sensor
-placement formulation is described below:
+The Impact formulation is used to determine optimal sensor
+placement and type that minimizes impact, where impact can be the sensor's 
+detection time or some other measure of damage.
+The Impact formulation, which is based on the p-median facility location problem, 
+is described below:
 
 .. math::
    
@@ -61,7 +63,7 @@ where:
 
 * :math:`p` is the sensors budget
 
-The size of the optimization problem is determined by the number of
+The size of the Impact formulation is determined by the number of
 binary variables.  Although :math:`x_{ai}` is a binary indicator
 variable, it is relaxed to be continuous between 0 and 1, and yet it
 always converges to a value of 0 or 1. Therefore, the number of binary
@@ -75,7 +77,7 @@ The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
 :math:`p`, and (optionally) sensor cost, :math:`c_i` and the
 scenario probability, :math:`\alpha_a`, as described below:
 
-* Impact assessment: A single detection time (or other measure of damage) for 
+* Impact assessment: A single value of impact (detection time or other measure of damage) for 
   each sensor that detects a scenario.  Impact is stored as a Pandas DataFrame, 
   as described in the :ref:`impact` section.  
   
@@ -111,7 +113,7 @@ Results are stored in a dictionary with the following information:
   If the selected sensors did not detect a particular scenario, the impact is set to 
   the Undetected Impact.
   
-The following example demonstrates the use of P-median sensor placement:
+The following example demonstrates the use of the Impact formulation.
 
 .. doctest::
     :hide:
@@ -169,28 +171,31 @@ The following example demonstrates the use of P-median sensor placement:
     1       S2      A     3.0
     2       S3   None   100.0
 
-Coverage
---------
 
-Sensors can also be placed to maximize coverage.  Coverage uses the P-median
-formulation and translates the impact assessment internally. The
-'use_sensor_cost' and 'use_scenario_probability' flags can be used with
-coverage. The user can also select if sensors are placed to maximize
-scenario coverage or time coverage using the 'coverage_type' flag (set to
-'scenario' or 'time').
+Scenario Coverage
+--------------------
 
-Data requirements for coverage are the same as data requirements for the
-P-median formulation with the following exceptions:
+The Scenario Coverage formulation is used to place sensors that maximize detection of 
+each scenario.
+The Scenario Coverage formulation is described below:
 
-* If 'coverage_type' is set to 'time', then the impact assessment must be a
-  list of detection times for each sensor that detects a scenario.
+.. math::
 
-* Undetected Impact is not required for each scenario.
+	\text{maximize} ...
 
-The following example demonstrates the use of time coverage sensor placement.
+where:
+
+* ...
+
+The user supplies ...
+
+Results are stored in a dictionary with the following information:
+
+* ...
+
+The following example demonstrates the use of the Scenario Coverage formulation.
 The results list scenario-time pairs that were detected by the sensor
-placement (listed as a (time, scenario) tuple).  The impact value is 1 if
-the scenario-time pair was detected, and 0 otherwise.
+placement (listed as a (time, scenario) tuple). 
 
 .. doctest::
 
@@ -264,3 +269,26 @@ the scenario-time pair was detected, and 0 otherwise.
     ['A']
     >>> print(results['EntityAssessment']['S1-4.0'])
     ['A']
+
+Geographic Coverage
+---------------------
+
+The Geographic Coverage formulation is used to place sensors that maximize the geographic 
+region of detection.
+The Geographic Coverage formulation is described below:
+
+.. math::
+
+	\text{maximize} ...
+
+where:
+
+* ...
+
+The user supplies ...
+
+Results are stored in a dictionary with the following information:
+
+* ...
+
+The following example demonstrates the use of the Geographic Coverage formulation.

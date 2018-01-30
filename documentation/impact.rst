@@ -173,9 +173,9 @@ Extract the minimum detection time from the statistics computed above:
 	
 Convert detection time to damage cost:
 
-    >>> damage_metric = chama.impact.translate(min_det_time, damage_cost)
+    >>> damage_metric = chama.impact.detection_time_to_impact(min_det_time, damage_cost)
     >>> print(damage_metric)
-      Scenario Sensor  Damage
+      Scenario Sensor  Impact
     0       S1      A   80000
     1       S1      B   80000
     2       S1      C   10000

@@ -9,7 +9,7 @@ Simulation
 
 Chama requires a set of precomputed simulations to determine
 optimal sensor placement. The type of simulation depends on the
-application and scale of interest. Multiple scenarios should be generated to
+application and scale of interest. In many cases, multiple scenarios should be generated to
 capture uncertainty in the system. Steady state or transient simulations 
 can be used, depending on the sensor placement objective. For example, 
 while transient simulations are required to minimize time to detection, steady

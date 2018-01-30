@@ -1,6 +1,7 @@
 """
-The impact module contains methods to extract the impact of detecting
-simulations given a set of defined sensor technologies.
+The impact module contains methods to extract detection times from a set of
+simulations and sensor technologies along with methods to convert detection 
+times to impact and coverage metrics.
 """
 from __future__ import print_function, division
 import pandas as pd
@@ -13,9 +14,9 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
     Parameters
     ----------
     signal : pandas DataFrame
-        Signal data from the simulation.  The DataFrame has columns  
-        'T', 'X','Y', 'Z', or 'T', 'Node' along with one column for each 
-        scenario (user defined names).
+        Signal data from the simulation.  The DataFrame can be in XYZ format 
+        (with columns named 'X','Y','Z','T') or Node format (with columns named
+        'Node','T') along with one column for each scenario (user defined names).
     
     sensors : dict
         A dictionary of sensors with key:value pairs containing
@@ -28,6 +29,7 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
         the nearest signal point within a minimum distance of min_distance.
         If there are no signal points within this distance then the
         signal will be set to zero at the sample point.
+        Note that interpolation is not used when the signal is in Node format.
 
     min_distance : float
         The minimum distance when using the 'nearest' interp_method
@@ -77,6 +79,9 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10):
 def detection_time_stats(det_times):
     """
     Returns detection times statistics (min, mean, median, max, and count).
+    
+    The minimium detection time is often used as input to an
+    impact-based sensor placement solver.
 
     Parameters
     ----------
@@ -101,53 +106,61 @@ def detection_time_stats(det_times):
     
     return det_t
 
-def translate(det_t, damage):
+def detection_time_to_impact(det_t, impact_data):
     """
-    Returns impact translated from detection time to a damage metric.
+    Coverts detection time to an impact metric. 
+    
+    The resulting impact DataFrame can be used as input to an impact-based 
+    sensor placement solver.
     
     Parameters
     ----------
     det_t : pandas DataFrame
         Detection time for each scenario-sensor pair. The DataFrame has 
         columns 'Scenario', 'Sensor', and 'T'. 
-    damage : pandas DataFrame
-        Damage values for each scenario and time.  The DataFrame has 
+    impact_data : pandas DataFrame
+        Impact data for each scenario and time.  The DataFrame has 
         columns 'T' and one column for each scenario (user defined names).
         
     Returns
     ----------
-    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Damage'.  
+    pandas DataFrame with columns 'Scenario', 'Sensor', and 'Impact'.  
     """
-    damage = damage.set_index('T')
-    allT = list(set(det_t['T']) | set(damage.index))
-    damage = damage.reindex(allT)
-    damage.sort_index(inplace=True)
-    damage.interpolate(inplace=True)
+    impact_data = impact_data.set_index('T')
+    allT = list(set(det_t['T']) | set(impact_data.index))
+    impact_data = impact_data.reindex(allT)
+    impact_data.sort_index(inplace=True)
+    impact_data.interpolate(inplace=True)
     
     det_damage = det_t.copy()
-    det_damage['T'] = damage.lookup(det_t['T'], det_t['Scenario'])
-    det_damage.rename(columns = {'T':'Damage'}, inplace = True)
+    det_damage['T'] = impact_data.lookup(det_t['T'], det_t['Scenario'])
+    det_damage.rename(columns = {'T':'Impact'}, inplace = True)
 
     return det_damage
 
 
 def detection_times_to_coverage(detection_times, coverage_type='scenario', scenario=None):
     """
-    Convert a detection times DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
+    Converts a detection times DataFrame to a coverage DataFrame for input to a 
+    coverage-based sensor placement solver.
 
     Parameters
     ----------
     detection_times : pandas DataFrame
-        DataFrame containing three columns. 'Scenario' is the name of the scenarios, 'Sensor' is the name of
-        the sensors, and 'Detection Times' contains a list of the detection times.
+        DataFrame containing three columns. 'Scenario' is the name of the 
+        scenarios, 'Sensor' is the name of the sensors, and 'Detection Times' 
+        contains a list of the detection times.
     coverage_type : str
-        Sets the coverage type: 'scenario' builds a coverage matrix designed to ensure coverage of the scenario
-        ignoring the time it was detected, while 'scenario-time' builds a coverage matrix where every scenario-time
-        pair is included as a new scenario - thereby ensuring coverage over all scenarios and times.
+        Sets the coverage type: 'scenario' builds a coverage matrix designed to
+        ensure coverage of the scenario ignoring the time it was detected, 
+        while 'scenario-time' builds a coverage matrix where every scenario-time
+        pair is included as a new scenario - thereby ensuring coverage over all 
+        scenarios and times.
 
     Returns
     -------
-    DataFrame : coverage DataFrame to be used an input to a coverage-based sensor placement solver.
+    DataFrame : coverage DataFrame to be used an input to a coverage-based 
+    sensor placement solver.
 
     """
     # remove any entries where detection times is an empty list
@@ -205,29 +218,31 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario', scena
     raise ValueError("coverage_type must be 'scenario' or 'scenario-time'")
 
 
-def impact_to_coverage(impact):
+def impact_to_coverage(impact, impact_col_name='Impact'):
     """
-    Convert an impact DataFrame to a coverage DataFrame for input to a coverage-based sensor placement solver.
+    Convert an impact DataFrame to a coverage DataFrame for input to a 
+    coverage-based sensor placement solver.
 
     Parameters
     ----------
     impact : pandas DataFrame
-            Impact assessment 
-            Impact is stored as a pandas DataFrmae with columns 'Scenario',
-            'Sensor', 'Impact'. See :py:class:`chama.Impactsolver` for more information
-    coverage_type : str
-        Sets the coverage type: 'scenario' builds a coverage matrix designed to ensure coverage of the scenario
-        ignoring the time it was detected, while 'scenario-time' builds a coverage matrix where every scenario-time
-        pair is included as a new scenario - thereby ensuring coverage over all scenarios and times.
+        DataFrame containing three columns. 'Scenario' is the name of the 
+        scenarios, 'Sensor' is the name of the sensors, and a third column 
+        (called impact_col_name) contains an impact value.
+    impact_col_name : str
+        The name of the column containing the impact data (default = 'Impact')
 
     Returns
     -------
-    DataFrame : coverage DataFrame to be used an input to a coverage-based sensor placement solver.
+    DataFrame : coverage DataFrame to be used an input to a coverage-based 
+    sensor placement solver.
 
     """
-
-    coverage = impact.drop('Impact')
+    coverage = impact.copy()
+    # drop the impact column
+    coverage.drop(impact_col_name, axis=1, inplace=True)
     coverage = coverage.groupby('Sensor')['Scenario'].unique()
     coverage = coverage.reset_index()
-    return coverage
+    coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
 
+    return coverage

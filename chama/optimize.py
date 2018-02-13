@@ -789,6 +789,7 @@ class ScenarioCoverageSolver(CoverageSolver):
               that are detected by that sensor
         """
         if scenario is not None:
+            scenario = scenario.copy()
             scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
 
         return super(ScenarioCoverageSolver,self).solve(coverage, formulation=formulation, sensor=sensor, entities=scenario,

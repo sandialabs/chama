@@ -36,6 +36,7 @@ class ImpactSolver(object):
         self._impact = None
         self._sensor = None
         self._scenario = None
+        self._impact_col_name = 'Impact'
         self._use_scenario_probability = False
         self._use_sensor_cost = False
         self._solved = False
@@ -290,6 +291,7 @@ class ImpactSolver(object):
         self._sensor = sensor
         scenario.reset_index(inplace=True)
         self._scenario = scenario
+        self._impact_col_name = impact_col_name
         self._use_sensor_cost = use_sensor_cost
         self._use_scenario_probability = use_scenario_probability
 
@@ -449,9 +451,11 @@ class ImpactSolver(object):
                         scenario_df[scenario_df['Scenario'] ==
                                     scenario]['Undetected Impact'].values[0]
                 else:
+                    
                     impact_val = \
                         impact_df[(impact_df['Scenario'] == scenario) &
-                        (impact_df['Sensor'] == sensor)]['Impact'].values[0]
+                                  (impact_df['Sensor'] == sensor)][
+                            self._impact_col_name].values[0]
                 selected_impact['Scenario'].append(scenario)
                 selected_impact['Sensor'].append(sensor)
                 selected_impact['Impact'].append(impact_val)

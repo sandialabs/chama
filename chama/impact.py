@@ -2,6 +2,16 @@
 The impact module contains methods to extract detection times from a set of
 simulations and sensor technologies along with methods to convert detection 
 times to impact and coverage metrics.
+
+.. rubric:: Contents
+
+.. autosummary::
+
+    detection_times
+    detection_time_stats
+    detection_time_to_impact
+    detection_times_to_coverage
+    impact_to_coverage
 """
 from __future__ import print_function, division
 import pandas as pd

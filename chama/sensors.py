@@ -1,6 +1,18 @@
 """
 The sensor module contains classes to define point or camera sensors
 that can either be stationary and mobile.
+
+.. rubric:: Contents
+
+.. autosummary::
+
+    Sensor
+    Position
+    Stationary
+    Mobile
+    Detector
+    Point
+    Camera
 """
 from __future__ import print_function, division
 import pandas as pd

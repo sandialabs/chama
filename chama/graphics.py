@@ -1,5 +1,14 @@
 """
 The graphics module contains graphic functions.
+
+.. rubric:: Contents
+
+.. autosummary::
+
+    signal_convexhull
+    signal_xsection
+    animate_puffs
+    sensor_locations
 """
 from __future__ import print_function, division
 import matplotlib.pyplot as plt

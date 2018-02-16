@@ -188,9 +188,11 @@ def test_detection_times_to_coverage_time():
     coverage, new_scenario = \
         chama.impact.detection_times_to_coverage(detection_times=detection_times,
                                                  coverage_type='scenario-time')
-
-    solver = chama.optimize.ScenarioCoverageSolver()
-    results = solver.solve(coverage=coverage, scenario=new_scenario, sensor_budget=1)
+    
+    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+    
+    solver = chama.optimize.CoverageSolver()
+    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
     # should do the same
     results = solver.solve(coverage=coverage, sensor_budget=1)
@@ -200,9 +202,11 @@ def test_detection_times_to_coverage_time():
     coverage, new_scenario = \
         chama.impact.detection_times_to_coverage(detection_times=detection_times, scenario=scenario,
                                                  coverage_type='scenario-time')
-
-    solver = chama.optimize.ScenarioCoverageSolver()
-    results = solver.solve(coverage=coverage, scenario=new_scenario, sensor_budget=1, use_scenario_probability=True)
+        
+    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+    
+    solver = chama.optimize.CoverageSolver()
+    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
 
 def test_detection_times_to_coverage_scenario():
@@ -219,7 +223,7 @@ def test_detection_times_to_coverage_scenario():
     coverage = chama.impact.detection_times_to_coverage(detection_times=detection_times,
                                                         coverage_type='scenario')
 
-    solver = chama.optimize.ScenarioCoverageSolver()
+    solver = chama.optimize.CoverageSolver()
     results = solver.solve(coverage=coverage, sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
 
@@ -227,9 +231,10 @@ def test_detection_times_to_coverage_scenario():
     coverage, new_scenario = \
         chama.impact.detection_times_to_coverage(detection_times=detection_times, scenario=scenario,
                                                  coverage_type='scenario-time')
-
-    solver = chama.optimize.ScenarioCoverageSolver()
-    results = solver.solve(coverage=coverage, scenario=new_scenario, sensor_budget=1, use_scenario_probability=True)
+    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+        
+    solver = chama.optimize.CoverageSolver()
+    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
 
 def test_coverage_solver():
@@ -275,14 +280,14 @@ def test_coverage_solver():
                    }
     entities = pd.DataFrame(entity_dict)
     results = cov_opt.solve(coverage=coverage, sensor_budget=2,
-                            entities=entities, redundancy=1, use_entity_weights=True)
+                            entities=entities, redundancy=1, use_entity_weight=True)
 
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])
     assert_almost_equal(results['FractionDetected'],0.2,places=4)
 
 """
 def solve(self, coverage, formulation='max-coverage', sensor=None, entities=None, sensor_budget=None,
-              use_sensor_cost=None, use_entity_weights=False, redundancy=0, coverage_col_name='Coverage',
+              use_sensor_cost=None, use_entity_weight=False, redundancy=0, coverage_col_name='Coverage',
               mip_solver_name='glpk', pyomo_options=None, solver_options=None):
 """
 

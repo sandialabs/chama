@@ -1,3 +1,7 @@
+.. figure:: figures/logo.png
+   :scale: 100 %
+   :alt: Logo
+   
 Sensor Placement Optimization using Chama 
 ================================================================
 
@@ -9,10 +13,10 @@ impact on the performance of a monitoring strategy.
 
 Chama is an open source Python package which includes mixed-integer linear
 programming formulations to determine sensor locations and technology that maximize 
-monitoring effectiveness. The methods in Chama are general and can be applied 
-to a wide range of applications. Chama is currently being used to design sensor networks 
-to monitor airborne pollutants and to monitor water quality in water distribution systems. 
-
+monitoring effectiveness. Chama is currently being used to design sensor networks 
+to monitor airborne pollutants and to monitor water quality in water distribution systems,
+however the methods in Chama are general and can be applied 
+to a wide range of applications. 
 
 Contents
 ------------

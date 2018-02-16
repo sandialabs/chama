@@ -26,21 +26,21 @@ Dependencies
 --------------
 Required Python package dependencies include:
 
-* Pyomo [HLWW12]_: formulate optimization methods, 
+* Pyomo [HLWW12]_: Used to formulate optimization problems and call solvers, 
   https://github.com/pyomo. 
-* Pandas [Mcki13]_: analyze and store databases, 
+* Pandas [Mcki13]_: Used to analyze and store data, 
   http://pandas.pydata.org.
-* Numpy [VaCV11]_: support large, multi-dimensional arrays and matrices, 
+* Numpy [VaCV11]_: Used to analyze large, multi-dimensional arrays and matrices, 
   http://www.numpy.org.
-* Scipy [VaCV11]_: support efficient routines for numerical analysis, 
+* Scipy [VaCV11]_: Used to support efficient routines for numerical analysis, 
   http://www.scipy.org.
   
 Optional Python package dependencies include:
 
-* Matplotlib [Hunt07]_: produce graphics, 
+* Matplotlib [Hunt07]_: Used to produce graphics, 
   http://matplotlib.org.
-* nose: run software tests, http://nose.readthedocs.io.
+* nose: Used to run software tests, http://nose.readthedocs.io.
 
-In addition, **a Pyomo supported MIP solver is required** to solve the
+In addition to the Python package dependencies, **a Pyomo supported MIP solver is required** to solve the
 optimization problems formulated in Chama. Examples of solvers that meet
 this requirement include GLPK [Makh10]_, Gurobi [GUROBI]_, and CPLEX [CPLEX]_.

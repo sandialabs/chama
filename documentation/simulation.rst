@@ -7,17 +7,19 @@
 Simulation
 ==========
 
-Chama requires a set of precomputed simulations to determine
-optimal sensor placement. The type of simulation depends on the
-application and scale of interest. In many cases, multiple scenarios should be
-generated to capture uncertainty in the system. Steady state or transient
-simulations can be used, depending on the sensor placement objective. For
-example, while transient simulations are required to minimize time to
-detection, steady state simulations are sufficient to maximize coverage.
-For each scenario, the **signal** of interest is recorded.  
+Chama uses a set of precomputed simulations to extract the data needed for 
+sensor placement optimization. The type of simulation depends on several factors
+including the sensor placement objective and scale of interest. In many cases, 
+multiple scenarios should be generated to capture uncertainty in the system. 
+Steady state or transient simulations can be used. 
+For example, while transient simulations are required to minimize time to
+detection, steady state simulations are sufficient to maximize scenario coverage.
+Note that if the sensor placement objective is to maximize geographic coverage, 
+simulations are not required.
 
-The following examples illustrate the use of transient simulations that can be 
-used in a sensor placement optimization problem:
+The following examples illustrate simulations that can be 
+used in a sensor placement optimization problem.
+For each simulation, the **signal** of interest is recorded.  
 
 * **To place sensors to detect a gas leak**, an atmospheric dispersion model
   can be used to simulate gas concentrations. Multiple scenarios capture
@@ -41,13 +43,16 @@ used in a sensor placement optimization problem:
   the system, very detailed or simple models can be used. In this case, the
   **signal** is displacement.
   
-For each scenario, the time, location, and signal are recorded. 
-The points used to record time and location can be sparse to help reduce
-data size. Chama uses Pandas DataFrames [Mcki13]_ to store the signal data.
+Chama uses Pandas DataFrames [Mcki13]_ to store simulation data.
 Pandas includes many functions to easily populate DataFrames from a wide
 range of file formats. For example, DataFrames can be generated from Excel,
-CSV, and SQL files. Signal data can be stored in XYZ or Node format, as
+CSV, and SQL files. Simulation data can be stored in XYZ or Node format, as
 described below.
+
+For each scenario, the time, location, and signal are recorded. 
+The time can be set to a uniform value when using steady state simulations.
+The points used to record time and location can be sparse to help reduce
+data size. 
 
 XYZ format
 ----------

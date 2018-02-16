@@ -573,7 +573,7 @@ class CoverageSolver(object):
                                  '"entities" DataFrame is not provided.')
             # build the list of entities from the coverage DataFrame
             covered_items = coverage['Coverage'].tolist()
-            entity_list = sorted(cu.unique_items_from_list_of_lists(covered_items))
+            entity_list = sorted(cu._unique_items_from_list_of_lists(covered_items))
         else:
             entity_list = sorted(entities['Entity'].unique())
 

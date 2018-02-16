@@ -81,5 +81,5 @@ def _df_columns_has_nans(df, col_list):
     
     return False
 
-def unique_items_from_list_of_lists(l):
+def _unique_items_from_list_of_lists(l):
     return set(item for sub_list in l for item in sub_list)

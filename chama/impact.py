@@ -90,7 +90,7 @@ def detection_time_stats(det_times):
     """
     Returns detection times statistics (min, mean, median, max, and count).
     
-    The minimium detection time is often used as input to an
+    The minimum detection time is often used as input to an
     impact-based sensor placement solver.
 
     Parameters

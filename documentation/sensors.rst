@@ -23,7 +23,7 @@ Chama. The module is used to represent a variety of sensor properties
 including detector type, detection threshold, location, and sampling times.
 Additionally, every sensor object includes a function that accepts a `signal`, 
 described in the :ref:`simulation` section, and returns the subset of that
-signal that is detected by a set of sensors. This information is then used
+signal that is detected by the sensor. This information is then used
 to extract the `impact` of each sensor on each scenario, as described in the
 :ref:`impact` section. The sensor placement optimization uses this measure of 
 'impact' to select sensors.
@@ -55,9 +55,10 @@ Detector options
   the signal within the camera's field of view, converting that signal to
   pixels, and comparing that to the detector's threshold in terms of pixels.
   
-*When using signal data in XYZ format*, Chama can interpolate sensor measurements that are not represented 
-in the signal data.  However, the sample time of a Camera detectors must be represented 
-in the signal data (i.e. only X, Y, and Z can be interpolated).
+*When using signal data in XYZ format*, Chama can interpolate sensor
+measurements that are not represented in the signal data. However, the sample
+times of a Camera detector must be included in the signal data (i.e. only X,
+Y, and Z can be interpolated).
 
 For example, a **stationary point sensor**, can be defined as follows:
 
@@ -96,9 +97,12 @@ A **mobile camera sensor**, can be defined as follows:
     >>> det4 = chama.sensors.Camera(threshold=100, sample_times=[0,3,6,9], direction=(1,1,1))
     >>> mobile_camera_sensor = chama.sensors.Sensor(position=pos4, detector=det4)
 
-*When using signal data in Node format*, Chama does not interpolate sensor measurements 
-that are not represented in the signal data and only stationary point sensor can be used.
-When using Node format, a **stationary point sensor**, can be defined as follows:
+*When using signal data in Node format*, Chama does not interpolate sensor
+measurements that are not represented in the signal data and only stationary
+point sensors can be used.
+
+When using Node format, a **stationary point sensor**, can be defined as
+follows:
 
 .. doctest::
 

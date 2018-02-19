@@ -17,7 +17,9 @@ from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 
-def detection_times(signal, sensors, interp_method=None, min_distance=10.0):
+
+def extract_detection_times(signal, sensors, interp_method=None,
+                            min_distance=10.0):
     """
     Returns detection times from a signal and group of sensors.
 
@@ -76,10 +78,11 @@ def detection_times(signal, sensors, interp_method=None, min_distance=10.0):
             for scenario_name, group in detected.groupby(level=[1]):
                 det_times_dict['Scenario'].append(scenario_name)
                 det_times_dict['Sensor'].append(name)
-                det_times_dict['Detection Times'].append(group.index.get_level_values(0).tolist())
+                det_times_dict['Detection Times'].append(
+                    group.index.get_level_values(0).tolist())
             
     det_times = pd.DataFrame(det_times_dict)
-    det_times = det_times[['Scenario', 'Sensor', 'Detection Times']] # reorder
+    det_times = det_times[['Scenario', 'Sensor', 'Detection Times']]  # reorder
 
     det_times = det_times.sort_values(['Scenario', 'Sensor'])
     det_times = det_times.reset_index(drop=True)
@@ -118,6 +121,7 @@ def detection_time_stats(detection_times):
     
     return det_t
 
+
 def detection_time_to_impact(detection_time, impact_data):
     """
     Coverts detection time to an impact/damage metric.
@@ -152,12 +156,13 @@ def detection_time_to_impact(detection_time, impact_data):
     det_damage = detection_time.copy()
     det_damage['T'] = impact_data.lookup(detection_time['T'],
                                          detection_time['Scenario'])
-    det_damage.rename(columns = {'T':'Impact'}, inplace = True)
+    det_damage.rename(columns={'T': 'Impact'}, inplace=True)
 
     return det_damage
 
 
-def detection_times_to_coverage(detection_times, coverage_type='scenario', scenario=None):
+def detection_times_to_coverage(detection_times, coverage_type='scenario',
+                                scenario=None):
     """
     Converts a detection times DataFrame to a coverage DataFrame
 
@@ -200,26 +205,29 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario', scena
 
     """
     # remove any entries where detection times is an empty list
-    detection_times = detection_times[detection_times.apply(lambda x: len(x['Detection Times']) != 0, axis=1)]
+    detection_times = detection_times[detection_times.apply(
+        lambda x: len(x['Detection Times']) != 0, axis=1)]
     if coverage_type == 'scenario':
         coverage = detection_times
         # drop the detection times
         coverage.drop('Detection Times', axis=1, inplace=True)
         coverage = coverage.groupby('Sensor')['Scenario'].unique()
         coverage = coverage.reset_index()
-        coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
+        coverage.rename(columns={'Scenario': 'Coverage'}, inplace=True)
         return coverage
-    elif coverage_type=='scenario-time':
+    elif coverage_type == 'scenario-time':
         # create a series that has the Detection Times as the main data
-        det_series = detection_times.set_index(['Scenario', 'Sensor'])['Detection Times']
+        det_series = detection_times.set_index(
+            ['Scenario', 'Sensor'])['Detection Times']
 
         # turn the Detection times list into a series. This creates a new
-        # DataFrame with additional columns equal to the maximum number of detection times with NaNs
+        # DataFrame with additional columns equal to the maximum number of
+        # detection times with NaNs
         df = det_series.apply(pd.Series)
 
-        # turn the additional columns into additional rows - This will add an additional
-        # index to the multi-index whose value is the original column number
-        # we also set the names appropriately
+        # turn the additional columns into additional rows - This will add an
+        # additional index to the multi-index whose value is the original
+        # column number we also set the names appropriately
         df.columns.name = 'Detection Time Idx'
         df = df.stack()
         df.name = 'Detection Time'
@@ -236,7 +244,8 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario', scena
             value = row['Detection Time']
             return '{0}-{1}'.format(row[col_name], value)
 
-        df['Scenario'] = df.apply(rename_with_detection_times, col_name='Scenario', axis=1)
+        df['Scenario'] = df.apply(rename_with_detection_times,
+                                  col_name='Scenario', axis=1)
 
         # drop the unnecessary columns
         df.drop(['Detection Time Idx', 'Detection Time'], inplace=True, axis=1)
@@ -244,11 +253,12 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario', scena
         new_scenario.drop(['Sensor'], inplace=True, axis=1)
 
         # group all the scenarios for each sensor into a list
-        coverage = df[['Scenario', 'Sensor']].groupby('Sensor')['Scenario'].unique()
+        coverage = \
+            df[['Scenario', 'Sensor']].groupby('Sensor')['Scenario'].unique()
         coverage = coverage.reset_index()
 
         # rename the columns for coverage
-        coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
+        coverage.rename(columns={'Scenario': 'Coverage'}, inplace=True)
         return coverage, new_scenario
 
     raise ValueError("coverage_type must be 'scenario' or 'scenario-time'")
@@ -283,6 +293,6 @@ def impact_to_coverage(impact, impact_col_name='Impact'):
     coverage.drop(impact_col_name, axis=1, inplace=True)
     coverage = coverage.groupby('Sensor')['Scenario'].unique()
     coverage = coverage.reset_index()
-    coverage.rename(columns={'Scenario':'Coverage'}, inplace=True)
+    coverage.rename(columns={'Scenario': 'Coverage'}, inplace=True)
 
     return coverage

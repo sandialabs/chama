@@ -49,7 +49,7 @@ def extract_detection_times(signal, sensors, interp_method=None,
     
     Returns
     -------
-    det_times: pandas DataFrame
+    det_times : pandas DataFrame
         DataFrame with columns 'Scenario', 'Sensor', and 'Detection Times'.
     """
     # Extracting a subset of the signal in the sensor module is fastest

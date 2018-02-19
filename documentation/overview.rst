@@ -23,13 +23,15 @@ software tool.
 The software includes mixed-integer
 linear programming formulations to determine sensor locations and
 technology that maximize monitoring effectiveness. 
-The software is intended to be used by regulatory agencies,
-industry, and the research community. Chama allows the user to optimize 
-both the location and type of sensors
-in a monitoring system. Chama includes functionality to define point and
+The optimization formulations in Chama can be used to minimize impact 
+or maximize coverage.
+Chama includes functionality to define point and
 camera sensors that can be stationary or mobile. Furthermore, third party
 system models can be integrated into the software to determine sensor placement 
-for a wide range of applications.  Example applications are included in :numref:`fig-exapps`.  
+for a wide range of applications.  
+The software is intended to be used by regulatory agencies,
+industry, and the research community.
+Example applications are included in :numref:`fig-exapps`.  
 
 .. _fig-exapps:
 .. figure:: figures/example_applications.png

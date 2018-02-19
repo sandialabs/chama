@@ -25,8 +25,8 @@ Additionally, every sensor object includes a function that accepts a `signal`,
 described in the :ref:`simulation` section, and returns the subset of that
 signal that is detected by the sensor. This information is then used
 to extract the `impact` of each sensor on each scenario, as described in the
-:ref:`impact` section. The sensor placement optimization uses this measure of 
-'impact' to select sensors.
+:ref:`impact` section. The sensor placement optimization uses this information to
+select sensors.
 
 Each sensor is declared by specifying a **position** and a **detector**.
 The following options are available in Chama (additional sensor 

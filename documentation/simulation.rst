@@ -9,9 +9,9 @@ Simulation
 
 Chama uses a set of precomputed simulations to extract the data needed for 
 sensor placement optimization. The type of simulation depends on several factors
-including the sensor placement objective and scale of interest. In many cases, 
-multiple scenarios should be generated to capture uncertainty in the system. 
-Steady state or transient simulations can be used. 
+including the application, scale of interest, and the sensor placement objective. 
+In many cases, multiple scenarios should be generated to capture uncertainty 
+in the system. Steady state or transient simulations can be used. 
 For example, while transient simulations are required to minimize time to
 detection, steady state simulations are sufficient to maximize scenario coverage.
 Note that if the sensor placement objective is to maximize geographic coverage, 
@@ -57,7 +57,7 @@ data size.
 XYZ format
 ----------
 In XYZ format, the X, Y, and Z location is stored for each entry.
-In the DataFrame, X, Y, and Z describe the location, T is the simulation time,
+In the DataFrame, columns X, Y, and Z describe the location, T is the simulation time,
 and Sn is the signal for scenario n.  Exact column names must be used for X, Y,
 Z, and T. The scenario names can be defined by the user. When using this
 format, Chama can interpolate sensor measurements that are not represented in
@@ -110,12 +110,12 @@ Node format
 -----------
 In Node format, a location index is stored for each entry.  The index can be a
 string, integer, or float. This format is useful when working with sparse
-systems, such as nodes in a networks. In the DataFrame, Node is the location
+systems, such as nodes in a networks. In the DataFrame, column Node is the location
 index, T is the simulation time, and Sn is the signal for scenario n. Exact
 column names must be used for Node and T. The scenario names can be defined by
 the user. When using this format, Chama does not interpolate sensor
 measurements and only stationary point sensors can be used to extract detection
-time.An example signal DataFrame in Node format is shown below using four nodes
+time. An example signal DataFrame in Node format is shown below using four nodes
 with three time steps and fabricated data for three scenarios.
 
 .. doctest::

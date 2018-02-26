@@ -201,7 +201,7 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario',
     new_scenario : pandas DataFrame
         DataFrame returned if coverage_type is 'scenario-time' and a
         'scenario' DataFrame was provided. The columns in this DataFrame
-        match those in the provide 'scenario' DataFrame
+        match those in the provided 'scenario' DataFrame
 
     """
     # remove any entries where detection times is an empty list
@@ -259,6 +259,11 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario',
 
         # rename the columns for coverage
         coverage.rename(columns={'Scenario': 'Coverage'}, inplace=True)
+
+        if scenario is None:
+            # Only return coverage if no scenario DataFrame was provided
+            return coverage
+
         return coverage, new_scenario
 
     raise ValueError("coverage_type must be 'scenario' or 'scenario-time'")

@@ -90,6 +90,7 @@ class Position(object):
         else:
             return tuple([self.location])
 
+
 class Stationary(Position):
     """
     Defines a stationary sensor's position.
@@ -244,7 +245,8 @@ class Detector(object):
             return pd.Series()
         
         signal_sample = self._get_signal_at_sample_points(signal, pts,
-            interp_method, min_distance)
+                                                          interp_method,
+                                                          min_distance)
         if len(signal_sample) == 0:
             return pd.Series()
         

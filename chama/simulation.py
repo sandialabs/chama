@@ -383,7 +383,7 @@ class GaussianPuff:
         conc_list = []
 
         for t in times:
-            #print('Calculating for time: ', t)
+            
             # Extract the puff data at time t
             mask = (self.puff['T'] >= t - 0.1 * self.tpuff) \
                    & (self.puff['T'] <= t + 0.1 * self.tpuff)

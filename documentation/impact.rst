@@ -156,16 +156,16 @@ Extract the minimum detection time from the statistics computed above:
     >>> min_det_time = det_time_stats[['Scenario','Sensor','Min']]
     >>> min_det_time = min_det_time.rename(columns={'Min':'Impact'})
     >>> print(min_det_time)
-      Scenario Sensor Impact
-    0       S1      A     30
-    1       S1      B     30
-    2       S1      C     10
-    3       S2      A     10
-    4       S2      B     20
-    5       S2      C     10
-    6       S3      A     20
-    7       S3      B     20
-    8       S3      C     20
+      Scenario Sensor  Impact
+    0       S1      A      30
+    1       S1      B      30
+    2       S1      C      10
+    3       S2      A      10
+    4       S2      B      20
+    5       S2      C      10
+    6       S3      A      20
+    7       S3      B      20
+    8       S3      C      20
 
 
 Convert detection times to other impact metrics
@@ -186,6 +186,7 @@ Example impact costs associated with each scenario and time:
 
     >>> impact_cost = pd.DataFrame({'T': [0, 10, 20, 30, 40],'S1': [0, 10000, 40000, 80000, 100000],'S2': [0, 5000, 20000, 75000, 90000],'S3': [0, 15000, 50000, 95000, 150000]})
     >>> impact_cost = impact_cost[['T', 'S1','S2', 'S3']]
+    >>> min_det_time = min_det_time.rename(columns={'Impact':'T'})
 
 .. doctest::
 
@@ -202,7 +203,8 @@ Convert detection time to damage cost:
 
 .. doctest::
 
-    >>> impact_metric = chama.impact.detection_time_to_impact(min_det_time, impact_cost)
+    >>> impact_metric = chama.impact.detection_time_to_impact(min_det_time,
+    ...                                                       impact_cost)
     >>> print(impact_metric)
       Scenario Sensor  Impact
     0       S1      A   80000
@@ -308,7 +310,9 @@ information to new scenario-time pairs:
     2         0.75       S3                100
 
     >>> scen_time_cov, new_scenario = chama.impact.detection_times_to_coverage(
-    det_times,coverage_type='scenario-time', scenario=scenario)
+    ...                                          det_times,
+    ...                                          coverage_type='scenario-time',
+    ...                                          scenario=scenario)
     >>> print(scen_time_cov)
       Sensor                                           Coverage
     0      A  [S1-30.0, S2-10.0, S2-20.0, S2-30.0, S3-20.0, ...
@@ -361,6 +365,11 @@ accepts an impact DataFrame containing three columns: 'Scenario', 'Sensor',
 and 'Impact' and returns a DataFrame with `scenario` coverage.
 
 Convert an impact DataFrame to a coverage DataFrame:
+
+.. doctest::
+   :hide:
+
+   >>> min_det_time = min_det_time.rename(columns={'T':'Impact'})
 
 .. doctest::
 

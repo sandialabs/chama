@@ -187,7 +187,8 @@ def test_detection_times_to_coverage_time():
     # test coverage with no probabilities
     coverage, new_scenario = \
         chama.impact.detection_times_to_coverage(detection_times=detection_times,
-                                                 coverage_type='scenario-time')
+                                                 coverage_type='scenario-time',
+                                                 scenario=scenario)
     
     new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
     

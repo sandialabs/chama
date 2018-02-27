@@ -39,7 +39,8 @@ class TestXYZFormat(unittest.TestCase):
         pass
 
     def test_detection_times(self):
-        impact = chama.impact.detection_times(self.signal, self.sensors)
+        impact = chama.impact.extract_detection_times(self.signal,
+                                                      self.sensors)
 
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
@@ -84,7 +85,7 @@ class TestNodeFormat(unittest.TestCase):
         det3 = chama.sensors.Point(sample_times=[0, 10, 20], threshold=40)
         sensors['C'] = chama.sensors.Sensor(position=pos3, detector=det3)
         
-        impact = chama.impact.detection_times(self.signal, sensors)
+        impact = chama.impact.extract_detection_times(self.signal, sensors)
 
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
@@ -113,7 +114,7 @@ class TestNodeFormat(unittest.TestCase):
         det3 = chama.sensors.Point(sample_times=[0, 10, 20], threshold=40)
         sensors['C'] = chama.sensors.Sensor(position=pos3, detector=det3)
         
-        impact = chama.impact.detection_times(self.signal, sensors)
+        impact = chama.impact.extract_detection_times(self.signal, sensors)
 
         expected = pd.DataFrame([('S', 'A', [0]),
                                  ('S', 'B', [10]),
@@ -164,16 +165,14 @@ class TestConversions(unittest.TestCase):
         assert_frame_equal(coverage1.set_index('Sensor'), 
                            coverage1_expected.set_index('Sensor'))
 
-        coverage2, scenario2 = chama.impact.detection_times_to_coverage(
+        coverage2 = \
+            chama.impact.detection_times_to_coverage(
                 detection_times=self.detection_times, coverage_type='scenario-time')
         coverage2_expected = pd.DataFrame({'Sensor': ['A', 'B'],
                                            'Coverage': [['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0'], ['S3-4.0', 'S3-5.0']]})
-        scenario2_expected = pd.DataFrame({'Scenario': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0', 'S3-4.0', 'S3-5.0']})
         assert_frame_equal(coverage2.set_index('Sensor'), 
                            coverage2_expected.set_index('Sensor'))
-        assert_frame_equal(scenario2.set_index('Scenario'), 
-                           scenario2_expected.set_index('Scenario'))
-
+        
         coverage3, scenario3 = chama.impact.detection_times_to_coverage(
                 detection_times=self.detection_times,coverage_type='scenario-time',
                 scenario=self.scenario)

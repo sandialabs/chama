@@ -154,7 +154,7 @@ Extract the minimum detection time from the statistics computed above:
 .. doctest::
 
     >>> min_det_time = det_time_stats[['Scenario','Sensor','Min']]
-    >>> min_det_time.rename(columns = {'Min':'Impact'}, inplace = True)
+    >>> min_det_time = min_det_time.rename(columns={'Min':'Impact'})
     >>> print(min_det_time)
       Scenario Sensor Impact
     0       S1      A     30

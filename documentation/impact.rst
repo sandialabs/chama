@@ -6,35 +6,30 @@
 	
 Impact assessment
 =================
-Impact assessment extracts the **impact** if a particular sensor detects a
+Impact assessment extracts the **impact** of a particular sensor detecting a
 particular scenario. Impact can be measured using a variety of metrics such as
 time to detection, population impacted, or volume of contaminant released
-before detection. In addition, these impact metrics can be used to define
-when a sensor covers a particular scenario or geographical area for use in
+before detection. Additionally, these impact metrics can be used to define
+when a sensor covers a particular scenario for use in
 coverage-based optimization formulations.
 
 The :mod:`chama.impact` module converts information about the signal and
 sensors, described in the :ref:`simulation` and :ref:`sensors` sections, into
-the input needed for the sensor placement optimization solvers described in the
+the input needed for the sensor placement optimization formulations described in the
 :ref:`optimization` section.
-
 Impact assessment starts by extracting the times when each sensor
-detects a scenario. After that, the :mod:`chama.impact` module contains a
-collection of functions that convert detection times into other impact
-metrics used in the :py:class:`ImpactSolver<chama.optimize.ImpactSolver>` or
-coverage-based formats used in the
-:py:class:`CoverageSolver<chama.optimize.CoverageSolver>`.
+detects a scenario. After that, detection times can be converted into other impact
+metrics used in the :ref:`impactform` or
+coverage-based formats used in the :ref:`coverageform`.
 
 Extract detection times
 -----------------------
-In general, detection depends on the scenario environmental conditions,
+The ability for a sensor to detect a scenario depends on several factors, including the scenario environmental conditions,
 sensor location, and sensor operating parameters. While some scenarios might
 be detected multiple times by a single sensor, other scenarios can go
 undetected by all sensors.
-
-The following example demonstrates how to extract detection times using the
-:py:meth:`extract_detection_times<chama.impact.extract_detection_times>`
-function, a predefined signal, and a set of predefined sensors.
+The following example demonstrates how to extract detection times using 
+a predefined signal, and a set of predefined sensors.
 
 Obtain a signal DataFrame and group sensors (defined in the :ref:`sensors`
 section) in a dictionary:
@@ -115,24 +110,23 @@ detected by Sensors A, B, and C. Scenario S3 was detected by Sensors A, B, and
 C. Sensor D did not detect any scenarios.
 
 The detection times DataFrame can be converted into the required input
-format for the :py:class:`ImpactSolver<chama.optimize.ImpactSolver>` and
-:py:class:`CoverageSolver<chama.optimize.CoverageSolver>` as described below.
+format for the :ref:`impactform` or :ref:`coverageform` as described below.
 
-Convert detection times to input for ImpactSolver
--------------------------------------------------
-The :py:class:`ImpactSolver<chama.optimize.ImpactSolver>` requires as input
+Convert detection times to input for the Impact Formulation
+------------------------------------------------------------------
+The :ref:`impactform` requires as input
 a DataFrame with three columns: 'Scenario', 'Sensor', and 'Impact', where
 the 'Impact' is a single numerical value for each row. This means that the
 list of detection times in the DataFrame produced above must be reduced to a
-single numerical value representing the impact to be minimized in the
-:py:class:`ImpactSolver<chama.optimize.ImpactSolver>`.
+single numerical value representing the impact to be minimized.
 
-The example below shows how to build an input DataFrame for the
-:py:class:`ImpactSolver<chama.optimize.ImpactSolver>` to
+Minimum detection time
+...............................................
+
+The example below shows how to build an input DataFrame for the :ref:`impactform` to
 optimize a sensor layout that minimizes detection time.
 
-Extract detection time statistics using the
-:py:meth:`detection_time_stats<chama.impact.detection_time_stats>` function:
+Extract detection time statistics:
 
 .. doctest::
 
@@ -167,15 +161,14 @@ Extract the minimum detection time from the statistics computed above:
     7       S3      B      20
     8       S3      C      20
 
-
-Convert detection times to other impact metrics
+Other impact metrics
 ...............................................
 Depending on the information available from the simulation, detection time
 can be converted to other measures of impact, such as damage cost, extent of
 contamination, or ability to protect critical assets and populations. For
 example, if the cost of detecting scenario S1 at time 30 is $80,000, then the
 impact metric for that scenario can be translated from a detection time of 30
-to a cost of $80,000. The data associated with impact is stored in a Pandas
+to a cost of $80,000. The data associated with the new impact metric is stored in a Pandas
 DataFrame with one column for time, 'T', and one column for each scenario (name
 specified by the user).
 
@@ -199,7 +192,7 @@ Example impact costs associated with each scenario and time:
     4  40  100000  90000  150000
 
 
-Convert detection time to damage cost:
+Convert minimum detection time to damage cost:
 
 .. doctest::
 
@@ -219,24 +212,24 @@ Convert detection time to damage cost:
 
 Note that the
 :py:meth:`detection_time_to_impact<chama.impact.detection_time_to_impact>`
-function interpolates based on time, if needed. The resulting DataFrame can
-be used as input to the :py:class:`ImpactSolver<chama.optimize.ImpactSolver>`
-to optimize a sensor layout that minimizes the new impact metric.
+function interpolates based on time, if needed. 
 
-Convert detection times to input for CoverageSolver
----------------------------------------------------
-The :py:class:`CoverageSolver<chama.optimize.CoverageSolver>` requires as input
+Convert detection times to input for the Coverage Formulation
+-------------------------------------------------------------------
+The :ref:`coverageform` requires as input
 a DataFrame with two columns: 'Sensor', and 'Coverage', where the 'Coverage' is
-a list of entities covered by each sensor. The
-:py:class:`CoverageSolver<chama.optimize.CoverageSolver>` optimizes a sensor
+a list of entities covered by each sensor. The formulation optimizes a sensor
 layout that maximizes the coverage of the entities contained in this
 DataFrame.
-
 An `entity` to be covered might include scenarios, scenario-time pairs, or
-geographic locations. The :mod:`chama.impact` module includes the
-:py:meth:`detection_times_to_coverage<chama.impact.detection_times_to_coverage>`
-function for converting a DataFrame containing detection times into a
-DataFrame for scenario or scenario-time coverage.
+geographic locations. 
+
+Scenario coverage
+...............................................
+The following example converts detection times to scenario coverage. 
+With `scenario` coverage, a scenario is the entity to be covered. A scenario
+is considered covered by a sensor if that sensor detects that scenario at
+any time.
 
 Recall the detection times DataFrame from above:
 
@@ -254,10 +247,6 @@ Recall the detection times DataFrame from above:
     7       S3      B          [20, 30]
     8       S3      C      [20, 30, 40]
 
-With `scenario` coverage, a scenario is the entity to be covered. A scenario
-is considered covered by a sensor if that sensor detects that scenario at
-any time.
-
 Convert detection times to `scenario` coverage:
 
 .. doctest::
@@ -272,10 +261,13 @@ Convert detection times to `scenario` coverage:
 This example shows that sensor A covers the scenarios S1, S2, and S3.
 Sensors B and C also cover all three scenarios.
 
+Scenario-time coverage
+...............................................
+
+The next example converts detection times to scenario-time coverage. 
 With `scenario-time` coverage, the entities to be covered are all combinations
 of the scenarios and the detection times. This type of coverage gives more
 weight to sensors that detect scenarios for longer periods of time.
-
 The same
 :py:meth:`detection_times_to_coverage<chama.impact.detection_times_to_coverage>`
 function can be used to convert detection times to scenario-time coverage
@@ -290,8 +282,8 @@ passed to the coverage solver. The
 :py:meth:`detection_times_to_coverage<chama.impact.detection_times_to_coverage>`
 function does this by accepting an optional 'scenario' keyword argument
 containing a DataFrame with scenario probabilities and undetected impact. These
-values are then  propagated to the new scenario-time entities and a new
-DataFrame is returned with this information. An example of this is shown below.
+values are then propagated to the new scenario-time entities and a new
+DataFrame is returned with this information. 
 
 Convert detection times to `scenario-time` coverage and propagate scenario
 information to new scenario-time pairs:
@@ -349,22 +341,32 @@ S2-10.0, and S2-20.0 among others. In addition, notice that the probability
 and undetected impact for scenario S1 is propagated to all scenario-time
 pairs containing S1 in the new_scenario DataFrame.
 
-Convert input for ImpactSolver to input for CoverageSolver
-----------------------------------------------------------
-The final function included in the :mod:`chama.impact` module is a utility
-function that allows users to convert the input DataFrame for the
-:py:class:`ImpactSolver<chama.optimize.ImpactSolver>` to the input DataFrame
-for the :py:class:`CoverageSolver<chama.optimize.CoverageSolver>`. This is
+Convert input for the Impact Formulation to the Coverage Formulation
+----------------------------------------------------------------------
+Users can also convert the input DataFrame for the :ref:`imapctform`
+to the input DataFrame for the :ref:`coverageform`. This is
 especially convenient in cases where the user is solving optimization
 problems using both solver classes and the DataFrame for the impact
 solver was generated outside of the standard Chama workflow (i.e. the
 signal, sensors, or detection_times DataFrames are unavailable).
+In the following example, an impact DataFrame is converted to 
+a `scenario` coverage DataFrame.
 
-The :py:meth:`impact_to_coverage<chama.impact.impact_to_coverage>` function
-accepts an impact DataFrame containing three columns: 'Scenario', 'Sensor',
-and 'Impact' and returns a DataFrame with `scenario` coverage.
+Recall the impact DataFrame containing minimum detection time from above:
 
-Convert an impact DataFrame to a coverage DataFrame:
+>>> print(min_det_time)
+      Scenario Sensor  Impact
+    0       S1      A      30
+    1       S1      B      30
+    2       S1      C      10
+    3       S2      A      10
+    4       S2      B      20
+    5       S2      C      10
+    6       S3      A      20
+    7       S3      B      20
+    8       S3      C      20
+	
+Convert the impact DataFrame to a coverage DataFrame:
 
 .. doctest::
    :hide:

@@ -6,8 +6,8 @@ optimization.
 
 .. autosummary::
 
-    ImpactSolver
-    CoverageSolver
+    ImpactFormulation
+    CoverageFormulation
 """
 
 from __future__ import print_function, division
@@ -23,7 +23,7 @@ dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
 # ToDo: lookup how to reference a method in rst.
 
 
-class ImpactSolver(object):
+class ImpactFormulation(object):
     """
     Sensor placement based on minimizing average impact across a set of scenarios.
     """
@@ -122,7 +122,7 @@ class ImpactSolver(object):
         """
         Returns the Pyomo model. 
         
-        See :py:meth:`ImpactSolver.solve` for more information on parameters.
+        See :py:meth:`ImpactFormulation.solve` for more information on parameters.
         
         Returns
         -------
@@ -163,7 +163,7 @@ class ImpactSolver(object):
         if use_sensor_cost:
             if sensor is None:
                 raise ValueError(
-                    'ImpactSolver formulation: use_sensor_cost cannot be '
+                    'ImpactFormulation: use_sensor_cost cannot be '
                     'True if "sensor" DataFrame is not provided.')
             cu._df_columns_required('sensor', sensor,
                                     {'Cost': [np.float64, np.int64]})
@@ -372,7 +372,7 @@ class ImpactSolver(object):
         """
         Solves the Pyomo model created to perform the sensor placement.
 
-        See :py:meth:`ImpactSolver.solve` for more information on parameters.
+        See :py:meth:`ImpactFormulation.solve` for more information on parameters.
         """
         if self._model is None:
             raise RuntimeError('Cannot call solve_pyomo_model before the model'
@@ -392,7 +392,7 @@ class ImpactSolver(object):
         Creates a dictionary representing common summary information about the
         solution from a Pyomo model object that has already been solved.
 
-        See :py:meth:`ImpactSolver.solve` for more information on the solution summary.
+        See :py:meth:`ImpactFormulation.solve` for more information on the solution summary.
         
         Returns
         -------
@@ -459,7 +459,7 @@ class ImpactSolver(object):
                  'Assessment': selected_impact}
 
 
-class CoverageSolver(object):
+class CoverageFormulation(object):
     """
     Sensor placement based on maximizing coverage of a set of entities.
     An 'entity' can represent geographic areas, scenarios, or scenario-time pairs.
@@ -555,7 +555,7 @@ class CoverageSolver(object):
         """
         Returns the Pyomo model. 
         
-        See :py:meth:`CoverageSolver.solve` for more information on parameters.
+        See :py:meth:`CoverageFormulation.solve` for more information on parameters.
         
         Returns
         -------
@@ -569,7 +569,7 @@ class CoverageSolver(object):
         entity_list = None
         if entities is None:
             if use_entity_weight:
-                raise ValueError('CoverageSolver formulation: use_entity_weight cannot be True if'
+                raise ValueError('CoverageFormulation: use_entity_weight cannot be True if'
                                  '"entities" DataFrame is not provided.')
             # build the list of entities from the coverage DataFrame
             covered_items = coverage['Coverage'].tolist()
@@ -577,10 +577,10 @@ class CoverageSolver(object):
         else:
             entity_list = sorted(entities['Entity'].unique())
 
-        # TODO: Add DataFrame column checks like in the ImpactSolver
+        # TODO: Add DataFrame column checks like in the ImpactFormulation
 
         if sensor is None and use_sensor_cost:
-            raise ValueError('CoverageSolver: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
+            raise ValueError('CoverageFormulation: use_sensor_cost cannot be True if "sensor" DataFrame is not provided.')
 
         # Always get sensor list from coverage DataFrame in case there are
         # sensors in the sensor DataFrame that didn't detect anything and
@@ -625,7 +625,7 @@ class CoverageSolver(object):
 
         if sensor_budget is None:
             if use_sensor_cost:
-                raise ValueError('CoverageSolver: sensor_budget must be specified if use_sensor_cost is set to True.')
+                raise ValueError('CoverageFormulation: sensor_budget must be specified if use_sensor_cost is set to True.')
             sensor_budget = len(sensor_list) # no sensor budget provided - allow all sensors
         model.sensor_budget = pe.Param(initialize=sensor_budget, mutable=True)
 
@@ -646,7 +646,7 @@ class CoverageSolver(object):
         """
         Solves the Pyomo model created to perform the sensor placement.
 
-        See :py:meth:`CoverageSolver.solve` for more information on parameters.
+        See :py:meth:`CoverageFormulation.solve` for more information on parameters.
         """
 
         if self._model is None:
@@ -670,7 +670,7 @@ class CoverageSolver(object):
         Creates a dictionary representing common summary information about the
         solution from a Pyomo model object that has already been solved.
 
-        See :py:meth:`CoverageSolver.solve` for more information on the solution summary.
+        See :py:meth:`CoverageFormulation.solve` for more information on the solution summary.
  
         Returns
         -------
@@ -718,174 +718,6 @@ class CoverageSolver(object):
                 'TotalSensorCost': pe.value(model.total_sensor_cost),
                 'EntityAssessment': entity_assessment,
                 'SensorAssessment': sensor_assessment}
-
-
-class _ScenarioCoverageSolver(CoverageSolver):
-    """
-    A wrapper around the CoverageSolver that provides an interface to
-    sensor placement based on maximizing coverage over a set of scenarios.
-    """
-    def __init__(self):
-        super(ScenarioCoverageSolver,self).__init__()
-
-    def solve(self, coverage, sensor=None, scenario=None, sensor_budget=None,
-              use_sensor_cost=False, use_scenario_probability=False, redundancy=0,
-              coverage_col_name='Coverage', mip_solver_name='glpk', pyomo_options=None,
-              solver_options=None):
-        """
-        Solves the sensor placement optimization by maximizing scenario coverage.
-
-        Parameters
-        ----------
-        coverage : pandas DataFrame
-            Coverage data. Coverage is stored as a pandas DataFrame with columns
-            **Sensor** and **Coverage**.  Each row contains a list of scenarios 
-            that are covered by single sensor. The column name for Coverage can also be 
-            specified by the user using the argument 'coverage_col_name'.
-        sensor : pandas DataFrame
-            Sensor characteristics. Contains sensor cost for each sensor.
-            Sensor characteristics are stored as a pandas DataFrame with
-            columns **Sensor** and **Cost**. Cost is used in the sensor placement
-            optimization if the 'use_sensor_cost' flag is set to True.
-        scenario : pandas DataFrame
-            Scenario characteristics.  Contains scenario probability 
-            (or any other weights for the scenarios). Scenario characteristics are
-            stored as a pandas DataFrame with columns **Scenario**
-            and **Probability**. Probability is used if the
-            'use_scenario_probability' flag is set to True.
-        sensor_budget : float
-            The total budget available for purchase/installation of sensors.
-            Solution will select a family of sensors whose combined cost is
-            below the sensor_budget. For a simple sensor budget of N sensors,
-            set this to N and the 'use_sensor_cost' to False.
-        use_sensor_cost : bool
-            Boolean indicating if sensor cost should be used in the
-            optimization. If False, sensors have equal cost of 1.
-        use_scenario_probability : bool
-            Boolean indicating if scenario probability should be used in the 
-            optimization. If False, scenarios have equal probability.
-        redundancy : int
-            Redundancy level. A value of 0 means only one sensor is required to 
-            covered a scenario, whereas a value of 1 means two sensors must 
-            cover an scenario before it considered covered.
-        coverage_col_name : str
-            The name of the column containing the coverage data to be used
-            in the objective function.
-        mip_solver_name : str
-            Optimization solver name passed to Pyomo. The solver must be
-            supported by Pyomo and support solution of mixed-integer
-            programming problems.
-        pyomo_options : dict
-            Keyword arguments to be passed to the Pyomo solver .solve method
-            Defaults to an empty dictionary.
-        solver_options : dict
-            Solver specific options to pass through Pyomo to the underlying solver.
-            Defaults to an empty dictionary.
-
-        Returns
-        -------
-        A dictionary with the following keys:
-            * Sensors: A list of the selected sensors
-            * Objective: The mean coverage based on the selected sensors
-            * FractionDetected: the fraction of entities that are detected
-            * EntityAssessment: a dictionary whose keys are the scenario names, 
-              and values are a list of sensors that detect that scenario
-            * SensorAssessment: a dictionary whose keys are the sensor names, 
-              and values are the list of scenarios that are detected by that sensor
-        """
-        
-        if scenario is not None:
-            scenario = scenario.copy()
-            scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
-
-        return super(ScenarioCoverageSolver,self).solve(coverage, sensor=sensor, entities=scenario,
-                                                 sensor_budget=sensor_budget, use_sensor_cost=use_sensor_cost,
-                                                 use_entity_weight=use_scenario_probability, redundancy=redundancy,
-                                                 coverage_col_name=coverage_col_name, mip_solver_name=mip_solver_name,
-                                                 pyomo_options=pyomo_options, solver_options=solver_options)
-
-
-class _GeographicCoverageSolver(CoverageSolver):
-    """
-    A wrapper around the CoverageSolver that provides an interface to
-    sensor placement based on maximizing coverage over geographic locations.
-    """
-    def __init__(self):
-        super(GeographicCoverageSolver,self).__init__()
-
-    def solve(self, coverage, sensor=None, geo_loc=None, sensor_budget=None,
-              use_sensor_cost=False, use_geo_loc_weights=False, redundancy=0,
-              coverage_col_name='Coverage', mip_solver_name='glpk', pyomo_options=None,
-              solver_options=None):
-        """
-        Solves the sensor placement optimization maximizing geographic coverage.
-
-        Parameters
-        ----------
-        coverage : pandas DataFrame
-            Coverage data. Coverage is stored as a pandas DataFrame with columns
-            **Sensor** and **Coverage**.  Each row contains a list of locations 
-            that are covered by single sensor. The column name for Coverage can also be 
-            specified by the user using the argument 'coverage_col_name'.
-        sensor : pandas DataFrame
-            Sensor characteristics.  Contains sensor cost for each sensor.
-            Sensor characteristics are stored as a pandas DataFrame with
-            columns 'Sensor' and 'Cost'. Cost is used in the sensor
-            placement optimization if the 'use_sensor_cost' flag is set to True.
-        geo_loc : pandas DataFrame
-            Characteristics of the geographic areas. This DataFrame has two
-            columns. 'Location' contains the names of the geographic locations, and
-            'Weight' contains the weighting (priority) for each of the geographic
-            locations. This DataFrame is only required (and 'Weight' is only used) if the
-            'use_geo_loc_weights' flag is set to True.
-        sensor_budget : float
-            The total budget available for purchase/installation of sensors.
-            Solution will select a family of sensors whose combined cost is
-            below the sensor_budget. For a simple sensor budget of N sensors,
-            set this to N and the 'use_sensor_cost' to False.
-        use_sensor_cost : bool
-            Boolean indicating if sensor cost should be used in the optimization.
-            If False, sensors have equal cost of 1.
-        use_geo_loc_weights : bool
-            Boolean indicating if weighting priorities for the geographic locations
-            (specified in the geo_loc DataFrame) should be used.
-            If False, all locations have equal weight.
-        coverage_col_name : str
-            The name of the column in coverage containing the coverage data (list of scenario names detected).
-        mip_solver_name : str
-            Optimization solver name passed to Pyomo. The solver must be
-            supported by Pyomo and support solution of mixed-integer
-            programming problems.
-        pyomo_options : dict
-            Keyword arguments to be passed to the Pyomo solver .solve method
-            Defaults to an empty dictionary.
-        solver_options : dict
-            Solver specific options to pass through Pyomo to the underlying solver.
-            Defaults to an empty dictionary.
-
-        Returns
-        -------
-        A dictionary with the following keys:
-            * Sensors: A list of the selected sensors
-            * Objective: The mean impact based on the selected sensors
-            * FractionDetected: the fraction of all entities that are detected
-            * EntityAssessment: a dictionary whose keys are the entity names, and values are a list of sensors
-               that detect that entity
-            * SensorAssessment: a dictionary whose keys are the sensor names, and values are the list of entities
-              that are detected by that sensor
-        """
-		
-        if geo_loc is not None:
-            geo_loc.rename(columns={'Location':'Entity'}, inplace=True)
-
-        return super(ScenarioCoverageSolver, self).solve(coverage, sensor=sensor, entities=geo_loc,
-                                                         sensor_budget=sensor_budget, use_sensor_cost=use_sensor_cost,
-                                                         use_entity_weight=use_geo_loc_weights,
-                                                         redundancy=redundancy,
-                                                         coverage_col_name=coverage_col_name,
-                                                         mip_solver_name=mip_solver_name,
-                                                         pyomo_options=pyomo_options, solver_options=solver_options)
-
 
 def _solve_pyomo_model(model, mip_solver_name='glpk', pyomo_options=None, solver_options=None):
     """

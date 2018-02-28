@@ -126,9 +126,8 @@ def detection_time_to_impact(detection_time, impact_data):
     """
     Coverts detection time to an impact/damage metric.
     
-    The impact DataFrame returned from this function can be used as input to a
-    chama :py:class:`ImpactSolver<chama.optimization.ImpactSolver>`, an
-    impact-based sensor placement solver.
+    The impact DataFrame returned from this function can be used as input to
+    :py:class:`ImpactFormulation<chama.optimization.ImpactFormulation>`.
     
     Parameters
     ----------
@@ -166,9 +165,8 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario',
     """
     Converts a detection times DataFrame to a coverage DataFrame
 
-    The returned coverage DataFrame can be used for input to a chama
-    :py:class:`CoverageSolver<chama.optimization.CoverageSolver>`, a
-    coverage-based sensor placement solver.
+    The returned coverage DataFrame can be used for input to a
+    :py:class:`CoverageFormulation<chama.optimization.CoverageFormulation>`.
 
     Parameters
     ----------
@@ -273,9 +271,8 @@ def impact_to_coverage(impact, impact_col_name='Impact'):
     """
     Convert an impact DataFrame to a coverage DataFrame
 
-    The returned coverage DataFrame can be used for input to a chama
-    :py:class:`CoverageSolver<chama.optimization.CoverageSolver>`, a
-    coverage-based sensor placement solver.
+    The returned coverage DataFrame can be used for input to a
+    :py:class:`CoverageFormulation<chama.optimization.CoverageFormulation>`.
 
     Parameters
     ----------

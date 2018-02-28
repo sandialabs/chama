@@ -14,6 +14,8 @@ placement optimization formulations. The formulations are written in Pyomo
 used by default. Additional optimization formulations could be added to this
 module. 
 
+.. _impactform:
+
 Impact Formulation
 ------------------
 
@@ -44,7 +46,7 @@ where:
 
 * :math:`\alpha_a` is the probability of occurrence for scenario :math:`a`
 
-* :math:`d_{ai}` is the impact coefficient, and represents some measure
+* :math:`d_{ai}` is the impact assessment, and represents some measure
   of the impact that will be incurred if scenario :math:`a` is first
   detected by sensor :math:`i`
 
@@ -70,7 +72,7 @@ used to place sensors in large water distribution networks [BHPU06]_ [USEPA12]_
 [USEPA15]_ and for gas detection in petrochemical facilities [LBSW12]_.
 
 To use this formulation in Chama, create an
-:py:class:`ImpactSolver<chama.optimize.ImpactSolver>` object and
+:py:class:`ImpactFormulation<chama.optimize.ImpactFormulation>` object and
 specify the impact assessment, :math:`d_{ai}`, sensor budget, :math:`p`, and
 (optionally) sensor cost, :math:`c_i` and the scenario probability,
 :math:`\alpha_a`, as described below:
@@ -105,14 +107,17 @@ Results are stored in a dictionary with the following information:
 
 * Objective: The expected (mean) impact based on the selected sensors
 
+* FractionDetected: The fraction of scenarios that were detected
+
+* TotalSensorCost: Total cost of the selected sensors
+
 * Assessment: The impact value for each sensor-scenario pair.
   The assessment is stored as a Pandas DataFrame with columns 'Scenario',
   'Sensor', and 'Impact' (same format as the input Impact assessment')
   If the selected sensors did not detect a particular scenario, the impact is
   set to the Undetected Impact.
-  
-The following example demonstrates the use of the
-:py:class:`ImpactSolver<chama.optimize.ImpactSolver>`.
+			  
+The following example demonstrates the use of the Impact Formulation.
 
 .. doctest::
     :hide:
@@ -154,8 +159,8 @@ The following example demonstrates the use of the
     1       S2              250.0         0.60
     2       S3              100.0         0.15
 	
-    >>> impactsolver = chama.optimize.ImpactSolver()
-    >>> results = impactsolver.solve(impact=min_det_time, sensor_budget=200,
+    >>> impactform = chama.optimize.ImpactFormulation()
+    >>> results = impactform.solve(impact=min_det_time, sensor_budget=200,
     ...                              sensor=sensor, scenario=scenario,
     ...                              use_scenario_probability=True,
     ...                              use_sensor_cost=True)
@@ -171,6 +176,8 @@ The following example demonstrates the use of the
     2       S3   None   100.0
 
 
+.. _coverageform:
+	
 Coverage Formulation
 --------------------
 
@@ -212,7 +219,7 @@ binary variables is a function of the number of candidate sensors and not the
 number of entities considered.
 
 To use this formulation in Chama, create a
-:py:class:`CoverageSolver<chama.optimize.CoverageSolver>` object and
+:py:class:`CoverageFormulation<chama.optimize.CoverageFormulation>` object and
 specify the coverage, :math:`{\cal L_a}`, sensor budget, :math:`p`, and
 (optionally) sensor cost, :math:`c_i` and the entity weights,
 :math:`\alpha_a`, as described below:
@@ -251,8 +258,7 @@ Results are stored in a dictionary with the following information:
 * SensorAssessment: A dictionary whose keys are the sensor names and values
   are the list of entities that are detected by that sensor
 
-The following example demonstrates the use of the
-:py:class:`CoverageSolver<chama.optimize.CoverageSolver>` to solve for
+The following example demonstrates the use of the Coverage Formulation to solve for
 scenario-time coverage. The results list scenario-time pairs that were detected
 by the sensor placement (listed as 'scenario-time').
 
@@ -296,9 +302,9 @@ by the sensor placement (listed as 'scenario-time').
 
     >>> new_scenario = new_scenario.rename(columns={'Scenario':'Entity',
     ...                                             'Probability':'Weight'})
-    >>> coverage = chama.optimize.CoverageSolver()
-    >>> results = coverage.solve(coverage=scenario_time, sensor_budget=200,
-    ...                          sensor=sensor, entities=new_scenario,
+    >>> coverageform = chama.optimize.CoverageFormulation()
+    >>> results = coverageform.solve(coverage=scenario_time, sensor_budget=200,
+    ...                          sensor=sensor, entity=new_scenario,
     ...                          use_sensor_cost=True)
 	
     >>> print(results['Sensors'])

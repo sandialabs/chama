@@ -44,7 +44,7 @@ def test_water_network_example():
 
     # Solve sensor placement
     sensor_budget = 5
-    solver = chama.optimize.ImpactSolver()
+    solver = chama.optimize.ImpactFormulation()
     results = solver.solve(impact=df_impact, sensor=df_sensor,
                            scenario=df_scenario,
                            sensor_budget=sensor_budget)
@@ -105,7 +105,7 @@ def test_water_network_example_with_scenario_prob():
     # Solve sensor placement
     sensor_budget = 5
     use_prob = False
-    solver = chama.optimize.ImpactSolver()
+    solver = chama.optimize.ImpactFormulation()
     results = solver.solve(impact=df_impact, sensor=df_sensor,
                            scenario=df_scenario, sensor_budget=sensor_budget,
                            use_scenario_probability=use_prob)
@@ -117,7 +117,7 @@ def test_water_network_example_with_scenario_prob():
     assert_list_equal(results['Sensors'], expected_selected_sensors)
     
     use_prob = True
-    solver = chama.optimize.ImpactSolver()
+    solver = chama.optimize.ImpactFormulation()
     results = solver.solve(impact=df_impact, sensor=df_sensor,
                            scenario=df_scenario, sensor_budget=sensor_budget,
                            use_scenario_probability=use_prob)
@@ -158,7 +158,7 @@ def test_water_network_example_with_grouping_constraint():
 
     # Solve sensor placement
     sensor_budget = 5
-    solver = chama.optimize.ImpactSolver()
+    solver = chama.optimize.ImpactFormulation()
 
     model = solver.create_pyomo_model(impact=df_impact, sensor=df_sensor,
                                       scenario=df_scenario)
@@ -199,7 +199,7 @@ def test_detection_times_to_coverage_time():
                                  'Probability': 'Weight'},
                         inplace=True)
     
-    solver = chama.optimize.CoverageSolver()
+    solver = chama.optimize.CoverageFormulation()
     results = solver.solve(coverage=coverage, entities=new_scenario,
                            sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
@@ -219,7 +219,7 @@ def test_detection_times_to_coverage_time():
                                  'Probability': 'Weight'},
                         inplace=True)
     
-    solver = chama.optimize.CoverageSolver()
+    solver = chama.optimize.CoverageFormulation()
     results = solver.solve(coverage=coverage, entities=new_scenario,
                            sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
@@ -239,7 +239,7 @@ def test_detection_times_to_coverage_scenario():
     coverage = chama.impact.detection_times_to_coverage(
         detection_times=detection_times, coverage_type='scenario')
 
-    solver = chama.optimize.CoverageSolver()
+    solver = chama.optimize.CoverageFormulation()
     results = solver.solve(coverage=coverage, sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
 
@@ -254,7 +254,7 @@ def test_detection_times_to_coverage_scenario():
                                  'Probability': 'Weight'},
                         inplace=True)
         
-    solver = chama.optimize.CoverageSolver()
+    solver = chama.optimize.CoverageFormulation()
     results = solver.solve(coverage=coverage, entities=new_scenario,
                            sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
@@ -270,7 +270,7 @@ def test_coverage_solver():
     coverage = pd.DataFrame(coverage_dict_reform)
 
     # test basic solve - should choose A and D
-    cov_opt = chama.optimize.CoverageSolver()
+    cov_opt = chama.optimize.CoverageFormulation()
     results = cov_opt.solve(coverage=coverage, sensor_budget=2, redundancy=0)
     assert_list_equal(sorted(results['Sensors']), ['A', 'D'])
     assert_almost_equal(results['FractionDetected'], 1.0, places=4)

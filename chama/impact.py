@@ -7,7 +7,7 @@ times to impact and coverage metrics.
 
 .. autosummary::
 
-    detection_times
+    extract_detection_times
     detection_time_stats
     detection_time_to_impact
     detection_times_to_coverage

@@ -21,6 +21,7 @@ from scipy.spatial import ConvexHull
 import numpy as np
 from chama.sensors import Mobile
 
+
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
                       colormap=plt.cm.viridis, 
                       x_range=(None, None), y_range=(None, None),
@@ -339,7 +340,7 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
 
 
 def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
-            z_range=(None, None), legend=False):
+                     z_range=(None, None), legend=False):
     """
     Plots sensor locations.
     
@@ -367,7 +368,7 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
             x = [val[0] for val in position.location]
             y = [val[1] for val in position.location]
             z = [val[2] for val in position.location]
-            ax.plot(x, y, z,label=name)            
+            ax.plot(x, y, z, label=name)
         else:
             x = position.location[0]
             y = position.location[1]

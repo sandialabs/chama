@@ -9,7 +9,8 @@ import six
 testdir = dirname(abspath(__file__))
 datadir = join(testdir, 'data')
 
-# ToDo: Add tests that verify the dataframes passed in are the same after the calls
+# ToDo: Add tests that verify the dataframes passed in are the same after solve
+
 
 def test_water_network_example():
     # This test replicates WST sp_ex1
@@ -44,7 +45,8 @@ def test_water_network_example():
     # Solve sensor placement
     sensor_budget = 5
     solver = chama.optimize.ImpactSolver()
-    results = solver.solve(impact=df_impact, sensor=df_sensor, scenario=df_scenario,
+    results = solver.solve(impact=df_impact, sensor=df_sensor,
+                           scenario=df_scenario,
                            sensor_budget=sensor_budget)
     print(results)
 
@@ -63,8 +65,8 @@ def test_water_network_example_with_scenario_prob():
     
     # read the impact file from the water simulations
     impact_data = pd.read_csv(impact_file, skiprows=2, sep=' ',
-                               usecols=[0, 1, 3],
-                               names=['Scenario', 'Sensor', 'Impact'])
+                              usecols=[0, 1, 3],
+                              names=['Scenario', 'Sensor', 'Impact'])
 
     # convert the scenario names to strings
     impact_data['Scenario'] = impact_data['Scenario'].apply(str)
@@ -104,7 +106,8 @@ def test_water_network_example_with_scenario_prob():
     sensor_budget = 5
     use_prob = False
     solver = chama.optimize.ImpactSolver()
-    results = solver.solve(impact=df_impact, sensor=df_sensor, scenario=df_scenario, sensor_budget=sensor_budget,
+    results = solver.solve(impact=df_impact, sensor=df_sensor,
+                           scenario=df_scenario, sensor_budget=sensor_budget,
                            use_scenario_probability=use_prob)
     expected_objective_value = 8760.59
     expected_selected_sensors = ["16", "21", "28", "38", "65"]
@@ -115,8 +118,9 @@ def test_water_network_example_with_scenario_prob():
     
     use_prob = True
     solver = chama.optimize.ImpactSolver()
-    results = solver.solve(impact=df_impact, sensor=df_sensor, scenario=df_scenario,
-                           sensor_budget=sensor_budget, use_scenario_probability=use_prob)
+    results = solver.solve(impact=df_impact, sensor=df_sensor,
+                           scenario=df_scenario, sensor_budget=sensor_budget,
+                           use_scenario_probability=use_prob)
     expected_objective_value = 9146.646
     expected_selected_sensors = ["16", "19", "38", "65", "68"]
     error = abs((results['Objective'] -
@@ -186,28 +190,40 @@ def test_detection_times_to_coverage_time():
 
     # test coverage with no probabilities
     coverage, new_scenario = \
-        chama.impact.detection_times_to_coverage(detection_times=detection_times,
-                                                 coverage_type='scenario-time')
+        chama.impact.detection_times_to_coverage(
+            detection_times=detection_times,
+            coverage_type='scenario-time',
+            scenario=scenario)
     
-    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+    new_scenario.rename(columns={'Scenario': 'Entity',
+                                 'Probability': 'Weight'},
+                        inplace=True)
     
     solver = chama.optimize.CoverageSolver()
-    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1)
+    results = solver.solve(coverage=coverage, entities=new_scenario,
+                           sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
     # should do the same
     results = solver.solve(coverage=coverage, sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
 
-    # test coverage with probabilities - should be 'B' since scenario S3 is so much more likely
+    # test coverage with probabilities - should be 'B' since scenario S3 is so
+    # much more likely
     coverage, new_scenario = \
-        chama.impact.detection_times_to_coverage(detection_times=detection_times, scenario=scenario,
-                                                 coverage_type='scenario-time')
+        chama.impact.detection_times_to_coverage(
+            detection_times=detection_times,
+            scenario=scenario,
+            coverage_type='scenario-time')
         
-    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+    new_scenario.rename(columns={'Scenario': 'Entity',
+                                 'Probability': 'Weight'},
+                        inplace=True)
     
     solver = chama.optimize.CoverageSolver()
-    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1, use_entity_weight=True)
+    results = solver.solve(coverage=coverage, entities=new_scenario,
+                           sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
+
 
 def test_detection_times_to_coverage_scenario():
     scenario = pd.DataFrame({
@@ -220,25 +236,33 @@ def test_detection_times_to_coverage_scenario():
         'Detection Times': [[2, 3, 4], [3], [4, 5]]})
 
     # test coverage with no probabilities
-    coverage = chama.impact.detection_times_to_coverage(detection_times=detection_times,
-                                                        coverage_type='scenario')
+    coverage = chama.impact.detection_times_to_coverage(
+        detection_times=detection_times, coverage_type='scenario')
 
     solver = chama.optimize.CoverageSolver()
     results = solver.solve(coverage=coverage, sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
 
-    # test coverage with probabilities - should be 'B' since scenario S3 is so much more likely
+    # test coverage with probabilities - should be 'B' since scenario S3 is so
+    # much more likely
     coverage, new_scenario = \
-        chama.impact.detection_times_to_coverage(detection_times=detection_times, scenario=scenario,
-                                                 coverage_type='scenario-time')
-    new_scenario.rename(columns={'Scenario':'Entity', 'Probability':'Weight'},inplace=True)
+        chama.impact.detection_times_to_coverage(
+            detection_times=detection_times,
+            scenario=scenario,
+            coverage_type='scenario-time')
+    new_scenario.rename(columns={'Scenario': 'Entity',
+                                 'Probability': 'Weight'},
+                        inplace=True)
         
     solver = chama.optimize.CoverageSolver()
-    results = solver.solve(coverage=coverage, entities=new_scenario, sensor_budget=1, use_entity_weight=True)
+    results = solver.solve(coverage=coverage, entities=new_scenario,
+                           sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
 
+
 def test_coverage_solver():
-    coverage_dict = {'A': [1, 2, 3], 'B': [1,2], 'C': [3,5], 'D': [4,5], 'E': [2]}
+    coverage_dict = {'A': [1, 2, 3], 'B': [1, 2], 'C': [3, 5],
+                     'D': [4, 5], 'E': [2]}
     coverage_dict_reform = {'Sensor': [], 'Coverage': []}
     for key, value in six.iteritems(coverage_dict):
         coverage_dict_reform['Sensor'].append(key)
@@ -249,30 +273,33 @@ def test_coverage_solver():
     cov_opt = chama.optimize.CoverageSolver()
     results = cov_opt.solve(coverage=coverage, sensor_budget=2, redundancy=0)
     assert_list_equal(sorted(results['Sensors']), ['A', 'D'])
-    assert_almost_equal(results['FractionDetected'],1.0,places=4)
+    assert_almost_equal(results['FractionDetected'], 1.0, places=4)
 
     # test redundancy - should choose A and B
     results = cov_opt.solve(coverage=coverage, sensor_budget=2, redundancy=1)
     assert_list_equal(sorted(results['Sensors']), ['A', 'B'])
-    assert_almost_equal(results['FractionDetected'],0.4,places=4)
+    assert_almost_equal(results['FractionDetected'], 0.4, places=4)
 
     # test sensor cost - should choose A and C
     sensor_dict = {'Sensor': ['A', 'B', 'C', 'D', 'E'],
                    'Cost': [100.0, 1000.0, 10.0, 10.0, 100.0]
                    }
     sensor = pd.DataFrame(sensor_dict)
-    results = cov_opt.solve(coverage=coverage, sensor=sensor, sensor_budget=115.0,
-                            redundancy=1, use_sensor_cost=True)
+    results = cov_opt.solve(coverage=coverage, sensor=sensor,
+                            sensor_budget=115.0, redundancy=1,
+                            use_sensor_cost=True)
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])
-    assert_almost_equal(results['FractionDetected'],0.2,places=4)
+    assert_almost_equal(results['FractionDetected'], 0.2, places=4)
 
-    # test additional entities - should choose A and C, but with FractionDetected = 0.125
+    # test additional entities - should choose A and C, but with
+    # FractionDetected = 0.125
     entity_dict = {'Entity': [1, 2, 3, 4, 5, 6, 7, 8]}
     entities = pd.DataFrame(entity_dict)
-    results = cov_opt.solve(coverage=coverage, sensor=sensor, sensor_budget=115.0,
-                            entities=entities, redundancy=1, use_sensor_cost=True)
+    results = cov_opt.solve(coverage=coverage, sensor=sensor,
+                            sensor_budget=115.0, entities=entities,
+                            redundancy=1, use_sensor_cost=True)
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])
-    assert_almost_equal(results['FractionDetected'],0.125,places=4)
+    assert_almost_equal(results['FractionDetected'], 0.125, places=4)
 
     # test entity weights - should choose A and C, with FractionDetected = 0.2
     entity_dict = {'Entity': [1, 2, 3, 4, 5],
@@ -280,19 +307,13 @@ def test_coverage_solver():
                    }
     entities = pd.DataFrame(entity_dict)
     results = cov_opt.solve(coverage=coverage, sensor_budget=2,
-                            entities=entities, redundancy=1, use_entity_weight=True)
+                            entities=entities, redundancy=1,
+                            use_entity_weight=True)
 
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])
-    assert_almost_equal(results['FractionDetected'],0.2,places=4)
-
-"""
-def solve(self, coverage, formulation='max-coverage', sensor=None, entities=None, sensor_budget=None,
-              use_sensor_cost=None, use_entity_weight=False, redundancy=0, coverage_col_name='Coverage',
-              mip_solver_name='glpk', pyomo_options=None, solver_options=None):
-"""
+    assert_almost_equal(results['FractionDetected'], 0.2, places=4)
 
 if __name__ == '__main__':
-#    test_water_network_example()
-#    test_detection_times_to_coverage_scenario()
+    test_water_network_example()
+    test_detection_times_to_coverage_scenario()
     test_coverage_solver()
-

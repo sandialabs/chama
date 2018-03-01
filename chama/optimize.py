@@ -467,7 +467,7 @@ class CoverageFormulation(object):
     def __init__(self):
         self._model = None
 
-    def solve(self, coverage, sensor=None, entities=None, sensor_budget=None,
+    def solve(self, coverage, sensor=None, entity=None, sensor_budget=None,
               use_sensor_cost=None, use_entity_weight=False, redundancy=0, coverage_col_name='Coverage',
               mip_solver_name='glpk', pyomo_options=None, solver_options=None):
         """
@@ -485,7 +485,7 @@ class CoverageFormulation(object):
             Sensor characteristics are stored as a pandas DataFrame with
             columns **Sensor** and **Cost**. Cost is used in the sensor placement
             optimization if the 'use_sensor_cost' flag is set to True.
-        entities : pandas DataFrame
+        entity : pandas DataFrame
             Entity characteristics. Contains entity weights. 
             Entity characteristics are stored as a pandas DataFrame with columns 
             **Entity** and **Weight**. Weight is used if the
@@ -532,7 +532,7 @@ class CoverageFormulation(object):
               and values are the list of entities that are detected by that sensor
         """
 		
-        self.create_pyomo_model(coverage=coverage, sensor=sensor, entities=entities,
+        self.create_pyomo_model(coverage=coverage, sensor=sensor, entity=entity,
                                 sensor_budget=sensor_budget, use_sensor_cost=use_sensor_cost,
                                 use_entity_weight=use_entity_weight, redundancy=redundancy,
                                 coverage_col_name=coverage_col_name)
@@ -550,7 +550,7 @@ class CoverageFormulation(object):
         return results_dict
 
 
-    def create_pyomo_model(self, coverage, sensor=None, entities=None, sensor_budget=None, use_sensor_cost=False,
+    def create_pyomo_model(self, coverage, sensor=None, entity=None, sensor_budget=None, use_sensor_cost=False,
                            use_entity_weight=False, redundancy=0, coverage_col_name='Coverage'):
         """
         Returns the Pyomo model. 
@@ -567,15 +567,15 @@ class CoverageFormulation(object):
         self._model= model = pe.ConcreteModel()
 
         entity_list = None
-        if entities is None:
+        if entity is None:
             if use_entity_weight:
                 raise ValueError('CoverageFormulation: use_entity_weight cannot be True if'
-                                 '"entities" DataFrame is not provided.')
+                                 '"entity" DataFrame is not provided.')
             # build the list of entities from the coverage DataFrame
             covered_items = coverage['Coverage'].tolist()
             entity_list = sorted(cu._unique_items_from_list_of_lists(covered_items))
         else:
-            entity_list = sorted(entities['Entity'].unique())
+            entity_list = sorted(entity['Entity'].unique())
 
         # TODO: Add DataFrame column checks like in the ImpactFormulation
 
@@ -612,7 +612,7 @@ class CoverageFormulation(object):
         model.y = pe.Var(model.sensor_list, within=pe.Binary)
 
         if use_entity_weight:
-            entity_weights = entities.set_index('Entity')['Weight']
+            entity_weights = entity.set_index('Entity')['Weight']
             model.obj = pe.Objective(expr=sum(float(entity_weights[e])*model.x[e] for e in entity_list), sense=pe.maximize)
         else:
             model.obj = pe.Objective(expr=sum(model.x[e] for e in entity_list), sense=pe.maximize)

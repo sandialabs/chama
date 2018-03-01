@@ -200,7 +200,7 @@ def test_detection_times_to_coverage_time():
                         inplace=True)
     
     solver = chama.optimize.CoverageFormulation()
-    results = solver.solve(coverage=coverage, entities=new_scenario,
+    results = solver.solve(coverage=coverage, entity=new_scenario,
                            sensor_budget=1)
     assert_list_equal(results['Sensors'], ['A'])
     # should do the same
@@ -220,7 +220,7 @@ def test_detection_times_to_coverage_time():
                         inplace=True)
     
     solver = chama.optimize.CoverageFormulation()
-    results = solver.solve(coverage=coverage, entities=new_scenario,
+    results = solver.solve(coverage=coverage, entity=new_scenario,
                            sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
 
@@ -255,7 +255,7 @@ def test_detection_times_to_coverage_scenario():
                         inplace=True)
         
     solver = chama.optimize.CoverageFormulation()
-    results = solver.solve(coverage=coverage, entities=new_scenario,
+    results = solver.solve(coverage=coverage, entity=new_scenario,
                            sensor_budget=1, use_entity_weight=True)
     assert_list_equal(results['Sensors'], ['B'])
 
@@ -294,9 +294,9 @@ def test_coverage_solver():
     # test additional entities - should choose A and C, but with
     # FractionDetected = 0.125
     entity_dict = {'Entity': [1, 2, 3, 4, 5, 6, 7, 8]}
-    entities = pd.DataFrame(entity_dict)
+    entity = pd.DataFrame(entity_dict)
     results = cov_opt.solve(coverage=coverage, sensor=sensor,
-                            sensor_budget=115.0, entities=entities,
+                            sensor_budget=115.0, entity=entity,
                             redundancy=1, use_sensor_cost=True)
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])
     assert_almost_equal(results['FractionDetected'], 0.125, places=4)
@@ -305,9 +305,9 @@ def test_coverage_solver():
     entity_dict = {'Entity': [1, 2, 3, 4, 5],
                    'Weight': [1, 1, 5, 1, 1]
                    }
-    entities = pd.DataFrame(entity_dict)
+    entity = pd.DataFrame(entity_dict)
     results = cov_opt.solve(coverage=coverage, sensor_budget=2,
-                            entities=entities, redundancy=1,
+                            entity=entity, redundancy=1,
                             use_entity_weight=True)
 
     assert_list_equal(sorted(results['Sensors']), ['A', 'C'])

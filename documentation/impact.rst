@@ -179,7 +179,7 @@ Example impact costs associated with each scenario and time:
 
     >>> impact_cost = pd.DataFrame({'T': [0, 10, 20, 30, 40],'S1': [0, 10000, 40000, 80000, 100000],'S2': [0, 5000, 20000, 75000, 90000],'S3': [0, 15000, 50000, 95000, 150000]})
     >>> impact_cost = impact_cost[['T', 'S1','S2', 'S3']]
-    >>> min_det_time = min_det_time.rename(columns={'Impact':'T'})
+    
 
 .. doctest::
 
@@ -191,13 +191,29 @@ Example impact costs associated with each scenario and time:
     3  30   80000  75000   95000
     4  40  100000  90000  150000
 
+Rename the time column in min_det_time to 'T':
+
+.. doctest::
+
+    >>> det_time = min_det_time.rename(columns={'Impact':'T'}, inplace=False)
+    >>> print(det_time)
+      Scenario Sensor   T
+    0       S1      A  30
+    1       S1      B  30
+    2       S1      C  10
+    3       S2      A  10
+    4       S2      B  20
+    5       S2      C  10
+    6       S3      A  20
+    7       S3      B  20
+    8       S3      C  20
+	
 
 Convert minimum detection time to damage cost:
 
 .. doctest::
 
-    >>> impact_metric = chama.impact.detection_time_to_impact(min_det_time,
-    ...                                                       impact_cost)
+    >>> impact_metric = chama.impact.detection_time_to_impact(det_time, impact_cost)
     >>> print(impact_metric)
       Scenario Sensor  Impact
     0       S1      A   80000
@@ -354,7 +370,9 @@ a `scenario` coverage DataFrame.
 
 Recall the impact DataFrame containing minimum detection time from above:
 
->>> print(min_det_time)
+.. doctest::
+
+    >>> print(min_det_time)
       Scenario Sensor  Impact
     0       S1      A      30
     1       S1      B      30
@@ -367,11 +385,6 @@ Recall the impact DataFrame containing minimum detection time from above:
     8       S3      C      20
 	
 Convert the impact DataFrame to a coverage DataFrame:
-
-.. doctest::
-   :hide:
-
-   >>> min_det_time = min_det_time.rename(columns={'T':'Impact'})
 
 .. doctest::
 

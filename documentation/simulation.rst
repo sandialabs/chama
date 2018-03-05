@@ -2,32 +2,39 @@
 
     \newpage
 
-.. _transport:
+.. _simulation:
 
-Transport simulation
-====================
+Simulation
+==========
 
-Chama requires a set of precomputed transport simulations to determine
-optimal sensor placement. The type of transport simulation depends on the
-application and scale of interest. Multiple scenarios should be generated to
-capture uncertainty in the system. For each scenario, a **signal** is recorded.
+Chama uses a set of precomputed simulations to extract the data needed for 
+sensor placement optimization. The type of simulation depends on several factors
+including the application, scale of interest, and the sensor placement objective. 
+In many cases, multiple scenarios should be generated to capture uncertainty 
+in the system. Steady state or transient simulations can be used. 
+For example, while transient simulations are required to minimize time to
+detection, steady state simulations are sufficient to maximize scenario coverage.
+Note that if the sensor placement objective is to maximize geographic coverage, 
+simulations are not required.
 
-For example:
+The following examples illustrate simulations that can be 
+used in a sensor placement optimization problem.
+For each simulation, the **signal** of interest is recorded.  
 
-* **To place sensors to detect a gas leak**, an atmospheric dispersion model can be 
-  used to simulate gas concentrations. Multiple scenarios capture
+* **To place sensors to detect a gas leak**, an atmospheric dispersion model
+  can be used to simulate gas concentrations. Multiple scenarios capture
   uncertainty in the leak rate, leak location, wind speed and direction.
   Depending on the region of interest and the complexity of the system, very
-  detailed or simple models can be used. In this case, the **signal** is
+  detailed or simple models can be used. In this case, the **signal** is gas
   concentration.
 
 * **To place sensors to detect contaminant in a water distribution system**, 
-  a water network model can be used to simulate hydraulics and water quality. 
-  Multiple scenarios capture uncertainty in the location, rate, start time, 
-  and duration of the injection along with uncertainty in customer demands. 
-  EPANET [Ross00]_, WNTR [KHMB17]_, or similar water network simulators, can be 
-  used to run this type of analysis. In this case, the **signal** is 
-  concentration. 
+  a water distribution network model can be used to simulate hydraulics and
+  water quality. Multiple scenarios capture uncertainty in the location, rate,
+  start time, and duration of the injection along with uncertainty in customer
+  demands. EPANET [Ross00]_, WNTR [KHMB17]_, or similar water network
+  simulators, can be used to run this type of analysis. In this case, the
+  **signal** is contaminant concentration.
   
 * **To place sensors to detect a seismic event**, a wave propagation model can
   be used to simulate displacement. Multiple scenarios capture uncertainty
@@ -36,24 +43,27 @@ For example:
   the system, very detailed or simple models can be used. In this case, the
   **signal** is displacement.
   
+Chama uses Pandas DataFrames [Mcki13]_ to store simulation data.
+Pandas includes many functions to easily populate DataFrames from a wide
+range of file formats. For example, DataFrames can be generated from Excel,
+CSV, and SQL files. Simulation data can be stored in XYZ or Node format, as
+described below.
+
 For each scenario, the time, location, and signal are recorded. 
+The time can be set to a uniform value when using steady state simulations.
 The points used to record time and location can be sparse to help reduce
-data size. Chama uses Pandas DataFrames [Mcki13]_ to store the signal data. Pandas
-includes many functions to easily populate DataFrames from a wide range of
-file formats. For example, DataFrames can be generated from Excel, CSV, and
-SQL files. 
-Signal data can be stored in XYZ or Node format, as described below.
+data size. 
 
 XYZ format
-------------
+----------
 In XYZ format, the X, Y, and Z location is stored for each entry.
-In the DataFrame, X, Y, and Z describe the location, T is the simulation time, and Sn is
-the signal for scenario n.  Exact column names must be used for X, Y, Z, and T. 
-The scenario names can be defined by the user.
-When using this format, Chama can interpolate sensor
-measurements that are not represented in the signal data.
-An example signal DataFrame in XYZ format is shown below using a simple 
-2x2x2 system with three time steps and fabricated data for three scenarios.
+In the DataFrame, columns X, Y, and Z describe the location, T is the simulation time,
+and Sn is the signal for scenario n.  Exact column names must be used for X, Y,
+Z, and T. The scenario names can be defined by the user. When using this
+format, Chama can interpolate sensor measurements that are not represented in
+the signal data. An example signal DataFrame in XYZ format is shown below using
+a simple 2x2x2 system with three time steps and fabricated data for three
+scenarios.
 
 .. doctest::
     :hide:
@@ -97,16 +107,15 @@ An example signal DataFrame in XYZ format is shown below using a simple
     23  2  2  2  20  0.00  0.00  0.00
 
 Node format
---------------
-In Node format, a location index is stored for each entry.  The index can 
-be a string, integer, or float.
-This format is useful when working with sparse systems, such as nodes in a networks.
-In the DataFrame, Node is the location index, T is the simulation time, and Sn is
-the signal for scenario n.  Exact column names must be used for Node and T. 
-The scenario names can be defined by the user.
-When using this format, Chama does not interpolate sensor
-measurements and only stationary point sensors can be used to extract detection time.
-An example signal DataFrame in Node format is shown below using 4 nodes
+-----------
+In Node format, a location index is stored for each entry.  The index can be a
+string, integer, or float. This format is useful when working with sparse
+systems, such as nodes in a networks. In the DataFrame, column Node is the location
+index, T is the simulation time, and Sn is the signal for scenario n. Exact
+column names must be used for Node and T. The scenario names can be defined by
+the user. When using this format, Chama does not interpolate sensor
+measurements and only stationary point sensors can be used to extract detection
+time. An example signal DataFrame in Node format is shown below using four nodes
 with three time steps and fabricated data for three scenarios.
 
 .. doctest::
@@ -141,16 +150,16 @@ with three time steps and fabricated data for three scenarios.
 	
 Internal simulation engines
 ---------------------------
-Chama includes methods to run simple Gaussian plume and Gaussian puff atmospheric
-dispersion models [Arya99]_. Both models assume that atmospheric dispersion follows a Gaussian
-distribution. Gaussian plume models are typically used to model steady state plumes,
-while Gaussian puff models are used to model non-continuous sources. 
-The :mod:`chama.transport` module has additional information on
-running the Gaussian plume and Gaussian puff models.
-Note that many atmospheric dispersion applications require more sophisticated models.
+Chama includes methods to run simple Gaussian plume and Gaussian puff
+atmospheric dispersion models [Arya99]_. Both models assume that atmospheric
+dispersion follows a Gaussian distribution. Gaussian plume models are typically
+used to model steady state plumes, while Gaussian puff models are used to model
+non-continuous sources. The :mod:`chama.simulation` module has additional
+information on running the Gaussian plume and Gaussian puff models. Note that
+many atmospheric dispersion applications require more sophisticated models.
 
-The following simple example runs a single Gaussian plume model for a given receptor grid,
-source, and atmospheric conditions.  
+The following simple example runs a single Gaussian plume model for a given
+receptor grid, source, and atmospheric conditions.
 
 Import the required Python packages:
 
@@ -167,13 +176,13 @@ Define the receptor grid:
     >>> x_grid = np.linspace(-100, 100, 21)
     >>> y_grid = np.linspace(-100, 100, 21)
     >>> z_grid = np.linspace(0, 40, 21)
-    >>> grid = chama.transport.Grid(x_grid, y_grid, z_grid)
+    >>> grid = chama.simulation.Grid(x_grid, y_grid, z_grid)
 
 Define the source:
 
 .. doctest::
 
-    >>> source = chama.transport.Source(-20, 20, 1, 1.5)
+    >>> source = chama.simulation.Source(-20, 20, 1, 1.5)
 
 Define the atmospheric conditions:
 
@@ -183,11 +192,12 @@ Define the atmospheric conditions:
     ...                     'Wind Speed': [1.2, 1], 
     ...                     'Stability Class': ['A', 'A']}, index=[0, 10])
 
-Initialize the Gaussian plume model and run (the first 5 rows of the signal DataFrame are printed):
+Initialize the Gaussian plume model and run (the first 5 rows of the signal
+DataFrame are printed):
 
 .. doctest::
 
-    >>> gauss_plume = chama.transport.GaussianPlume(grid, source, atm)
+    >>> gauss_plume = chama.simulation.GaussianPlume(grid, source, atm)
     >>> gauss_plume.run()
     >>> signal = gauss_plume.conc
     >>> print(signal.head(5))
@@ -198,21 +208,21 @@ Initialize the Gaussian plume model and run (the first 5 rows of the signal Data
     3 -100.0 -100.0  6.0  0  0.0
     4 -100.0 -100.0  8.0  0  0.0
 
-The Gaussian Puff model is run in a similar manner.  
-The time between puffs (tpuff) and time at the end of the simulation (tend) must be defined.
+The Gaussian Puff model is run in a similar manner. The time between puffs
+(tpuff) and time at the end of the simulation (tend) must be defined.
 
 Initialize the Gaussian puff model and run:
 
 .. doctest::
 
-    >>> gauss_puff = chama.transport.GaussianPuff(grid, source, atm, tpuff=1, tend=10)
+    >>> gauss_puff = chama.simulation.GaussianPuff(grid, source, atm, tpuff=1, tend=10)
     >>> gauss_puff.run(grid, 10)
     >>> signal = gauss_puff.conc
 
 	
 External simulation engines
 ---------------------------
-Transport simulations can also be generated from a wide range of external
+Simulations can also be generated from a wide range of external
 simulation engines, for example, atmospheric dispersion can be simulated using 
 AERMOD [USEPA04]_ or CALPUFF [ScSY00]_ or using detailed CFD models, transport 
 in pipe networks can be simulated using EPANET [Ross00]_ or WNTR [KHMB17]_, and 

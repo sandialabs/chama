@@ -5,33 +5,35 @@
 .. _optimization:
 
 Optimization
-===========================
+============
 
-The :mod:`chama.optimize` module contains **P-median** and **coverage** sensor
-placement optimization. Additional methods could be added to this
+The :mod:`chama.optimize` module contains **Impact** and **Coverage** sensor
+placement optimization formulations. The formulations are written in Pyomo
+[HLWW12]_ and solved using an open source or commercial solver such as GLPK
+[Makh10]_, Gurobi [GUROBI]_, or CPLEX [CPLEX]_. The open source GLPK solver is
+used by default. Additional optimization formulations could be added to this
 module. 
 
-P-median
---------
+.. _impactform:
 
-The P-median formulation is used to determine optimal sensor
-placement and type that minimizes impact, where impact can be detection time or 
-some other measure of damage.
-The P-median formulation is written in Pyomo [HLWW12]_ and solved
-using open source or commercial solvers.  The open source GLPK solver
-[Makh10]_ is used by default.  
-The P-median sensor placement formulation is described below:
+Impact Formulation
+------------------
+
+The Impact formulation is used to determine optimal sensor placement and
+type that minimizes impact, where impact can be the sensor's detection time
+or some other measure of damage. The Impact formulation, which is based on
+the p-median facility location problem, is described below:
 
 .. math::
-   
+
     \text{minimize} \qquad &\sum_{a \in A} \alpha_a \sum_{i \in {\cal L}_a}
     d_{ai} x_{ai}\\
 	\text{subject to} \qquad &\sum_{i\in {\cal L}_a} x_{ai} = 1 \hspace{1.2in}
     \forall a \in A\\
 	&x_{ai} \le s_i       \hspace{1.47in}  \forall a \in A, i \in {\cal L}_a\\
-	&\sum_{i \in L} c_i s_i \le p\\ 
-	&s_i \in \{0,1\}      \hspace{1.3in}      \forall i \in L\\ 
-	&0 \leq x_{ai} \leq 1 \hspace{1.23in}      \forall a \in A, i \in {\cal L}_a 
+	&\sum_{i \in L} c_i s_i \le p\\
+	&s_i \in \{0,1\}      \hspace{1.3in}      \forall i \in L\\
+	&0 \leq x_{ai} \leq 1 \hspace{1.23in}      \forall a \in A, i \in {\cal L}_a
 
 where:
 
@@ -44,7 +46,7 @@ where:
 
 * :math:`\alpha_a` is the probability of occurrence for scenario :math:`a`
 
-* :math:`d_{ai}` is the impact coefficient, and represents some measure
+* :math:`d_{ai}` is the impact assessment, and represents some measure
   of the impact that will be incurred if scenario :math:`a` is first
   detected by sensor :math:`i`
 
@@ -56,59 +58,66 @@ where:
 * :math:`s_i` is a binary variable that will be 1 if sensor :math:`i` is
   selected, and 0 otherwise
 
-* :math:`c_i` is the cost of sensor :math:`i` 
+* :math:`c_i` is the cost of sensor :math:`i`
 
-* :math:`p` is the sensors budget
+* :math:`p` is the sensor budget
 
-The size of the optimization problem is determined by the number of
-binary variables.  Although :math:`x_{ai}` is a binary indicator
-variable, it is relaxed to be continuous between 0 and 1, and yet it
-always converges to a value of 0 or 1. Therefore, the number of binary
-variables that need to be considered by the solver is a function of the
-number of candidate sensors alone, and not the number of scenarios
-considered.  This formulation has been used to place sensors in large
-water distribution networks [USEPA12]_ and [USEPA15]_ and for gas detection 
-in petrochemical facilities [LBSW12]_.
+The size of the Impact formulation is determined by the number of binary
+variables. Although :math:`x_{ai}` is a binary indicator variable, it is
+relaxed to be continuous between 0 and 1, and yet it always converges to a
+value of 0 or 1. Therefore, the number of binary variables that need to be
+considered by the solver is a function of the number of candidate sensors
+alone, and not the number of scenarios considered.  This formulation has been
+used to place sensors in large water distribution networks [BHPU06]_ [USEPA12]_
+[USEPA15]_ and for gas detection in petrochemical facilities [LBSW12]_.
 
-The user supplies the impact assessment, :math:`d_{ai}`, sensor budget,
-:math:`p`, and (optionally) sensor cost, :math:`c_i` and the
-scenario probability, :math:`\alpha_a`, as described below:
+To use this formulation in Chama, create an
+:py:class:`ImpactFormulation<chama.optimize.ImpactFormulation>` object and
+specify the impact assessment, :math:`d_{ai}`, sensor budget, :math:`p`, and
+(optionally) sensor cost, :math:`c_i` and the scenario probability,
+:math:`\alpha_a`, as described below:
 
-* Impact assessment: A single detection time (or other measure of damage) for 
-  each sensor that detects a scenario.  Impact is stored as a Pandas DataFrmae, 
-  as described in the :ref:`impact` section.  
-  
-* Sensor budget: The number of sensors to place, or total budget for sensors.  If the 
-  'use_sensor_cost' flag is True, the sensor budget is a dollar amount and the optimization
-  uses the cost of individual sensors.  If the 'use_sensor_cost' flag is False (default), 
-  the sensor budget is a number of sensors and the optimization does not use sensor cost.
+* Impact assessment: A single value of impact (detection time or other measure
+  of damage) for each sensor that detects a scenario.  Impact is stored as a
+  Pandas DataFrame, as described in the :ref:`impact` section.
 
-* Sensor characteristics: Sensor characteristics include the cost of each sensor.
-  Sensor characteristics are stored as a Pandas DataFrame with columns 'Sensor' and 'Cost'.  
-  Cost is used in the sensor placement optimization if the 'use_sensor_cost' flag is set to True.  
-  
-* Scenario characteristics: Scenario characteristics include scenario probability and 
-  the impact for undetected scenarios.  
-  Scenario characteristics are stored as a Pandas DataFrame with columns
-  'Scenario', 'Undetected Impact', and 'Probability'.
-  Undetected Impact is required for each scenario. When minimizing detection time, 
-  the undetected impact value can be set to a value larger than time horizon used for the study.
-  Individual scenarios can also be given different undetected impact values.
-  Probability is used if the 'use_scenario_probability' flag is set to True.
-  
+* Sensor budget: The number of sensors to place, or total budget for sensors.
+  If the 'use_sensor_cost' flag is True, the sensor budget is a dollar amount
+  and the optimization uses the cost of individual sensors.  If the
+  'use_sensor_cost' flag is False (default), the sensor budget is a number of
+  sensors and the optimization does not use sensor cost.
+
+* Sensor characteristics: Sensor characteristics include the cost of each
+  sensor. Sensor characteristics are stored as a Pandas DataFrame with columns
+  'Sensor' and 'Cost'. Cost is used in the sensor placement optimization if the
+  'use_sensor_cost' flag is set to True.
+
+* Scenario characteristics: Scenario characteristics include scenario
+  probability and the impact for undetected scenarios. Scenario characteristics
+  are stored as a Pandas DataFrame with columns 'Scenario', 'Undetected Impact'
+  , and 'Probability'. Undetected Impact is required for each scenario. When
+  minimizing detection time, the undetected impact value can be set to a value
+  larger than time horizon used for the study. Individual scenarios can also be
+  given different undetected impact values. Probability is used if the
+  'use_scenario_probability' flag is set to True.
+
 Results are stored in a dictionary with the following information:
 
 * Sensors: A list of selected sensors
 
 * Objective: The expected (mean) impact based on the selected sensors
 
+* FractionDetected: The fraction of scenarios that were detected
+
+* TotalSensorCost: Total cost of the selected sensors
+
 * Assessment: The impact value for each sensor-scenario pair.
-  The assessment is stored as a Pandas DataFrame with columns 'Scenario', 'Sensor', and 
-  'Impact' (same format as the input Impact assessment')
-  If the selected sensors did not detect a particular scenario, the impact is set to 
-  the Undetected Impact.
-  
-The following example demonstrates the use of P-median sensor placement:
+  The assessment is stored as a Pandas DataFrame with columns 'Scenario',
+  'Sensor', and 'Impact' (same format as the input Impact assessment')
+  If the selected sensors did not detect a particular scenario, the impact is
+  set to the Undetected Impact.
+			  
+The following example demonstrates the use of the Impact Formulation.
 
 .. doctest::
     :hide:
@@ -124,12 +133,12 @@ The following example demonstrates the use of P-median sensor placement:
     >>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
     >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                           'Sensor': ['A', 'A', 'B'],
-    ...                           'Impact': [[2, 3, 4], [3], [4, 5, 6, 7]]})
-	>>> det_times = det_times[['Scenario', 'Sensor', 'Impact']]
+    ...                           'Detection Times': [[2, 3, 4], [3], [4, 5, 6, 7]]})
+    >>> det_times = det_times[['Scenario', 'Sensor', 'Detection Times']]
     >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
     ...                              'Sensor': ['A', 'A', 'B'],
     ...                              'Impact': [2.0,3.0,4.0]})
-	>>> min_det_time = min_det_time[['Scenario', 'Sensor', 'Impact']]
+    >>> min_det_time = min_det_time[['Scenario', 'Sensor', 'Impact']]
 	
 .. doctest::
 	
@@ -150,8 +159,11 @@ The following example demonstrates the use of P-median sensor placement:
     1       S2              250.0         0.60
     2       S3              100.0         0.15
 	
-    >>> pmedian = chama.optimize.Pmedian(use_scenario_probability=True, use_sensor_cost=True)
-    >>> results = pmedian.solve(min_det_time, 200, sensor, scenario)
+    >>> impactform = chama.optimize.ImpactFormulation()
+    >>> results = impactform.solve(impact=min_det_time, sensor_budget=200,
+    ...                              sensor=sensor, scenario=scenario,
+    ...                              use_scenario_probability=True,
+    ...                              use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
     ['A']
@@ -163,34 +175,100 @@ The following example demonstrates the use of P-median sensor placement:
     1       S2      A     3.0
     2       S3   None   100.0
 
-Coverage
---------
 
-Sensors can also be placed to maximize coverage.  Coverage uses the P-median formulation
-and translates the impact assessment internally.
-The 'use_sensor_cost' and 'use_scenario_probability' flags can be used with coverage.  
-The user can also select if sensors are placed to maximize scenario coverage or time coverage 
-using the 'coverage_type' flag (set to 'scenario' or 'time').
+.. _coverageform:
+	
+Coverage Formulation
+--------------------
 
-Data requirements for coverage are the same as data requirements for the P-median formulation with the following exceptions:
+The Coverage formulation is used to place sensors that maximize the
+coverage of a set of entities, where an entity can be a scenario, scenario-time
+pair, or geographic location. The Coverage formulation is described below:
 
-* If 'coverage_type' is set to 'time', then the impact assessment must be a list of detection times for 
-  each sensor that detects a scenario.  
+.. math::
 
-* Undetected Impact is not required for each scenario.
+    \text{maximize} \qquad &\sum_{a \in A} \alpha_a x_a \\
+    \text{subject to} \qquad &x_{a} \le \sum_{i \in {\cal L}_a} s_i
+    \hspace{1.15in} \forall a \in A\\
+	&\sum_{i \in L} c_i s_i \le p\\
+	&s_i \in \{0,1\}      \hspace{1.3in}    \forall i \in L\\
+	&0 \leq x_{a} \leq 1 \hspace{1.25in}    \forall a \in A
 
-The following example demonstrates the use of time coverage sensor placement.
-The results list scenario-time pairs that were detected by the sensor placement (listed 
-as a (time, scenario) tuple).  The impact value is 1 if the scenario-time pair was detected, 
-and 0 otherwise. 
+where:
+
+* :math:`A` is the set of all entities
+
+* :math:`L` is the set of all candidate sensors
+
+* :math:`{\cal L_a}` is the set of all sensors that cover entity :math:`a`
+
+* :math:`\alpha_a` is the objective weight of entity :math:`a`
+
+* :math:`x_{a}` is an indicator variable that will be 1 if entity :math:`a`
+  is covered
+
+* :math:`s_i` is a binary variable that will be 1 if sensor :math:`i` is
+  selected, and 0 otherwise
+
+* :math:`c_i` is the cost of sensor :math:`i`
+
+* :math:`p` is the sensor budget
+
+This formulation is similar to the Impact formulation in that the number of
+binary variables is a function of the number of candidate sensors and not the
+number of entities considered.
+
+To use this formulation in Chama, create a
+:py:class:`CoverageFormulation<chama.optimize.CoverageFormulation>` object and
+specify the coverage, :math:`{\cal L_a}`, sensor budget, :math:`p`, and
+(optionally) sensor cost, :math:`c_i` and the entity weights,
+:math:`\alpha_a`, as described below:
+
+* Coverage: A list of entities that are covered by a single sensor. Coverage
+  is stored as a Pandas DataFrame, as described in the :ref:`impact` section.
+
+* Sensor budget: The number of sensors to place, or total budget for sensors.
+  If the 'use_sensor_cost' flag is True, the sensor budget is a dollar amount
+  and the optimization uses the cost of individual sensors.  If the
+  'use_sensor_cost' flag is False (default), the sensor budget is a number of
+  sensors and the optimization does not use sensor cost.
+
+* Sensor characteristics: Sensor characteristics include the cost of each
+  sensor. Sensor characteristics are stored as a Pandas DataFrame with columns
+  'Sensor' and 'Cost'. Cost is used in the sensor placement optimization if the
+  'use_sensor_cost' flag is set to True.
+
+* Entity characteristics: Entity weights stored as a Pandas DataFrame with
+  columns 'Entity' and 'Weight'. Weight is used if the 'use_entity_weight' flag
+  is set to True.
+
+Results are stored in a dictionary with the following information:
+
+* Sensors: A list of selected sensors
+
+* Objective: The mean coverage based on the selected sensors
+
+* FractionDetected: The fraction of entities that are detected
+
+* TotalSensorCost: Total cost of selected sensors
+
+* EntityAssessment: A dictionary whose keys are the entity names and values
+  are a list of sensors that detect that entity
+
+* SensorAssessment: A dictionary whose keys are the sensor names and values
+  are the list of entities that are detected by that sensor
+
+The following example demonstrates the use of the Coverage Formulation to solve for
+scenario-time coverage. The results list scenario-time pairs that were detected
+by the sensor placement (listed as 'scenario-time').
 
 .. doctest::
 
     >>> print(det_times)
-      Scenario Sensor        Impact
-    0       S1      A     [2, 3, 4]
-    1       S2      A           [3]
-    2       S3      B  [4, 5, 6, 7]
+      Scenario Sensor Detection Times
+    0       S1      A       [2, 3, 4]
+    1       S2      A             [3]
+    2       S3      B    [4, 5, 6, 7]
     >>> print(sensor)
       Sensor    Cost
     0      A   100.0
@@ -202,21 +280,59 @@ and 0 otherwise.
     0       S1               48.0         0.25
     1       S2              250.0         0.60
     2       S3              100.0         0.15
-	
-    >>> coverage = chama.optimize.Coverage(use_sensor_cost=True, coverage_type='time')
-    >>> results = coverage.solve(det_times, 200, sensor, scenario)
+    >>> scenario_time, new_scenario = chama.impact.detection_times_to_coverage(
+    ...                                         det_times,
+    ...                                         coverage_type='scenario-time',
+    ...                                         scenario=scenario)
+
+    >>> print(scenario_time)
+      Sensor                          Coverage
+    0      A  [S1-2.0, S1-3.0, S1-4.0, S2-3.0]
+    1      B  [S3-4.0, S3-5.0, S3-6.0, S3-7.0]
+    >>> print(new_scenario)
+      Scenario  Undetected Impact  Probability
+    0   S1-2.0               48.0         0.25
+    1   S1-3.0               48.0         0.25
+    2   S1-4.0               48.0         0.25
+    3   S2-3.0              250.0         0.60
+    4   S3-4.0              100.0         0.15
+    5   S3-5.0              100.0         0.15
+    6   S3-6.0              100.0         0.15
+    7   S3-7.0              100.0         0.15
+
+    >>> new_scenario = new_scenario.rename(columns={'Scenario':'Entity',
+    ...                                             'Probability':'Weight'})
+    >>> coverageform = chama.optimize.CoverageFormulation()
+    >>> results = coverageform.solve(coverage=scenario_time, sensor_budget=200,
+    ...                          sensor=sensor, entity=new_scenario,
+    ...                          use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
-    ['B']
+    ['A']
     >>> print(results['Objective'])
+    4.0
+    >>> print(results['FractionDetected'])
     0.5
-    >>> print(results['Assessment'])
-        Scenario Sensor  Impact
-    0  (4, 'S3')      B     1.0
-    1  (5, 'S3')      B     1.0
-    2  (6, 'S3')      B     1.0
-    3  (7, 'S3')      B     1.0
-    4  (2, 'S1')   None     0.0
-    5  (3, 'S1')   None     0.0
-    6  (3, 'S2')   None     0.0
-    7  (4, 'S1')   None     0.0
+    >>> print(results['SensorAssessment'])  # doctest: +SKIP
+    {'A': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']}
+    >>> print(results['EntityAssessment'])  # doctest: +SKIP
+    {'S3-6.0': [], 'S3-7.0': [], 'S2-3.0': ['A'], 'S1-4.0': ['A'], 'S3-4.0': [], 'S3-5.0': [], 'S1-3.0': ['A'], 'S1-2.0': ['A']}
+
+..
+    The following test checks a subset of the results in the SensorAssessment
+    and the EntityAssessment dictionaries. These cannot be tested using the
+    above print statements because of Python 2/3 compatibility issues and
+    non-deterministic dictionary ordering.
+.. doctest::
+    :hide:
+
+    >>> print(results['SensorAssessment']['A'])
+    ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']
+    >>> print(results['EntityAssessment']['S3-6.0'])
+    []
+    >>> print(results['EntityAssessment']['S3-7.0'])
+    []
+    >>> print(results['EntityAssessment']['S2-3.0'])
+    ['A']
+    >>> print(results['EntityAssessment']['S1-4.0'])
+    ['A']

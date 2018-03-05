@@ -1,5 +1,14 @@
 """
 The graphics module contains graphic functions.
+
+.. rubric:: Contents
+
+.. autosummary::
+
+    signal_convexhull
+    signal_xsection
+    animate_puffs
+    sensor_locations
 """
 from __future__ import print_function, division
 import matplotlib.pyplot as plt
@@ -12,6 +21,7 @@ from scipy.spatial import ConvexHull
 import numpy as np
 from chama.sensors import Mobile
 
+
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
                       colormap=plt.cm.viridis, 
                       x_range=(None, None), y_range=(None, None),
@@ -22,7 +32,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the transport simulation.  
+        Signal data from the simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     scenarios: list
@@ -101,7 +111,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     Parameters 
     -------------- 
     signal: pandas DataFrame
-        Signal data from the transport simulation.  
+        Signal data from the simulation.  
         The DataFrame contains columns 'X', 'Y', 'Z', 'T', and one column 
         for each scenario.
     signal_name: string
@@ -330,14 +340,14 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
 
 
 def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
-            z_range=(None, None), legend=False):
+                     z_range=(None, None), legend=False):
     """
     Plots sensor locations.
     
     Parameters
     -------------
     sensors : dict
-        A dictonary of sensors with key:value pairs containing
+        A dictionary of sensors with key:value pairs containing
         {'sensor name': chama Sensor object}
     x_range: tuple (optional)
         The x-axis limits for the plot
@@ -358,7 +368,7 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
             x = [val[0] for val in position.location]
             y = [val[1] for val in position.location]
             z = [val[2] for val in position.location]
-            ax.plot(x, y, z,label=name)            
+            ax.plot(x, y, z, label=name)
         else:
             x = position.location[0]
             y = position.location[1]

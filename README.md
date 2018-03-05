@@ -1,4 +1,4 @@
-Chama
+![Chama](documentation/figures/logo.png)
 =======================================
 
 [![TravisCI](https://travis-ci.org/sandialabs/chama.svg?branch=master)](https://travis-ci.org/sandialabs/chama)

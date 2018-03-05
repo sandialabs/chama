@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 DISTNAME = 'chama'
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 PACKAGES = ['chama']
 EXTENSIONS = []
 DESCRIPTION = 'Sensor Placement Optimization.'

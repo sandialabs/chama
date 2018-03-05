@@ -1,6 +1,18 @@
 """
 The sensor module contains classes to define point or camera sensors
 that can either be stationary and mobile.
+
+.. rubric:: Contents
+
+.. autosummary::
+
+    Sensor
+    Position
+    Stationary
+    Mobile
+    Detector
+    Point
+    Camera
 """
 from __future__ import print_function, division
 import pandas as pd
@@ -77,6 +89,7 @@ class Position(object):
             return tuple(self.location)
         else:
             return tuple([self.location])
+
 
 class Stationary(Position):
     """
@@ -228,11 +241,15 @@ class Detector(object):
 
         """
         pts = self.get_sample_points(position)
-
+        if len(pts) == 0:
+            return pd.Series()
+        
         signal_sample = self._get_signal_at_sample_points(signal, pts,
                                                           interp_method,
                                                           min_distance)
-
+        if len(signal_sample) == 0:
+            return pd.Series()
+        
         # Reset the index
         signal_sample = signal_sample.reset_index()
 
@@ -250,10 +267,12 @@ class Detector(object):
 
         # Apply threshold
         signal_sample = signal_sample[signal_sample >= self.threshold]
-
+        if len(signal_sample) == 0:
+            return pd.Series()
+        
         # Name the columns so that the index is labeled after stacking
         signal_sample.columns.name = 'Scenario'
-
+        
         # Drop Nan and stack by index
         return signal_sample.stack()
 
@@ -295,11 +314,14 @@ class Point(Detector):
         # is inserted
         signal_subset = signal.loc[sample_points, :]
 
+        if interp_method is None:
+            return signal_subset
+        
         # Get the sample_points that need to be interpolated
         temp = signal_subset.isnull().any(axis=1)  # Get rows containing NaN
         interp_points = list(signal_subset[temp].index)  # Get their index
 
-        if (interp_method is None) or (len(interp_points) == 0):
+        if len(interp_points) == 0:
             return signal_subset
         
         # TODO: Revisit the distance calculation.
@@ -344,7 +366,7 @@ class Point(Detector):
                                          'Make sure that all sensor '
                                          'locations are contained in the '
                                          'area spanned by the signal data.')
-                    signal_subset.loc[interp_points[i], j] = interp_signal
+                    signal_subset.at[interp_points[i], j] = interp_signal
 
         elif interp_method == 'nearest':
 
@@ -356,7 +378,7 @@ class Point(Detector):
                     # Loop over scenarios
                     for j in signal.columns:
                         interp_signal = 0.0
-                        signal_subset.loc[interp_points[i], j] = interp_signal
+                        signal_subset.at[interp_points[i], j] = interp_signal
                 else:
                     temp2 = temp[temp < min_distance]
                     temp_signal = signal.loc[temp2.index, :]
@@ -370,7 +392,7 @@ class Point(Detector):
                                                  method=interp_method,
                                                  rescale=True)
 
-                        signal_subset.loc[interp_points[i], j] = interp_signal
+                        signal_subset.at[interp_points[i], j] = interp_signal
         else:
             raise ValueError('Unrecognized or unsupported interpolation method'
                              ' "%s" was specified. Only "linear" or "nearest" '
@@ -618,7 +640,7 @@ class Camera(Detector):
                 # count back to the original scale
                 pixel_final = 16 * pixels
 
-                detected_pixels.loc[point, scen] = pixel_final
+                detected_pixels.at[point, scen] = pixel_final
 
         # print(detected_pixels)
         return detected_pixels

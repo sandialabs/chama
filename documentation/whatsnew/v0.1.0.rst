@@ -3,8 +3,8 @@ v0.1.0 (10/9/2017)
 
 This is the first release of Chama. Features include basic functionality to:
 
-* Run atmospheric dispersion simulations or import transport simulations from external software
+* Run atmospheric dispersion simulations or import simulations from external software
 * Define point or camera sensors that can be stationary and mobile
-* Extract detection times for each sensor and transport scenario
+* Extract detection times for each sensor and scenario
 * Solve sensor placement optimization using coverage or p-median formulations
 * Analyze and graph results

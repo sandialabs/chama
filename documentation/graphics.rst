@@ -12,7 +12,7 @@ The :mod:`chama.graphics` module provides methods to help visualize results.
 Signal graphics
 ---------------------------
 Chama provides several functions to visualize signals described in the 
-:ref:`transport` section (XYZ format only). Visualization is useful to verify that
+:ref:`simulation` section (XYZ format only). Visualization is useful to verify that
 the signal was loaded/generated as expected, compare scenarios, and to 
 better understand optimal sensor placement.
 
@@ -112,8 +112,8 @@ Tradeoff curves
 ---------------------------
 
 After running a series of sensor placement optimizations with increasing sensor budget, a tradeoff
-curve can be generated using the objective value (results['Objective']).  :numref:`fig-tradeoff` 
-compares the expected time to detection (using P-median) and scenario coverage as the sensor 
+curve can be generated using the objective value and fraction of detected scenarios.  :numref:`fig-tradeoff` 
+compares the expected time to detection and scenario coverage as the sensor 
 budget increases.
 
 .. _fig-tradeoff:
@@ -126,7 +126,7 @@ Scenario analysis
 ---------------------------
 
 The impact of individual scenarios can also be analyzed for a single sensor placement using the 
-optimization assessment (results['Assessment']).  :numref:`fig-scenarioimpact`  compares
+optimization assessment.  :numref:`fig-scenarioimpact`  compares
 time to detection from several scenarios, given an optimal placement.
 
 .. doctest::

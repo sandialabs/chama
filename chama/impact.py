@@ -249,6 +249,7 @@ def detection_times_to_coverage(detection_times, coverage_type='scenario',
         df.drop(['Detection Time Idx', 'Detection Time'], inplace=True, axis=1)
         new_scenario = df.copy()
         new_scenario.drop(['Sensor'], inplace=True, axis=1)
+        new_scenario.drop_duplicates(inplace=True)
 
         # group all the scenarios for each sensor into a list
         coverage = \

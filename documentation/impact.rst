@@ -113,7 +113,7 @@ The detection times DataFrame can be converted into the required input
 format for the :ref:`impactform` or :ref:`coverageform` as described below.
 
 Convert detection times to input for the Impact Formulation
-------------------------------------------------------------------
+-----------------------------------------------------------
 The :ref:`impactform` requires as input
 a DataFrame with three columns: 'Scenario', 'Sensor', and 'Impact', where
 the 'Impact' is a single numerical value for each row. This means that the
@@ -121,7 +121,7 @@ list of detection times in the DataFrame produced above must be reduced to a
 single numerical value representing the impact to be minimized.
 
 Minimum detection time
-...............................................
+......................
 
 The example below shows how to build an input DataFrame for the :ref:`impactform` to
 optimize a sensor layout that minimizes detection time.
@@ -162,7 +162,7 @@ Extract the minimum detection time from the statistics computed above:
     8       S3      C      20
 
 Other impact metrics
-...............................................
+....................
 Depending on the information available from the simulation, detection time
 can be converted to other measures of impact, such as damage cost, extent of
 contamination, or ability to protect critical assets and populations. For
@@ -231,7 +231,7 @@ Note that the
 function interpolates based on time, if needed. 
 
 Convert detection times to input for the Coverage Formulation
--------------------------------------------------------------------
+-------------------------------------------------------------
 The :ref:`coverageform` requires as input
 a DataFrame with two columns: 'Sensor', and 'Coverage', where the 'Coverage' is
 a list of entities covered by each sensor. The formulation optimizes a sensor
@@ -241,7 +241,7 @@ An `entity` to be covered might include scenarios, scenario-time pairs, or
 geographic locations. 
 
 Scenario coverage
-...............................................
+.................
 The following example converts detection times to scenario coverage. 
 With `scenario` coverage, a scenario is the entity to be covered. A scenario
 is considered covered by a sensor if that sensor detects that scenario at
@@ -278,7 +278,7 @@ This example shows that sensor A covers the scenarios S1, S2, and S3.
 Sensors B and C also cover all three scenarios.
 
 Scenario-time coverage
-...............................................
+......................
 
 The next example converts detection times to scenario-time coverage. 
 With `scenario-time` coverage, the entities to be covered are all combinations
@@ -330,27 +330,17 @@ information to new scenario-time pairs:
     >>> print(new_scenario)
        Scenario  Probability  Undetected Impact
     0   S1-30.0         0.25                100
-    1   S1-30.0         0.25                100
     2   S1-10.0         0.25                100
     3   S1-20.0         0.25                100
-    4   S1-30.0         0.25                100
     5   S1-40.0         0.25                100
     6   S2-10.0         0.50                100
     7   S2-20.0         0.50                100
     8   S2-30.0         0.50                100
-    9   S2-20.0         0.50                100
-    10  S2-30.0         0.50                100
-    11  S2-10.0         0.50                100
-    12  S2-20.0         0.50                100
-    13  S2-30.0         0.50                100
     14  S2-40.0         0.50                100
     15  S3-20.0         0.75                100
     16  S3-30.0         0.75                100
-    17  S3-20.0         0.75                100
-    18  S3-30.0         0.75                100
-    19  S3-20.0         0.75                100
-    20  S3-30.0         0.75                100
     21  S3-40.0         0.75                100
+
 
 This example shows that sensor A covers the scenario-time pairs S1-30.0,
 S2-10.0, and S2-20.0 among others. In addition, notice that the probability
@@ -358,7 +348,7 @@ and undetected impact for scenario S1 is propagated to all scenario-time
 pairs containing S1 in the new_scenario DataFrame.
 
 Convert input for the Impact Formulation to the Coverage Formulation
-----------------------------------------------------------------------
+--------------------------------------------------------------------
 Users can also convert the input DataFrame for the :ref:`imapctform`
 to the input DataFrame for the :ref:`coverageform`. This is
 especially convenient in cases where the user is solving optimization

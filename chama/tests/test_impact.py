@@ -145,12 +145,12 @@ class TestConversions(unittest.TestCase):
             'Scenario': ['S1', 'S2', 'S3'],
             'Sensor': ['A', 'A', 'B'],
             'Impact': [2, 3, 4]})
-        
+
         self.scenario = pd.DataFrame({
             'Scenario': ['S1', 'S2', 'S3'],
             'Undetected Impact': [48.0, 250.0, 100.0],
             'Probability': [0.1, 0.1, 0.8]})
-    
+
     @classmethod
     def tearDownClass(self):
         pass
@@ -161,15 +161,14 @@ class TestConversions(unittest.TestCase):
         print(stats)
         assert_equal(stats.loc['S1', 'Mean'], 3)
         assert_equal(stats.loc['S1', 'Max'], 4)
-        
+
     def test_detection_times_to_coverage(self):
-        
         coverage1 = chama.impact.detection_times_to_coverage(
-                detection_times=self.detection_times, coverage_type='scenario')
+            detection_times=self.detection_times, coverage_type='scenario')
         coverage1_expected = pd.DataFrame({'Sensor': ['A', 'B'],
                                            'Coverage': [['S1', 'S2'], ['S3']]
                                            })
-        assert_frame_equal(coverage1.set_index('Sensor'), 
+        assert_frame_equal(coverage1.set_index('Sensor'),
                            coverage1_expected.set_index('Sensor'))
 
         coverage2 = \
@@ -180,13 +179,13 @@ class TestConversions(unittest.TestCase):
                                            'Coverage': [['S1-2.0', 'S1-3.0',
                                                          'S1-4.0', 'S2-3.0'],
                                                         ['S3-4.0', 'S3-5.0']]})
-        assert_frame_equal(coverage2.set_index('Sensor'), 
+        assert_frame_equal(coverage2.set_index('Sensor'),
                            coverage2_expected.set_index('Sensor'))
 
         coverage3, scenario3 = chama.impact.detection_times_to_coverage(
-                detection_times=self.detection_times,
-                coverage_type='scenario-time',
-                scenario=self.scenario)
+            detection_times=self.detection_times,
+            coverage_type='scenario-time',
+            scenario=self.scenario)
         scenario3_expected = pd.DataFrame({'Scenario': ['S1-2.0', 'S1-3.0',
                                                         'S1-4.0', 'S2-3.0',
                                                         'S3-4.0', 'S3-5.0'],
@@ -195,9 +194,9 @@ class TestConversions(unittest.TestCase):
                                                                  100.0, 100.0],
                                            'Probability': [0.1, 0.1, 0.1,
                                                            0.1, 0.8, 0.8]})
-        assert_frame_equal(coverage3.set_index('Sensor'), 
+        assert_frame_equal(coverage3.set_index('Sensor'),
                            coverage2_expected.set_index('Sensor'))
-        assert_frame_equal(scenario3.set_index('Scenario'), 
+        assert_frame_equal(scenario3.set_index('Scenario'),
                            scenario3_expected.set_index('Scenario'))
 
     def test_impact_to_coverage(self):
@@ -207,3 +206,63 @@ class TestConversions(unittest.TestCase):
                                            })
         assert_frame_equal(coverage1.set_index('Sensor'), 
                            coverage1_expected.set_index('Sensor'))
+
+
+    def test_detection_times_to_coverage_duplicates(self):
+        detection_times = pd.DataFrame({
+            'Scenario': ['S1', 'S2', 'S3', 'S1'],
+            'Sensor': ['A', 'A', 'B', 'B'],
+            'Detection Times': [[2, 3, 4], [3], [4, 5], [4, 5]]})
+        impact = pd.DataFrame({
+            'Scenario': ['S1', 'S2', 'S3', 'S1'],
+            'Sensor': ['A', 'A', 'B', 'B'],
+            'Impact': [2, 3, 4, 4]})
+
+        scenario = pd.DataFrame({
+            'Scenario': ['S1', 'S2', 'S3'],
+            'Undetected Impact': [48.0, 250.0, 100.0],
+            'Probability': [0.1, 0.1, 0.8]})
+
+        coverage1 = chama.impact.detection_times_to_coverage(
+            detection_times=detection_times, coverage_type='scenario')
+        coverage1_expected = pd.DataFrame({'Sensor': ['A', 'B'],
+                                           'Coverage': [['S1', 'S2'],
+                                                        ['S3', 'S1']]
+                                           })
+        assert_frame_equal(coverage1.set_index('Sensor'),
+                           coverage1_expected.set_index('Sensor'))
+
+        coverage2 = \
+            chama.impact.detection_times_to_coverage(
+                detection_times=detection_times,
+                coverage_type='scenario-time')
+        coverage2_expected = pd.DataFrame({'Sensor': ['A', 'B'],
+                                           'Coverage': [['S1-2.0', 'S1-3.0',
+                                                         'S1-4.0', 'S2-3.0'],
+                                                        ['S3-4.0', 'S3-5.0',
+                                                         'S1-4.0', 'S1-5.0'
+                                                         ]]})
+        assert_frame_equal(coverage2.set_index('Sensor'),
+                           coverage2_expected.set_index('Sensor'))
+
+        coverage3, scenario3 = chama.impact.detection_times_to_coverage(
+            detection_times=detection_times,
+            coverage_type='scenario-time',
+            scenario=scenario)
+        scenario3_expected = pd.DataFrame({'Scenario': ['S1-2.0', 'S1-3.0',
+                                                        'S1-4.0', 'S2-3.0',
+                                                        'S3-4.0', 'S3-5.0',
+                                                        'S1-5.0'],
+                                           'Undetected Impact': [48.0, 48.0,
+                                                                 48.0, 250.0,
+                                                                 100.0,
+                                                                 100.0,
+                                                                 48.0],
+                                           'Probability': [0.1, 0.1, 0.1,
+                                                           0.1, 0.8, 0.8,
+                                                           0.1]})
+        assert_frame_equal(coverage3.set_index('Sensor'),
+                           coverage2_expected.set_index('Sensor'))
+        assert_frame_equal(scenario3.set_index('Scenario'),
+                           scenario3_expected.set_index('Scenario'))
+

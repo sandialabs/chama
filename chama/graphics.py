@@ -340,7 +340,8 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
 
 
 def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
-                     z_range=(None, None), legend=False):
+                     z_range=(None, None), legend=False,
+                     colors=None, markers=None):
     """
     Plots sensor locations.
     
@@ -357,12 +358,27 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
         The z-axis limits for the plot
     legend : Boolean (optional)
         Indicates if legend should be added to the plot
+    colors : dict (optional)
+        A dictionary containing the color string to be used when plotting each
+        sensor. The key:value pairs are {'sensor name' : String
+        representing the color to be passed to the plot function)
+    markers : dict (optional)
+        A dictionary containing the marker to be used when plotting each
+        sensor. The key:value pairs are {'sensor name' : String
+        representing the marker to be passed to the plot function)
     """
     
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    
+
     for name, sensor in sensors.items():
+
+        plot_options = {}
+        if colors:
+            plot_options['color'] = colors[name]
+        if markers:
+            plot_options['marker'] = markers[name]
+
         position = sensor.position
         if isinstance(position, Mobile):
             x = [val[0] for val in position.location]
@@ -373,7 +389,7 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
             x = position.location[0]
             y = position.location[1]
             z = position.location[2]
-            ax.scatter(x, y, z, label=name)
+            ax.scatter(x, y, z, label=name, **plot_options)
 
     ax.set_xlim3d(x_range[0], x_range[1])
     ax.set_ylim3d(y_range[0], y_range[1])

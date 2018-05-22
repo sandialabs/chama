@@ -323,6 +323,14 @@ information to new scenario-time pairs:
     ...                                          det_times,
     ...                                          coverage_type='scenario-time',
     ...                                          scenario=scenario)
+
+.. doctest::
+    :hide:
+
+    >>> scen_time_cov = scen_time_cov[['Sensor', 'Coverage']]
+	
+.. doctest::
+
     >>> print(scen_time_cov)
       Sensor                                           Coverage
     0      A  [S1-30.0, S2-10.0, S2-20.0, S2-30.0, S3-20.0, ...

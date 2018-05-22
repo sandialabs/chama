@@ -58,7 +58,8 @@ section) in a dictionary:
     ...                        'S1': x.flatten() * t.flatten(),
     ...                        'S2': z.flatten() * t.flatten(),
     ...                        'S3': (t.flatten()-10) * t.flatten()})
-
+    >>> signal = signal[['S1', 'S2', 'S3', 'T', 'X', 'Y', 'Z']]
+	
 .. doctest::
 
     >>> print(signal.head())
@@ -308,7 +309,8 @@ information to new scenario-time pairs:
     :hide:
 
     >>> scenario = pd.DataFrame({'Scenario': ['S1','S2','S3'], 'Probability': [0.25,0.5,0.75], 'Undetected Impact': [100,100,100]})
-
+    >>> scenario = scenario[['Probability', 'Scenario', 'Undetected Impact']]
+	
 .. doctest::
 
     >>> print(scenario)

@@ -1,4 +1,4 @@
-v0.1.1 (master)
+v0.1.1 (June 2, 2018)
 -----------------------
 
 * Added new optimization formulation for coverage (API change, see :class:`~chama.optimize.CoverageFormulation`)

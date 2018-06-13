@@ -41,6 +41,7 @@ section) in a dictionary:
     >>> import chama
     >>> import pandas as pd
     >>> import numpy as np
+    >>> pd.set_option('max_columns', 20)
     >>> posA = chama.sensors.Stationary(location=(1,2,3))
     >>> detA = chama.sensors.Point(sample_times=[0,10,20,30], threshold=30)
     >>> stationary_pt_sensor = chama.sensors.Sensor(position=posA, detector=detA)
@@ -324,7 +325,7 @@ information to new scenario-time pairs:
     ...                                          coverage_type='scenario-time',
     ...                                          scenario=scenario)
 	
-    >>> print(scen_time_cov) #doctest:+SKIP 
+    >>> print(scen_time_cov)
       Sensor                                           Coverage
     0      A  [S1-30.0, S2-10.0, S2-20.0, S2-30.0, S3-20.0, ...
     1      B      [S1-30.0, S2-20.0, S2-30.0, S3-20.0, S3-30.0]

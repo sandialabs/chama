@@ -1,0 +1,5 @@
+v0.1.2 (master)
+-----------------------
+
+* Added grouping constraints to the Coverage formulation
+* Updated documentation

@@ -305,67 +305,8 @@ class ImpactFormulation(object):
             The maximum number of sensors from the sensor_list that should
             be selected
         """
-        #TODO: Should we make this easier by just allowing lower bound and
-        #upper bound and do an equality if they are the same?
-        if self._model is None:
-            raise RuntimeError('Cannot add a grouping constraint to a'
-                               'nonexistent model. Please call the '
-                               'create_pyomo_model function before trying to '
-                               'add grouping constraints')
-
-        if select is not None and min_select is not None:
-            raise ValueError('Invalid keyword arguments for adding grouping '
-                             'constraint. Cannot specify both a "select" '
-                             'value and a "min_select" value')
-
-        if select is not None and max_select is not None:
-            raise ValueError('Invalid keyword arguments for adding grouping '
-                             'constraint. Cannot specify both a "select" '
-                             'value and a "max_select" value')
-
-        if select is None and max_select is None and min_select is None:
-            raise ValueError('Must specify a sensor selection limit for the '
-                             'grouping constraint.')
-
-        gconlist = self._model.find_component('_groupingconlist')
-        if gconlist is None:
-            self._model._groupingconlist = pe.ConstraintList()
-            gconlist = self._model._groupingconlist
-
-        # Check to make sure all sensors are valid and build sum expression
-        sensor_sum = sum(self._model.y[i] for i in sensor_list)
-
-        if select is not None:
-            #  Select exactly 'select' sensors from sensor_list
-            if select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-
-            gconlist.add(sensor_sum == select)
-
-        elif min_select is not None and max_select is not None:
-            #  Select between min_select and max_select sensors from
-            #  sensor_list
-            if min_select < 0 or max_select:
-                raise ValueError('Cannot select a negative number of sensors')
-
-            if min_select > max_select:
-                raise ValueError('min_select must be less than max_select')
-
-            gconlist.add(min_select <= sensor_sum <= max_select)
-
-        elif min_select is not None:
-            #  Select at least min_select sensors from sensor list
-            if min_select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-            gconlist.add(min_select <= sensor_sum)
-        else:
-            #  Select at most max_select sensors from sensor list
-            if max_select < 0:
-                raise ValueError('Cannot select a negative number of sensors')
-            gconlist.add(sensor_sum <= max_select)
-
-        # Any changes to the model require re-solving
-        self._solved = False
+        _add_grouping_constraint(self, sensor_list=sensor_list, select=select, 
+                                 min_select=min_select, max_select=max_select)
 
     def solve_pyomo_model(self, sensor_budget=None, mip_solver_name='glpk',
                           pyomo_options=None, solver_options=None):
@@ -640,7 +581,37 @@ class CoverageFormulation(object):
         model.solved = False
         self._model = model
         return model
+    
+    def add_grouping_constraint(self, sensor_list, select=None,
+                                min_select=None, max_select=None):
+        """
+        Adds a sensor grouping constraint to the sensor placement model. This
+        constraint forces a certain number of sensors to be selected from a
+        particular subset of all the possible sensors.
 
+        The keyword argument 'select' enforces an equality constraint,
+        while 'min_select' and 'max_select' correspond to lower and upper
+        bounds on the grouping constraints, respectively. You can specify
+        one or both of 'min_select' and 'max_select' OR use 'select'
+
+        Parameters
+        ----------
+        sensor_list : list of strings
+            List containing the string names of a subset of the sensors
+        select : positive integer or None
+            The exact number of sensors from the sensor_list that should
+            be selected
+        min_select : positive integer or None
+            The minimum number of sensors from the sensor_list that should
+            be selected
+        max_select : positive integer or None
+            The maximum number of sensors from the sensor_list that should
+            be selected
+        """
+        _add_grouping_constraint(self, sensor_list=sensor_list, select=select, 
+                                 min_select=min_select, max_select=max_select)
+        
+        
     def solve_pyomo_model(self, sensor_budget=None, mip_solver_name='glpk',
                           pyomo_options=None, solver_options=None):
         """
@@ -719,6 +690,71 @@ class CoverageFormulation(object):
                 'EntityAssessment': entity_assessment,
                 'SensorAssessment': sensor_assessment}
 
+def _add_grouping_constraint(self, sensor_list, select=None,
+                                min_select=None, max_select=None):
+       
+        #TODO: Should we make this easier by just allowing lower bound and
+        #upper bound and do an equality if they are the same?
+        if self._model is None:
+            raise RuntimeError('Cannot add a grouping constraint to a'
+                               'nonexistent model. Please call the '
+                               'create_pyomo_model function before trying to '
+                               'add grouping constraints')
+
+        if select is not None and min_select is not None:
+            raise ValueError('Invalid keyword arguments for adding grouping '
+                             'constraint. Cannot specify both a "select" '
+                             'value and a "min_select" value')
+
+        if select is not None and max_select is not None:
+            raise ValueError('Invalid keyword arguments for adding grouping '
+                             'constraint. Cannot specify both a "select" '
+                             'value and a "max_select" value')
+
+        if select is None and max_select is None and min_select is None:
+            raise ValueError('Must specify a sensor selection limit for the '
+                             'grouping constraint.')
+
+        gconlist = self._model.find_component('_groupingconlist')
+        if gconlist is None:
+            self._model._groupingconlist = pe.ConstraintList()
+            gconlist = self._model._groupingconlist
+
+        # Check to make sure all sensors are valid and build sum expression
+        sensor_sum = sum(self._model.y[i] for i in sensor_list)
+
+        if select is not None:
+            #  Select exactly 'select' sensors from sensor_list
+            if select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+
+            gconlist.add(sensor_sum == select)
+
+        elif min_select is not None and max_select is not None:
+            #  Select between min_select and max_select sensors from
+            #  sensor_list
+            if min_select < 0 or max_select:
+                raise ValueError('Cannot select a negative number of sensors')
+
+            if min_select > max_select:
+                raise ValueError('min_select must be less than max_select')
+
+            gconlist.add(min_select <= sensor_sum <= max_select)
+
+        elif min_select is not None:
+            #  Select at least min_select sensors from sensor list
+            if min_select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+            gconlist.add(min_select <= sensor_sum)
+        else:
+            #  Select at most max_select sensors from sensor list
+            if max_select < 0:
+                raise ValueError('Cannot select a negative number of sensors')
+            gconlist.add(sensor_sum <= max_select)
+
+        # Any changes to the model require re-solving
+        self._solved = False
+        
 def _solve_pyomo_model(model, mip_solver_name='glpk', pyomo_options=None, solver_options=None):
     """
     Internal method to solve the Pyomo model and check the optimization status

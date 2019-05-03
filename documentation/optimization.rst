@@ -125,19 +125,19 @@ The following example demonstrates the use of the Impact Formulation.
     >>> import pandas as pd
     >>> import chama
     >>> sensor = pd.DataFrame({'Sensor': ['A', 'B', 'C', 'D'],
-    ...                        'Cost': [100.0, 200.0, 500.0, 1500.0]})
+    ...                        'Cost': [100.0, 200.0, 400.0, 500.0]})
     >>> sensor = sensor[['Sensor', 'Cost']]
-    >>> scenario = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
-    ...                          'Undetected Impact': [48.0, 250.0, 100.0],
-    ...                          'Probability': [0.25, 0.60, 0.15]})
+    >>> scenario = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3', 'S4', 'S5'],
+    ...                          'Undetected Impact': [50.0, 250.0, 100.0, 75.0, 225.0],
+    ...                          'Probability': [0.15, 0.50, 0.05, 0.20, 0.10]})
     >>> scenario = scenario[['Scenario', 'Undetected Impact', 'Probability']]
-    >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
-    ...                           'Sensor': ['A', 'A', 'B'],
-    ...                           'Detection Times': [[2, 3, 4], [3], [4, 5, 6, 7]]})
+    >>> det_times = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3', 'S4', 'S5', 'S5'],
+    ...                           'Sensor': ['A', 'A', 'B', 'C', 'B', 'D'],
+    ...                           'Detection Times': [[2, 3, 4], [3], [4, 5, 6, 7], [1, 3], [6], [2, 4, 6]]})
     >>> det_times = det_times[['Scenario', 'Sensor', 'Detection Times']]
-    >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3'],
-    ...                              'Sensor': ['A', 'A', 'B'],
-    ...                              'Impact': [2.0,3.0,4.0]})
+    >>> min_det_time = pd.DataFrame({'Scenario': ['S1', 'S2', 'S3', 'S4', 'S5'],
+    ...                              'Sensor': ['A', 'A', 'B', 'C', 'D'],
+    ...                              'Impact': [2.0,3.0,4.0,1.0,2.0]})
     >>> min_det_time = min_det_time[['Scenario', 'Sensor', 'Impact']]
 	
 .. doctest::
@@ -147,33 +147,39 @@ The following example demonstrates the use of the Impact Formulation.
     0       S1      A     2.0
     1       S2      A     3.0
     2       S3      B     4.0
+    3       S4      C     1.0
+    4       S5      D     2.0
     >>> print(sensor)
-      Sensor    Cost
-    0      A   100.0
-    1      B   200.0
-    2      C   500.0
-    3      D  1500.0
+      Sensor   Cost
+    0      A  100.0
+    1      B  200.0
+    2      C  400.0
+    3      D  500.0
     >>> print(scenario)
       Scenario  Undetected Impact  Probability
-    0       S1               48.0         0.25
-    1       S2              250.0         0.60
-    2       S3              100.0         0.15
+    0       S1               50.0         0.15
+    1       S2              250.0         0.50
+    2       S3              100.0         0.05
+    3       S4               75.0         0.20
+    4       S5              225.0         0.10
 	
     >>> impactform = chama.optimize.ImpactFormulation()
-    >>> results = impactform.solve(impact=min_det_time, sensor_budget=200,
+    >>> results = impactform.solve(impact=min_det_time, sensor_budget=1000,
     ...                              sensor=sensor, scenario=scenario,
     ...                              use_scenario_probability=True,
     ...                              use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
-    ['A']
+    ['A', 'C', 'D']
     >>> print(results['Objective'])
-    17.3
+    7.2
     >>> print(results['Assessment'])
       Scenario Sensor  Impact
     0       S1      A     2.0
     1       S2      A     3.0
-    2       S3   None   100.0
+    2       S4      C     1.0
+    3       S5      D     2.0
+    4       S3   None   100.0
 
 
 .. _coverageform:
@@ -269,70 +275,115 @@ by the sensor placement (listed as 'scenario-time').
     0       S1      A       [2, 3, 4]
     1       S2      A             [3]
     2       S3      B    [4, 5, 6, 7]
+    3       S4      C          [1, 3]
+    4       S5      B             [6]
+    5       S5      D       [2, 4, 6]
     >>> print(sensor)
-      Sensor    Cost
-    0      A   100.0
-    1      B   200.0
-    2      C   500.0
-    3      D  1500.0
+      Sensor   Cost
+    0      A  100.0
+    1      B  200.0
+    2      C  400.0
+    3      D  500.0
     >>> print(scenario)
       Scenario  Undetected Impact  Probability
-    0       S1               48.0         0.25
-    1       S2              250.0         0.60
-    2       S3              100.0         0.15
+    0       S1               50.0         0.15
+    1       S2              250.0         0.50
+    2       S3              100.0         0.05
+    3       S4               75.0         0.20
+    4       S5              225.0         0.10
     >>> scenario_time, new_scenario = chama.impact.detection_times_to_coverage(
     ...                                         det_times,
     ...                                         coverage_type='scenario-time',
     ...                                         scenario=scenario)
 
     >>> print(scenario_time)
-      Sensor                          Coverage
-    0      A  [S1-2.0, S1-3.0, S1-4.0, S2-3.0]
-    1      B  [S3-4.0, S3-5.0, S3-6.0, S3-7.0]
+      Sensor                                  Coverage
+    0      A          [S1-2.0, S1-3.0, S1-4.0, S2-3.0]
+    1      B  [S3-4.0, S3-5.0, S3-6.0, S3-7.0, S5-6.0]
+    2      C                          [S4-1.0, S4-3.0]
+    3      D                  [S5-2.0, S5-4.0, S5-6.0]
     >>> print(new_scenario)
-      Scenario  Undetected Impact  Probability
-    0   S1-2.0               48.0         0.25
-    1   S1-3.0               48.0         0.25
-    2   S1-4.0               48.0         0.25
-    3   S2-3.0              250.0         0.60
-    4   S3-4.0              100.0         0.15
-    5   S3-5.0              100.0         0.15
-    6   S3-6.0              100.0         0.15
-    7   S3-7.0              100.0         0.15
+       Scenario  Undetected Impact  Probability
+    0    S1-2.0               50.0         0.15
+    1    S1-3.0               50.0         0.15
+    2    S1-4.0               50.0         0.15
+    3    S2-3.0              250.0         0.50
+    4    S3-4.0              100.0         0.05
+    5    S3-5.0              100.0         0.05
+    6    S3-6.0              100.0         0.05
+    7    S3-7.0              100.0         0.05
+    8    S4-1.0               75.0         0.20
+    9    S4-3.0               75.0         0.20
+    10   S5-6.0              225.0         0.10
+    11   S5-2.0              225.0         0.10
+    12   S5-4.0              225.0         0.10
 
     >>> new_scenario = new_scenario.rename(columns={'Scenario':'Entity',
     ...                                             'Probability':'Weight'})
     >>> coverageform = chama.optimize.CoverageFormulation()
-    >>> results = coverageform.solve(coverage=scenario_time, sensor_budget=200,
+    >>> results = coverageform.solve(coverage=scenario_time, sensor_budget=1000,
     ...                          sensor=sensor, entity=new_scenario,
     ...                          use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
-    ['A']
+    ['A', 'B', 'D']
     >>> print(results['Objective'])
-    4.0
-    >>> print(results['FractionDetected'])
-    0.5
-    >>> print(results['SensorAssessment'])  # doctest: +SKIP
-    {'A': ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']}
-    >>> print(results['EntityAssessment'])  # doctest: +SKIP
-    {'S3-6.0': [], 'S3-7.0': [], 'S2-3.0': ['A'], 'S1-4.0': ['A'], 'S3-4.0': [], 'S3-5.0': [], 'S1-3.0': ['A'], 'S1-2.0': ['A']}
+    11.0
+    >>> print(round(results['FractionDetected'],2))
+    0.85
 
-..
-    The following test checks a subset of the results in the SensorAssessment
-    and the EntityAssessment dictionaries. These cannot be tested using the
-    above print statements because of Python 2/3 compatibility issues and
-    non-deterministic dictionary ordering.
+Grouping Constraints
+----------------------------
+
+Constraints can be added to both the Impact and Coverage formulations to enforce or 
+restrict the number of sensors allowed from certain sets. These grouping 
+constraints take the following general form:
+
+.. math::
+
+    g_{min} \le \sum_{i \in L_g} s_i \le g_{max}
+
+where:
+
+* :math:`L_g` is a subset of all candidate sensors
+* :math:`s_i` is a binary variable that will be 1 if sensor :math:`i` is selected, and 0 otherwise	
+* :math:`g_{min}` is the minimum number of sensors that must be selected from the subset :math:`L_g`
+* :math:`g_{max}` is the maximum number of sensors that may be selected from the subset :math:`L_g`
+
+Grouping constraints can be used to ensure that an optimal sensor placement follows required 
+policies or meets practical limitations. For example, you might want to determine the optimal 
+sensor placement, while also ensuring that there is at least one sensor in every 10 m x 10 m 
+subvolume of the space. This can be formulated by defining sensor subsets :math:`L_g` containing the 
+candidate sensors within each subvolume and adding a grouping constraint over each of these 
+subsets with :math:`g_{min}` set to 1. 
+
+Another example where grouping constraints might be used is when you have different categories 
+of sensors and you want to make sure that an optimal placement has a certain number of each 
+category. In this case, you would define a sensor subset :math:`L_g` for each category of sensor and 
+then set :math:`g_{min}` and :math:`g_{max}` according to how many sensors you want in each category. 
+
+While grouping constraints are very useful, it should be noted that it is possible to formulate 
+infeasible optimization problems if these constraints are not used carefully. 
+
+The following example adds grouping constraints to the Impact formulation.  
+This requires the user to 
+1) create the Pyomo model, 
+2) add the grouping constraints, 
+3) solve the model, and 
+4) extract the solution summary.
+
 .. doctest::
-    :hide:
+	
+    >>> impactform = chama.optimize.ImpactFormulation()
+    
+    >>> model = impactform.create_pyomo_model(impact=min_det_time, sensor=sensor, scenario=scenario)
+    >>> impactform.add_grouping_constraint(['A', 'B'], min_select=1)
+    >>> impactform.add_grouping_constraint(['C', 'D'], min_select=1)
+    >>> impactform.solve_pyomo_model(sensor_budget=2)
+    >>> results = impactform.create_solution_summary()
+    
+    >>> print(results['Sensors'])
+    ['A', 'D']
 
-    >>> print(results['SensorAssessment']['A'])
-    ['S1-2.0', 'S1-3.0', 'S1-4.0', 'S2-3.0']
-    >>> print(results['EntityAssessment']['S3-6.0'])
-    []
-    >>> print(results['EntityAssessment']['S3-7.0'])
-    []
-    >>> print(results['EntityAssessment']['S2-3.0'])
-    ['A']
-    >>> print(results['EntityAssessment']['S1-4.0'])
-    ['A']
+Grouping constraints can be added to the Coverage formulation in a similar manner.
+

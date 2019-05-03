@@ -3,8 +3,8 @@ v0.1.1 (June 2, 2018)
 
 * Added new optimization formulation for coverage (API change, see :class:`~chama.optimize.CoverageFormulation`)
 * Renamed the Pmedian formulation (API change, see :class:`~chama.optimize.ImpactFormulation`)
-* Added functionality to return the Pyomo model for both coverage and impact formulations
-* Added functionality to add grouping constraints to the impact formulation
-* Added additional methods to transform data for use in the impact and coverage formulations (see methods in :class:`~chama.impact`)
+* Added functionality to return the Pyomo model for both Coverage and Impact formulations
+* Added functionality to add grouping constraints to the Impact formulation
+* Added additional methods to transform data for use in the Impact and Coverage formulations (see methods in :class:`~chama.impact`)
 * Renamed transport module to simulation module (API change)
 * Updated documentation

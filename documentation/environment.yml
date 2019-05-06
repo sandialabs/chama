@@ -1,6 +1,6 @@
 name: chama
 channels:
-    - https://anaconda.org/conda-forge
+    - conda-forge
     - defaults
 dependencies:
     - python=3.6

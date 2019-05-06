@@ -1,4 +1,7 @@
 name: chama
+channels:
+    - defaults
+    - https://anaconda.org/conda-forge/pyomo
 dependencies:
     - python=3.6
     - numpy

@@ -733,7 +733,7 @@ def _add_grouping_constraint(self, sensor_list, select=None,
         elif min_select is not None and max_select is not None:
             #  Select between min_select and max_select sensors from
             #  sensor_list
-            if min_select < 0 or max_select:
+            if (min_select < 0) or (max_select < 0):
                 raise ValueError('Cannot select a negative number of sensors')
 
             if min_select > max_select:

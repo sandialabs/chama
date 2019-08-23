@@ -9,15 +9,21 @@ sudo: false # if false, use TravisCI's container based build
 matrix:
     include:
     - python: 2.7
-      env: CONDA_ENV=py27-min
-    - python: 2.7
       env: CONDA_ENV=py27
+      services:
+      - xvfb
     - python: 3.4
       env: CONDA_ENV=py34
+      services:
+      - xvfb
     - python: 3.5
       env: CONDA_ENV=py35
+      services:
+      - xvfb  
     - python: 3.6
       env: CONDA_ENV=py36
+      services:
+      - xvfb    
 
 addons:
     apt:
@@ -30,8 +36,6 @@ cache:
 
 before_script: 
     - "export DISPLAY=:99.0"
-    - "sh -e /etc/init.d/xvfb start"
-    - sleep 3 # give xvfb some time to start
 
 # setup miniconda for numpy, scipy, pandas
 before_install:

@@ -3,10 +3,10 @@ channels:
     - defaults
     - https://anaconda.org/conda-forge/pyomo
 dependencies:
-    - python=2.7 
-    - numpy==1.11.1
-    - scipy==0.18.1
-    - pandas==0.18.1
+    - python=3.7
+    - numpy
+    - scipy
+    - pandas
     - nose
     - matplotlib
     - pip:

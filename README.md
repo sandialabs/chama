@@ -1,5 +1,5 @@
 ![Chama](documentation/figures/logo.png)
-=======================================
+=========================================
 
 [![TravisCI](https://travis-ci.org/sandialabs/chama.svg?branch=master)](https://travis-ci.org/sandialabs/chama)
 [![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=master)](https://coveralls.io/github/sandialabs/chama?branch=master)

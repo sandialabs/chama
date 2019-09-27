@@ -353,7 +353,7 @@ pairs containing S1 in the new_scenario DataFrame.
 
 Convert input for the Impact Formulation to the Coverage Formulation
 --------------------------------------------------------------------
-Users can also convert the input DataFrame for the :ref:`imapctform`
+Users can also convert the input DataFrame for the :ref:`impactform`
 to the input DataFrame for the :ref:`coverageform`. This is
 especially convenient in cases where the user is solving optimization
 problems using both solver classes and the DataFrame for the impact

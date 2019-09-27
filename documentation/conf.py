@@ -37,11 +37,12 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'numpydoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
 ]
 
-viewcode_import = True
+napoleon_use_rtype = False
+viewcode_follow_imported_members = True
 numpydoc_show_class_members = True
 numpydoc_class_members_toctree = False
 autodoc_member_order = 'bysource'
@@ -65,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Chama'
-copyright = u'2016-2017 National Technology & Engineering Solutions of Sandia, LLC (NTESS)'
+copyright = u'2016-2019, National Technology & Engineering Solutions of Sandia, LLC (NTESS)'
 author = u'Sandia National Laboratories'
 
 # The version info for the project you're documenting, acts as replacement for

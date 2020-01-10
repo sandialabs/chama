@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 from distutils.core import Extension
-from os import path
+import os
+import re
 
 DISTNAME = 'chama'
-VERSION = '0.1.2'
 PACKAGES = ['chama']
 EXTENSIONS = []
 DESCRIPTION = 'Sensor Placement Optimization.'
@@ -16,7 +16,22 @@ URL = 'https://github.com/sandialabs/chama'
 file_dir = path.abspath(path.dirname(__file__))
 with open(path.join(file_dir, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
-	
+
+# use README file as the long description
+file_dir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(file_dir, 'README.md'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
+    
+# get version from __init__.py
+with open(os.path.join(file_dir, 'chama', '__init__.py')) as f:
+    version_file = f.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        VERSION = version_match.group(1)
+    else:
+        raise RuntimeError("Unable to find version string.")
+        
 setuptools_kwargs = {
     'zip_safe': False,
     'install_requires': [],

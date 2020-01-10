@@ -13,8 +13,8 @@ LICENSE = 'Revised BSD'
 URL = 'https://github.com/sandialabs/chama'
 
 # use README file as the long description
-file_dir = path.abspath(path.dirname(__file__))
-with open(path.join(file_dir, 'README.md'), encoding='utf-8') as f:
+file_dir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(file_dir, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 # use README file as the long description

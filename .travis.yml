@@ -40,7 +40,7 @@ cache:
 
 before_script: 
     - "export DISPLAY=:99.0"
-    - if [[ "$CONDA_ENV" != "py37" ]]; then 
+    - if [[ "$CONDA_ENV" != "py37" && "$CONDA_ENV" != "py38"]]; then 
         source /etc/init.d/xvfb start; 
         sleep 3;
       fi                               

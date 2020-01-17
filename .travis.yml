@@ -22,12 +22,6 @@ matrix:
       - xvfb
       sudo: true
       env: CONDA_ENV=py37          
-    - python: 3.8
-      dist: xenial
-      services:
-      - xvfb
-      sudo: true
-      env: CONDA_ENV=py38    
 
 addons:
     apt:
@@ -40,7 +34,7 @@ cache:
 
 before_script: 
     - "export DISPLAY=:99.0"
-    - if [[ "$CONDA_ENV" != "py37" && "$CONDA_ENV" != "py38"]]; then 
+    - if [[ "$CONDA_ENV" != "py37"]]; then 
         source /etc/init.d/xvfb start; 
         sleep 3;
       fi                               

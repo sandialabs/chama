@@ -4,6 +4,7 @@
 [![TravisCI](https://travis-ci.org/sandialabs/chama.svg?branch=master)](https://travis-ci.org/sandialabs/chama)
 [![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=master)](https://coveralls.io/github/sandialabs/chama?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/chama/badge/?version=latest)](http://chama.readthedocs.io/en/latest/?badge=latest)
+[![Downloads](https://pepy.tech/badge/chama)](https://pepy.tech/project/chama)
 
 Continuous or regularly scheduled monitoring has the potential to quickly 
 identify changes in the environment. However, even with low-cost sensors, only 

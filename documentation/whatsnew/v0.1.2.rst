@@ -2,5 +2,5 @@ v0.1.2 (September 27, 2019)
 ----------------------------
 
 * Added grouping constraints to the Coverage formulation
-* Dropped Python 2.7 and 3.4 tests, added Python 3.7 tests
+* Dropped Python 3.4 tests, added Python 3.7 tests
 * Updated documentation

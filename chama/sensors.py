@@ -312,8 +312,21 @@ class Point(Detector):
 
         # Get subset of signal. If a sample point is not in signal then NaN
         # is inserted
-        signal_subset = signal.loc[sample_points, :]
-
+        try:
+            signal_subset = signal.loc[sample_points, :]
+        except: # Some sample points are not in the signal
+            if ['T', 'X', 'Y', 'Z'] == signal.index.names:
+                signal_subset = pd.DataFrame(data=np.nan, columns=signal.columns, 
+                                         index=pd.MultiIndex.from_tuples(sample_points, names=['T', 'X', 'Y', 'Z']))
+            elif ['T', 'Node'] == signal.index.names:
+                signal_subset = pd.DataFrame(data=np.nan, columns=signal.columns, 
+                                         index=pd.MultiIndex.from_tuples(sample_points, names=['T', 'Node']))
+            else:
+                raise ValueError('Unrecognized signal format')
+            
+            sample_points_in_signal = list(set(sample_points).intersection(set(signal.index)))
+            signal_subset.loc[sample_points_in_signal, :] = signal.loc[sample_points_in_signal, :]
+        
         if interp_method is None:
             return signal_subset
         

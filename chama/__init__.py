@@ -4,9 +4,9 @@ from chama import impact
 from chama import optimize
 from chama import graphics
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
-__copyright__ = """Copyright 2016-2019 National Technology & Engineering 
+__copyright__ = """Copyright 2016 National Technology & Engineering 
     Solutions of Sandia, LLC (NTESS). Under the terms of Contract 
 	DE-NA0003525 with NTESS, the U.S. Government retains certain rights 
 	in this software."""

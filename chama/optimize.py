@@ -16,6 +16,7 @@ import chama.utils as cu
 import numpy as np
 import pandas as pd
 from pyomo.opt import SolverStatus, TerminationCondition
+import pyomo.environ as aml
 import itertools
 
 dummy_sensor_name = '__DUMMY_SENSOR_UNDETECTED__'
@@ -226,7 +227,7 @@ class ImpactFormulation(object):
             pe.Set(initialize=scenario_sensor_pairs, ordered=True)
 
         # create mutable parameter that may be changed
-        model.sensor_budget = pe.Param(initialize=sensor_budget, mutable=True)
+        model.sensor_budget = pe.Param(initialize=sensor_budget, mutable=True, within=aml.Any)
 
         # x_{a,i} variable indicates which sensor is the first to detect
         # scenario a
@@ -568,7 +569,7 @@ class CoverageFormulation(object):
             if use_sensor_cost:
                 raise ValueError('CoverageFormulation: sensor_budget must be specified if use_sensor_cost is set to True.')
             sensor_budget = len(sensor_list) # no sensor budget provided - allow all sensors
-        model.sensor_budget = pe.Param(initialize=sensor_budget, mutable=True)
+        model.sensor_budget = pe.Param(initialize=sensor_budget, mutable=True, within=aml.Any)
 
         if use_sensor_cost:
             sensor_cost = sensor.set_index('Sensor')['Cost']
@@ -739,7 +740,8 @@ def _add_grouping_constraint(self, sensor_list, select=None,
             if min_select > max_select:
                 raise ValueError('min_select must be less than max_select')
 
-            gconlist.add(min_select <= sensor_sum <= max_select)
+            #gconlist.add(min_select <= sensor_sum <= max_select) # Chained inequalities are deprecated
+            gconlist.add(aml.inequality(min_select, sensor_sum, max_select))
 
         elif min_select is not None:
             #  Select at least min_select sensors from sensor list

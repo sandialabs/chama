@@ -24,6 +24,7 @@ jobs:
       run: |
         conda config --set always_yes yes --set changeps1 no
         python --version
+        echo $PATH
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk

@@ -27,9 +27,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk
-        export PATH=$pythonLocation/lib/bin:$PATH
+        export PATH=/usr/share/miniconda/bin:$PATH
         echo $PATH
-        which glpsol
+        echo `which glpsol`
         pip install coveralls
         python setup.py develop
     - name: Run tests

@@ -1,0 +1,7 @@
+v0.1.4 (master)
+----------------------------
+
+* Minor changes to the optimization formulations to account for updates in Pyomo
+* Dropped Python 3.5 tests, added Python 3.8 and 3.9 tests
+* Added GitHub Actions for testing
+* Updated documentation

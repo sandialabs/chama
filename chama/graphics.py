@@ -11,12 +11,16 @@ The graphics module contains graphic functions.
     sensor_locations
 """
 from __future__ import print_function, division
-import matplotlib.pyplot as plt
-from matplotlib import ticker
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.patches import Circle, Ellipse, Rectangle
-from matplotlib.collections import PatchCollection
-from matplotlib.animation import FuncAnimation
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib import ticker
+    from mpl_toolkits.mplot3d import Axes3D
+    from matplotlib.patches import Circle, Ellipse, Rectangle
+    from matplotlib.collections import PatchCollection
+    from matplotlib.animation import FuncAnimation
+except:
+    pass
+    
 from scipy.spatial import ConvexHull  
 import numpy as np
 from chama.sensors import Mobile

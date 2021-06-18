@@ -5,7 +5,7 @@
 Installation
 ======================================
 
-Chama requires Python (tested on 3.5, 3.6, and 3.7) along with several Python package dependencies.  
+Chama requires Python (tested on 3.6, 3.7, and 3.8) along with several Python package dependencies.  
 Information on installing and using Python can be found at 
 https://www.python.org/.  
 Python distributions, such as Anaconda, are recommended to manage the Python interface.  
@@ -46,3 +46,4 @@ Required Pyomo supported MIP solver:
 * In addition to the Python package dependencies, a Pyomo supported MIP solver is required to solve the 
   optimization problems formulated in Chama. Examples of solvers that meet
   this requirement include GLPK [Makh10]_, Gurobi [GUROBI]_, and CPLEX [CPLEX]_.
+* GLPK can be installed through conda-forge, `conda install -c conda-forge glpk`

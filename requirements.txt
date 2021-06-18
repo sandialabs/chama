@@ -1,0 +1,9 @@
+# Required
+pyomo
+pandas
+numpy
+scipy
+
+# Optional
+nose
+matplotlib

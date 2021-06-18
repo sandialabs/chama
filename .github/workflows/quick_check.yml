@@ -34,4 +34,5 @@ jobs:
         python setup.py develop
     - name: Run tests
       run: |
+        echo $PATH
         nosetests -v --nologcapture --with-doctest --with-coverage --cover-package=chama --cover-min-percentage=70 chama

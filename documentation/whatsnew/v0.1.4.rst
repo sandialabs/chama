@@ -1,4 +1,4 @@
-v0.1.4 (master)
+v0.1.4 (main)
 ----------------------------
 
 * Minor changes to the optimization formulations to account for updates in Pyomo

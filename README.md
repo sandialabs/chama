@@ -2,7 +2,7 @@
 =========================================
 
 ![build](https://github.com/sandialabs/chama/workflows/build/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=master)](https://coveralls.io/github/sandialabs/chama?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/chama?branch=main)
 [![Documentation Status](https://readthedocs.org/projects/chama/badge/?version=latest)](http://chama.readthedocs.io/en/latest/?badge=latest)
 [![Downloads](https://pepy.tech/badge/chama)](https://pepy.tech/project/chama)
 

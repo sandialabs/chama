@@ -4,3 +4,5 @@
 chama.egg-info/
 _build/
 chama/tests/*.png
+examples/temp*
+examples/signal.csv

@@ -1,7 +1,8 @@
 v0.1.4 (main)
 ----------------------------
 
+* Bug fix in type checking for impact dataframes
 * Minor changes to the optimization formulations to account for updates in Pyomo
-* Dropped Python 3.5 tests, added Python 3.8 and 3.9 tests
+* Dropped Python 3.5 and 3.6 tests, added Python 3.8 and 3.9 tests
 * Added GitHub Actions for testing
-* Updated documentation
+* Updated documentation, including the addition of an examples section

@@ -139,27 +139,27 @@ class ImpactFormulation(object):
 
         # validate the pandas dataframe input
         cu._df_columns_required('impact', impact,
-                                {'Scenario': np.object,
-                                 'Sensor': np.object,
-                                 impact_col_name: [np.float64, np.int64]})
+                                {'Scenario': object,
+                                 'Sensor': object,
+                                 impact_col_name: [float, int]}) 
         cu._df_nans_not_allowed('impact', impact)
         if sensor is not None:
             cu._df_columns_required('sensor', sensor,
-                                   {'Sensor': np.object})
+                                   {'Sensor': object})
             cu._df_nans_not_allowed('sensor', sensor)
 
             sensor = sensor.set_index('Sensor')
             assert(sensor.index.names[0] == 'Sensor')
 
         cu._df_columns_required('scenario', scenario,
-                               {'Scenario': np.object,
-                               'Undetected Impact': [np.float64, np.int64]})
+                               {'Scenario': object,
+                               'Undetected Impact': [float, int]}) 
         cu._df_nans_not_allowed('scenario', scenario)
 
         # validate optional columns in pandas dataframe input
         if use_scenario_probability:
             cu._df_columns_required('scenario', scenario,
-                                    {'Probability': np.float64})
+                                    {'Probability': float})
 
         if use_sensor_cost:
             if sensor is None:
@@ -167,7 +167,7 @@ class ImpactFormulation(object):
                     'ImpactFormulation: use_sensor_cost cannot be '
                     'True if "sensor" DataFrame is not provided.')
             cu._df_columns_required('sensor', sensor,
-                                    {'Cost': [np.float64, np.int64]})
+                                    {'Cost': [float, int]}) 
 
         # Notice, setting the index here
         impact = impact.set_index(['Scenario', 'Sensor'])
@@ -200,7 +200,7 @@ class ImpactFormulation(object):
 
         df_dummy['Sensor'] = dummy_sensor_name
         df_dummy = df_dummy.reset_index().set_index(['Scenario', 'Sensor'])
-        impact = impact.append(df_dummy)
+        impact = pd.concat([impact, df_dummy])
         sensor_cost[dummy_sensor_name] = 0.0
 
         # Create a list of tuples for all the scenario/sensor pairs where
@@ -508,17 +508,20 @@ class CoverageFormulation(object):
 
         self._model= model = pe.ConcreteModel()
 
-        entity_list = None
+        # build the list of entities from the coverage DataFrame
+        covered_items = coverage['Coverage'].tolist()
+        entity_list = cu._unique_items_from_list_of_lists(covered_items)
         if entity is None:
             if use_entity_weight:
                 raise ValueError('CoverageFormulation: use_entity_weight cannot be True if'
                                  '"entity" DataFrame is not provided.')
-            # build the list of entities from the coverage DataFrame
-            covered_items = coverage['Coverage'].tolist()
-            entity_list = sorted(cu._unique_items_from_list_of_lists(covered_items))
         else:
-            entity_list = sorted(entity['Entity'].unique())
-
+            # add potential additional entities from the entity DataFrame
+            additional_entities = set(entity['Entity'].unique())
+            entity_list = entity_list.union(additional_entities)
+        
+        entity_list = sorted(entity_list)
+    
         # TODO: Add DataFrame column checks like in the ImpactFormulation
 
         if sensor is None and use_sensor_cost:
@@ -555,6 +558,9 @@ class CoverageFormulation(object):
 
         if use_entity_weight:
             entity_weights = entity.set_index('Entity')['Weight']
+            # Check for missing entity weights, set to 0
+            missing_entities = set(entity_list) - set(entity_weights.index)
+            assert len(missing_entities) == 0, "Missing entity weights , " +  str(missing_entities)
             model.obj = pe.Objective(expr=sum(float(entity_weights[e])*model.x[e] for e in entity_list), sense=pe.maximize)
         else:
             model.obj = pe.Objective(expr=sum(model.x[e] for e in entity_list), sense=pe.maximize)

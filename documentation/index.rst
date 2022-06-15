@@ -30,6 +30,7 @@ Contents
    impact
    optimization
    graphics
+   examples
    license
    whatsnew
    developers

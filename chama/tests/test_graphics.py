@@ -1,14 +1,12 @@
 import unittest
-from nose.tools import *
 import os
 from os.path import abspath, dirname, join, isfile
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
 import chama
-        
+
 testdir = dirname(abspath(__file__))
-datadir = join(testdir, 'data')
 
 
 class TestSignalGraphics(unittest.TestCase):
@@ -46,7 +44,7 @@ class TestSignalGraphics(unittest.TestCase):
         plt.savefig(filename, format='png')
         plt.close()
         
-        assert_true(isfile(filename))
+        self.assertTrue(isfile(filename))
     
     def test_signal_xsection(self):
         filename = abspath(join(testdir, 'plot_signal_xsection1.png'))
@@ -58,7 +56,7 @@ class TestSignalGraphics(unittest.TestCase):
         plt.savefig(filename, format='png')
         plt.close()
         
-        assert_true(isfile(filename))
+        self.assertTrue(isfile(filename))
 
     def test_signal_animate(self):
         pass
@@ -100,4 +98,7 @@ class TestSensorGraphics(unittest.TestCase):
         plt.savefig(filename, format='png')
         plt.close()
         
-        assert_true(isfile(filename))
+        self.assertTrue(isfile(filename))
+
+if __name__ == "__main__":
+    unittest.main()

@@ -9,7 +9,6 @@ import chama.utils as cu
 #               {'Col1': 's4', 'Col2': 4.44, 'Col3', 4}
 #               ]
 
-
 sample_data = {'Col1': ['s1', 's2', 's3'],
                'Col2': [1.11, 2.22, 3.33],
                'Col3': [1, 2, 3]}
@@ -154,3 +153,6 @@ class UtilsTests(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             cu._df_nans_not_allowed('sample_data2', df2)
+
+if __name__ == "__main__":
+    unittest.main()

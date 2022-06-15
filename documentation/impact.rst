@@ -41,7 +41,7 @@ section) in a dictionary:
     >>> import chama
     >>> import pandas as pd
     >>> import numpy as np
-    >>> pd.set_option('max_columns', 20)
+    >>> pd.set_option('display.max_columns', 20)
     >>> posA = chama.sensors.Stationary(location=(1,2,3))
     >>> detA = chama.sensors.Point(sample_times=[0,10,20,30], threshold=30)
     >>> stationary_pt_sensor = chama.sensors.Sensor(position=posA, detector=detA)

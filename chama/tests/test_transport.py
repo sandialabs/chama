@@ -41,3 +41,6 @@ class TestGaussianModels(unittest.TestCase):
                                                    self.atm, tpuff=0.1,
                                                    tend=20)
         signal = gauss_puff.conc
+
+if __name__ == "__main__":
+    unittest.main()

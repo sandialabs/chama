@@ -1,13 +1,8 @@
 import unittest
-from nose.tools import *
-from os.path import abspath, dirname, join
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import numpy as np
 import chama
-
-testdir = dirname(abspath(__file__))
-datadir = join(testdir, 'data')
 
 
 class TestXYZFormat(unittest.TestCase):
@@ -159,8 +154,8 @@ class TestConversions(unittest.TestCase):
         stats = chama.impact.detection_time_stats(self.detection_times)
         stats.set_index('Scenario', inplace=True)
         print(stats)
-        assert_equal(stats.loc['S1', 'Mean'], 3)
-        assert_equal(stats.loc['S1', 'Max'], 4)
+        self.assertEqual(stats.loc['S1', 'Mean'], 3)
+        self.assertEqual(stats.loc['S1', 'Max'], 4)
 
     def test_detection_times_to_coverage(self):
         coverage1 = chama.impact.detection_times_to_coverage(
@@ -266,3 +261,5 @@ class TestConversions(unittest.TestCase):
         assert_frame_equal(scenario3.set_index('Scenario'),
                            scenario3_expected.set_index('Scenario'))
 
+if __name__ == "__main__":
+    unittest.main()

@@ -1,16 +1,11 @@
-from nose.tools import *
-from nose.plugins.skip import SkipTest
 import unittest
 import os
 import sys
 from subprocess import call
-import pandas as pd
-import numpy as np
-
-import chama
 
 test_dir = os.path.dirname(os.path.abspath(__file__))
 examples_dir = os.path.join(test_dir, '..', '..', 'examples')
+
 
 class TestExamples(unittest.TestCase):
     @classmethod
@@ -47,4 +42,3 @@ class TestExamples(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    

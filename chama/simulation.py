@@ -237,7 +237,7 @@ class GaussianPlume:
                 columns=['X', 'Y', 'Z', 'S'])
             conc_at_t['T'] = t
             
-            conc = conc.append(conc_at_t, ignore_index=True)
+            conc = pd.concat([conc, conc_at_t], ignore_index=True)
 
         self.conc = conc
         self.conc = self.conc[['X', 'Y', 'Z', 'T', 'S']]

@@ -83,7 +83,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk
-        pip install coverage coveralls
+        pip install coverage coveralls wntr
         python setup.py develop
     - name: Run Tests
       run: |

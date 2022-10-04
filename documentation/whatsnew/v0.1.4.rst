@@ -1,7 +1,9 @@
-v0.1.4 (main)
+v0.1.4 (October 4, 2022)
 ----------------------------
 
 * Minor changes to the optimization formulations to account for updates in Pyomo
+* Minor changes to account for updates in Pandas
 * Dropped Python 3.5 tests, added Python 3.8 and 3.9 tests
 * Added GitHub Actions for testing
+* Added a Gaussian plume and water network example
 * Updated documentation

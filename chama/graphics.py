@@ -373,7 +373,7 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
     """
     
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(111, projection='3d')
 
     for name, sensor in sensors.items():
 

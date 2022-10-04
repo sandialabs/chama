@@ -43,7 +43,7 @@ jobs:
   #  runs-on: ${{ matrix.os }}
   #  strategy:
   #    matrix:
-  #      python-version: [3.6, 3.7, 3.8, 3.9]
+  #      python-version: [3.7, 3.8, 3.9]
   #      os: [ubuntu-latest]    
   #  steps:
   #  - name: Set up Python 
@@ -67,7 +67,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
         os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
@@ -83,7 +83,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk
-        pip install coverage coveralls
+        pip install coverage coveralls wntr
         python setup.py develop
     - name: Run Tests
       run: |

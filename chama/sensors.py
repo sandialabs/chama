@@ -220,7 +220,7 @@ class Detector(object):
         Parameters
         ----------
         signal : pandas DataFrame
-            DataFrame with the multi-index (T, X, Y, Z) or (T,J) and columns
+            DataFrame with the multi-index (T, X, Y, Z) or (T, Node) and columns
             containing the concentrations for different scenarios
         position : chama Position
             The position of the sensor

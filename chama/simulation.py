@@ -237,7 +237,7 @@ class GaussianPlume:
                 columns=['X', 'Y', 'Z', 'S'])
             conc_at_t['T'] = t
             
-            conc = conc.append(conc_at_t, ignore_index=True)
+            conc = pd.concat([conc, conc_at_t], ignore_index=True)
 
         self.conc = conc
         self.conc = self.conc[['X', 'Y', 'Z', 'T', 'S']]
@@ -307,10 +307,9 @@ class GaussianPuff:
         tpuff = self.tpuff
         tend = self.tend
 
-        temp = pd.DataFrame()
-        temp = temp.append({'T': 0, 'X': self.source.x, 'Y': self.source.y,
-                            'Z': self.source.z, 'D': 0, 'Puff_ID': 0},
-                           ignore_index=True)
+        temp = pd.DataFrame({'T': 0, 'X': self.source.x, 'Y': self.source.y,
+                            'Z': self.source.z, 'D': 0, 'Puff_ID': 0}, 
+                            index=[0])
 
         df_list = [temp]
         tprev = temp
@@ -349,9 +348,11 @@ class GaussianPuff:
             temp['Z'] = _calculate_z_with_buoyancy(self, temp['D'].values,
                                                    wind_speed)
             # New Puff
-            temp = temp.append({'T': t, 'X': self.source.x,
+            new_puff = pd.DataFrame({'T': t, 'X': self.source.x,
                                 'Y': self.source.y, 'Z': self.source.z,
-                                'D': 0, 'Puff_ID': t}, ignore_index=True)
+                                'D': 0, 'Puff_ID': t}, index=[0])
+            temp = pd.concat([temp, new_puff], ignore_index=True)
+            
             df_list.append(temp)
             tprev = temp
 

@@ -1,6 +1,7 @@
 v0.1.4 (October 4, 2022)
 ----------------------------
 
+* Bug fix in type checking for impact dataframes
 * Minor changes to the optimization formulations to account for updates in Pyomo
 * Minor changes to account for updates in Pandas
 * Dropped Python 3.5 tests, added Python 3.8 and 3.9 tests

@@ -24,7 +24,7 @@ The convex hull of several scenarios can be generated as follows (:numref:`fig-c
     >>> import chama
 	>>> import numpy as np
     >>> import pandas as pd
-    >>> pd.set_option('max_columns', 20)
+    >>> pd.set_option('display.max_columns', 20)
     >>> x, y, z, t = np.meshgrid([1, 2], [1, 2], [1, 2], [0, 10, 20])
     >>> signal = pd.DataFrame({'X': z.flatten(),'Y': x.flatten(),'Z': y.flatten(),'T': t.flatten(),
     ...		'S1': [0,0,0,0.2,0.32,0.45,0.23,0.64,0.25,0.44,0.25,0.82,0.96,0.61,0.92,0.41,0.42,0,0,0,0,0,0,0],

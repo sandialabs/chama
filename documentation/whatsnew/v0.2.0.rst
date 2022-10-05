@@ -1,8 +1,10 @@
-v0.1.4 (main)
+v0.2.0 (October 5, 2022)
 ----------------------------
 
-* Bug fix in type checking for impact dataframes
+* Bug fix in type checking for impact assessment dataframes
 * Minor changes to the optimization formulations to account for updates in Pyomo
+* Minor changes to account for updates in Pandas
 * Dropped Python 3.5 and 3.6 tests, added Python 3.8 and 3.9 tests
 * Added GitHub Actions for testing
-* Updated documentation, including the addition of an examples section
+* Added a Gaussian plume and water network example
+* Updated documentation

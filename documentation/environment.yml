@@ -1,10 +1,11 @@
 name: chama
 dependencies:
-    - python=3.7
+    - python=3.8
     - numpy
     - scipy
     - pandas
     - sphinx
     - numpydoc
     - matplotlib
+    - docutils<0.17
 

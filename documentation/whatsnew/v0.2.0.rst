@@ -1,4 +1,4 @@
-v0.1.4 (October 5, 2022)
+v0.2.0 (October 5, 2022)
 ----------------------------
 
 * Bug fix in type checking for impact assessment dataframes

@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# This workflow will install Python dependencies, run tests and coverage
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: build
@@ -16,13 +16,17 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python --version
@@ -36,8 +40,8 @@ jobs:
     - name: Save wheel
       uses: actions/upload-artifact@v3
       with:
-        name: wheel
-        path: dist/chama*.whl
+        name: chama_${{ matrix.python-version }}_${{ matrix.os }}.whl
+        path: dist/chama*
 
   #test:
   #  name: Import test
@@ -45,7 +49,7 @@ jobs:
   #  runs-on: ${{ matrix.os }}
   #  strategy:
   #    matrix:
-  #      python-version: [3.7, 3.8, 3.9]
+  #      python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
   #      os: [ubuntu-latest]    
   #  steps:
   #  - name: Set up Python 
@@ -65,7 +69,7 @@ jobs:
   #    run: |
   #      python -c "import chama"
 
-  linux:
+  create_coverage_reports:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -86,13 +90,12 @@ jobs:
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk
         pip install coverage coveralls wntr
-        python setup.py develop
+        python -m pip install -e .
     - name: Run Tests
       run: |
         export PATH=/usr/share/miniconda/bin:$PATH
         coverage erase
-        #coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m nose -v --nologcapture --with-doctest --doctest-extension=.rst --traverse-namespace documentation/*.rst chama
-        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m pytest  --doctest-modules --doctest-glob="*.rst" chama
+        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m pytest --doctest-modules --doctest-glob="*.rst" chama
         coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" --append -m pytest --doctest-glob="*.rst" documentation
      
       env:
@@ -103,8 +106,8 @@ jobs:
         name: coverage
         path: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
 
-  coverage:
-    needs: [ linux ]
+  combine_reports:
+    needs: [ create_coverage_reports ]
     runs-on: ubuntu-latest
     steps:
     - name: Set up Python 
@@ -148,8 +151,8 @@ jobs:
         name: coverage
         path: htmlcov
 
-  coveralls:
-    needs: [ linux ]
+  combine_reports_upload_coveralls:
+    needs: [ create_coverage_reports ]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -163,7 +166,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install coveralls
         pip install -r requirements.txt
-        python setup.py develop
+        python -m pip install -e .
     - name: Download coverage artifacts from test matrix
       uses: actions/download-artifact@v3
       with:

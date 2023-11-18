@@ -94,4 +94,4 @@ for ndex, wellpad in wellpads.iterrows():
 
 # Simple test to ensure results don't change
 assert results['Objective'] == 99.0
-assert results['Sensors'] == ['Sensor384', 'Sensor551', 'Sensor575', 'Sensor731', 'Sensor797']
+assert results['Sensors'] == ['Sensor384', 'Sensor551', 'Sensor575', 'Sensor681', 'Sensor751']

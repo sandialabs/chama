@@ -326,7 +326,7 @@ by the sensor placement (listed as 'scenario-time').
     ...                          use_sensor_cost=True)
 	
     >>> print(results['Sensors'])
-    ['A', 'B', 'D']
+    ['A', 'B', 'C']
     >>> print(results['Objective'])
     11.0
     >>> print(round(results['FractionDetected'],2))

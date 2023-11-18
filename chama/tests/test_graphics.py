@@ -58,9 +58,6 @@ class TestSignalGraphics(unittest.TestCase):
         
         self.assertTrue(isfile(filename))
 
-    def test_signal_animate(self):
-        pass
-
 
 class TestSensorGraphics(unittest.TestCase):
     

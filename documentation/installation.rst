@@ -39,7 +39,7 @@ Optional Python package dependencies include:
 
 * Matplotlib [Hunt07]_: Used to produce graphics, 
   http://matplotlib.org.
-* nose: Used to run software tests, http://nose.readthedocs.io.
+* pytest: Used to run software tests, https://docs.pytest.org/.
 
 Required Pyomo supported MIP solver:
 

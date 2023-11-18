@@ -91,7 +91,10 @@ jobs:
       run: |
         export PATH=/usr/share/miniconda/bin:$PATH
         coverage erase
-        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m nose -v --nologcapture --with-doctest --doctest-extension=.rst --traverse-namespace documentation/*.rst chama
+        #coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m nose -v --nologcapture --with-doctest --doctest-extension=.rst --traverse-namespace documentation/*.rst chama
+        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m pytest  --doctest-modules --doctest-glob="*.rst" chama
+        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" --append -m pytest --doctest-glob="*.rst" documentation
+     
       env:
         COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
     - name: Save coverage

@@ -24,9 +24,9 @@ The latest stable version is hosted on PyPI at https://pypi.python.org/pypi/cham
 **Testing:**
 Automated testing is run using TravisCI at https://travis-ci.org/sandialabs/chama.
 Test coverage statistics are collected using Coveralls at https://coveralls.io/github/sandialabs/chama.
-Tests can be run locally using nosetests::
+Tests can be run locally using pytest::
   
-	nosetests -v --with-coverage --cover-package=chama chama
+	pytest chama
 
 **Documentation:**
 Documentation is built using Read the Docs and hosted at https://chama.readthedocs.io.

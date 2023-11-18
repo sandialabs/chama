@@ -19,7 +19,7 @@ try:
     from matplotlib.collections import PatchCollection
     from matplotlib.animation import FuncAnimation
 except:
-    pass
+    plt = None
     
 from scipy.spatial import ConvexHull  
 import numpy as np
@@ -27,7 +27,7 @@ from chama.sensors import Mobile
 
 
 def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
-                      colormap=plt.cm.viridis, 
+                      colormap=None, 
                       x_range=(None, None), y_range=(None, None),
                       z_range=(None, None)):
     """
@@ -54,6 +54,11 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     z_range: tuple (optional)
         The z-axis limits for the plot
     """
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    if colormap is None:
+        colormap = plt.get_cmap('viridis')
+        
     t_col = 'T'
     x_col = 'X'
     y_col = 'Y'
@@ -104,7 +109,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
 
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
                     x_value=None, y_value=None, z_value=None, log_flag=False,
-                    colormap=plt.cm.viridis, alpha=0.7, N=5,
+                    colormap=None, alpha=0.7, N=5,
                     x_range=(None, None), y_range=(None, None), 
                     z_range=(None, None)):
     """
@@ -147,7 +152,11 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     z_range: tuple (optional)
         The z-axis limits for the plot
     """
-
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    if colormap is None:
+        colormap = plt.get_cmap('viridis')
+        
     t_col = 'T'
     x_col = 'X'
     y_col = 'Y'
@@ -318,7 +327,10 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         if c is not None:
             plt.sci(collection)
         return collection
-
+    
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+        
     fig, ax = plt.subplots()
     # ln, = plt.plot([],[],animated=True)
 
@@ -371,7 +383,9 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
         sensor. The key:value pairs are {'sensor name' : String
         representing the marker to be passed to the plot function)
     """
-    
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+        
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 

@@ -1,6 +1,6 @@
 # Required
 pyomo
-pandas
+pandas<2.0
 numpy
 scipy
 

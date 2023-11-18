@@ -11,7 +11,7 @@ AUTHOR = 'Chama developers'
 MAINTAINER_EMAIL = 'kaklise@sandia.gov'
 LICENSE = 'Revised BSD'
 URL = 'https://github.com/sandialabs/chama'
-DEPENDENCIES = ['pyomo', 'pandas', 'numpy', 'scipy']
+DEPENDENCIES = ['pyomo', 'pandas<2.0', 'numpy', 'scipy']
 
 # use README file as the long description
 file_dir = os.path.abspath(os.path.dirname(__file__))

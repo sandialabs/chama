@@ -13,6 +13,9 @@ from __future__ import print_function, division
 try:
     import matplotlib.pyplot as plt
     from matplotlib import ticker
+    from matplotlib.patches import Circle
+    from matplotlib.collections import PatchCollection
+    from matplotlib.animation import FuncAnimation
 except:
     plt = None
 
@@ -21,8 +24,8 @@ import numpy as np
 from chama.sensors import Mobile
 
 
-def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
-                      colormap=None, 
+def signal_convexhull(signal, scenarios, threshold, timesteps=None,
+                      colormap=None,
                       x_range=(None, None), y_range=(None, None),
                       z_range=(None, None)):
     """
@@ -318,13 +321,10 @@ def animate_puffs(puff, repeat=True):
     
     if plt is None:
         raise ImportError('matplotlib is required for graphics')
+        
     buffer = puff['sigmaY'].max() + puff['sigmaY'].max()/5
     x_range = (puff['X'].min() - buffer, puff['X'].max() + buffer)
     y_range = (puff['Y'].min() - buffer, puff['Y'].max() + buffer)
-        
-    from matplotlib.patches import Circle, Ellipse, Rectangle
-    from matplotlib.collections import PatchCollection
-    from matplotlib.animation import FuncAnimation, FFMpegWriter
 
     fig, ax = plt.subplots()
     # ln, = plt.plot([],[],animated=True)

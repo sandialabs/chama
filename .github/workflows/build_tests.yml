@@ -43,33 +43,33 @@ jobs:
         name: chama_${{ matrix.python-version }}_${{ matrix.os }}.whl
         path: dist/chama*
 
-  #test:
-  #  name: Import test
-  #  needs: build
-  #  runs-on: ${{ matrix.os }}
-  #  strategy:
-  #    matrix:
-  #      python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
-  #      os: [ubuntu-latest]    
-  #  steps:
-  #  - name: Set up Python 
-  #    uses: actions/setup-python@v4
-  #    with:
-  #      python-version: ${{ matrix.python-version }}
-  #  - name: Download wheel
-  #    uses: actions/download-artifact@v3
-  #    with:
-  #      name: wheel
-  #  - name: Install chama
-  #    run: |
-  #      python -m pip install --upgrade pip
-  #      pip install wheel
-  #      pip install --find-links=. chama
-  #  - name: Import test
-  #    run: |
-  #      python -c "import chama"
+  install:
+    name: Import test
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
+    steps:
+    - name: Set up Python 
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Download wheel
+      uses: actions/download-artifact@v3
+      with:
+        name: wheel
+    - name: Install chama
+      run: |
+        python -m pip install --upgrade pip
+        pip install wheel
+        pip install --find-links=. chama
+    - name: Import test
+      run: |
+        python -c "import chama"
 
-  create_coverage_reports:
+  pytest_coverage:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -106,8 +106,8 @@ jobs:
         name: coverage
         path: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
 
-  combine_reports:
-    needs: [ create_coverage_reports ]
+  coverage_reports:
+    needs: [ pytest_coverage ]
     runs-on: ubuntu-latest
     steps:
     - name: Set up Python 
@@ -120,7 +120,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install coveralls
-        python setup.py develop
+        python -m pip install -e .
     - name: Download coverage artifacts from test matrix
       uses: actions/download-artifact@v3
       with:
@@ -151,8 +151,8 @@ jobs:
         name: coverage
         path: htmlcov
 
-  combine_reports_upload_coveralls:
-    needs: [ create_coverage_reports ]
+  coveralls:
+    needs: [ pytest_coverage ]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

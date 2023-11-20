@@ -241,7 +241,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     fig.show()
 
 
-def animate_puffs(puff, repeat=True):
+def animate_puffs(puff, x_range=(None, None), y_range=(None, None), repeat=True):
     """
     Plots the horizontal movement of puffs from a GaussianPuff simulation
     over time. Each puff is represented as a circle centered at the puff
@@ -252,6 +252,10 @@ def animate_puffs(puff, repeat=True):
     ------------------
     puff: pandas DataFrame
         The puff DataFrame created by a GaussianPuff object
+    x_range: tuple (xmin, xmax) (optional)
+        The x-axis limits for the plot
+    y_range: tuple (ymin, ymax) (optional)
+        The y-axis limits for the plot
     repeat : bool, optional
         If True, the animation will repeat
     """
@@ -322,10 +326,14 @@ def animate_puffs(puff, repeat=True):
     
     if plt is None:
         raise ImportError('matplotlib is required for graphics')
-        
+    
     buffer = puff['sigmaY'].max() + puff['sigmaY'].max()/5
-    x_range = (puff['X'].min() - buffer, puff['X'].max() + buffer)
-    y_range = (puff['Y'].min() - buffer, puff['Y'].max() + buffer)
+    xmin = min([v for v in [puff['X'].min() - buffer, x_range[0]] if v is not None])
+    xmax = max([v for v in [puff['X'].max() + buffer, x_range[1]] if v is not None])
+    ymin = min([v for v in [puff['Y'].min() - buffer, y_range[0]] if v is not None])
+    ymax = max([v for v in [puff['Y'].max() + buffer, y_range[1]] if v is not None])
+    x_range = (xmin, xmax)
+    y_range = (ymin, ymax)
 
     fig, ax = plt.subplots()
     # ln, = plt.plot([],[],animated=True)

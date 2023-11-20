@@ -68,7 +68,9 @@ class TestSignalGraphics(unittest.TestCase):
         if isfile(filename):
             os.remove(filename)
         
-        anim = chama.graphics.animate_puffs(self.puff)
+        anim = chama.graphics.animate_puffs(self.puff, 
+                                            x_range=(-60,None), 
+                                            y_range=(None,60))
         
         from matplotlib.animation import FuncAnimation, writers
         try: 

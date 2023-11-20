@@ -28,7 +28,12 @@ class TestSignalGraphics(unittest.TestCase):
     
         gauss_plume = chama.simulation.GaussianPlume(self.grid, self.source, 
                                                      self.atm)
+        gauss_puff = chama.simulation.GaussianPuff(self.grid, self.source, 
+                                                   self.atm, tpuff=0.5,
+                                                   tend=30)
         self.signal = gauss_plume.conc
+        self.puff = gauss_puff.puff
+        
         
     @classmethod
     def tearDownClass(self):
@@ -57,6 +62,23 @@ class TestSignalGraphics(unittest.TestCase):
         plt.close()
         
         self.assertTrue(isfile(filename))
+
+    def test_puff_animation(self):
+        filename = abspath(join(testdir, 'plot_puff_animation.gif'))
+        if isfile(filename):
+            os.remove(filename)
+        
+        anim = chama.graphics.animate_puffs(self.puff)
+        
+        from matplotlib.animation import FuncAnimation, writers
+        try: 
+            writer = writers.list()[0]
+            anim.save(filename, writer=writer)
+            self.assertTrue(isfile(filename))
+        except:
+            pass
+        
+        self.assertTrue(isinstance(anim, FuncAnimation))
 
 
 class TestSensorGraphics(unittest.TestCase):

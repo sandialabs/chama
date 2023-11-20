@@ -69,20 +69,15 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     for scenario in scenarios:
         i = 0
         for timestep in timesteps:
+            color = colormap(i)
+            i += 1 / float(len(timesteps))
+            
+            signal_t = signal[signal[t_col] == timestep]
+            conc_filter = signal_t[scenario] > threshold
+            
+            data = signal_t[[x_col, y_col, z_col]][conc_filter]
+            data = data.values
             try:
-                color = colormap(i)
-                i += 1 / float(len(timesteps))
-                
-                signal_t = signal[signal[t_col] == timestep]
-                conc_filter = signal_t[scenario] > threshold
-                
-                # plot points
-                # data = signal_t[[x_col,y_col,z_col,scenario]][conc_filter]
-                # data = data.as_matrix()
-                # ax.scatter(data[:,0], data[:,1], data[:,2], c=data[:,3],s=30)
-                
-                data = signal_t[[x_col, y_col, z_col]][conc_filter]
-                data = data.as_matrix()
                 hull = ConvexHull(data)
                 ax.plot_trisurf(data[:, 0], data[:, 1], data[:, 2],
                                 triangles=hull.simplices,
@@ -90,8 +85,8 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
                                 shade=False,
                                 color=color)
             except:
-                pass
-
+                print('Convex Hull not created for scenario %s timestep %d' % (scenario, timestep))
+                      
     ax.set_xlabel(x_col)
     ax.set_ylabel(y_col)
     ax.set_zlabel(z_col)
@@ -242,6 +237,119 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     fig.show()
 
 
+def animate_puffs(puff, repeat=True):
+    """
+    Plots the horizontal movement of puffs from a GaussianPuff simulation
+    over time. Each puff is represented as a circle centered at the puff
+    center location with radius equal to the standard deviation in the
+    horizontal direction (sigmaY).
+
+    Parameters
+    ------------------
+    puff: pandas DataFrame
+        The puff DataFrame created by a GaussianPuff object
+    repeat : bool, optional
+        If True, the animation will repeat
+    """
+
+    def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
+        """
+        Make a scatter plot of circles. 
+        Similar to plt.scatter, but the size of circles are in data scale.
+
+        Parameters
+        ----------
+        x, y : scalar or array_like, shape (n, )
+            Input data
+        s : scalar or array_like, shape (n, ) 
+            Radius of circles.
+        c : color or sequence of color, optional, default : 'b'
+            `c` can be a single color format string, or a sequence of color
+            specifications of length `N`, or a sequence of `N` numbers to be
+            mapped to colors using the `cmap` and `norm` specified via kwargs.
+            Note that `c` should not be a single numeric RGB or RGBA sequence 
+            because that is indistinguishable from an array of values
+            to be colormapped. (If you insist, use `color` instead.)  
+            `c` can be a 2-D array in which the rows are RGB or RGBA, however. 
+        vmin, vmax : scalar, optional, default: None
+            `vmin` and `vmax` are used in conjunction with `norm` to normalize
+            luminance data.  If either are `None`, the min and max of the
+            color array is used.
+        kwargs : `~matplotlib.collections.Collection` properties
+            Eg. alpha, edgecolor(ec), facecolor(fc), linewidth(lw),
+            linestyle(ls), norm, cmap, transform, etc.
+
+        Returns
+        -------
+        paths : `~matplotlib.collections.PathCollection`
+        """
+
+        if np.isscalar(c):
+            kwargs.setdefault('color', c)
+            c = None
+
+        if 'fc' in kwargs:
+            kwargs.setdefault('facecolor', kwargs.pop('fc'))
+        if 'ec' in kwargs:
+            kwargs.setdefault('edgecolor', kwargs.pop('ec'))
+        if 'ls' in kwargs:
+            kwargs.setdefault('linestyle', kwargs.pop('ls'))
+        if 'lw' in kwargs:
+            kwargs.setdefault('linewidth', kwargs.pop('lw'))
+        # You can set `facecolor` with an array for each patch,
+        # while you can only set `facecolors` with a value for all.
+
+        zipped = np.broadcast(x, y, s)
+        patches = [Circle((x_, y_), s_)
+                    for x_, y_, s_ in zipped]
+        collection = PatchCollection(patches, **kwargs)
+        if c is not None:
+            c = np.broadcast_to(c, zipped.shape).ravel()
+            collection.set_array(c)
+            collection.set_clim(vmin, vmax)
+
+        ax = plt.gca()
+        ax.add_collection(collection)
+        ax.autoscale_view()
+        plt.draw_if_interactive()
+        if c is not None:
+            plt.sci(collection)
+        return collection
+    
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    buffer = puff['sigmaY'].max() + puff['sigmaY'].max()/5
+    x_range = (puff['X'].min() - buffer, puff['X'].max() + buffer)
+    y_range = (puff['Y'].min() - buffer, puff['Y'].max() + buffer)
+        
+    from matplotlib.patches import Circle, Ellipse, Rectangle
+    from matplotlib.collections import PatchCollection
+    from matplotlib.animation import FuncAnimation, FFMpegWriter
+
+    fig, ax = plt.subplots()
+    # ln, = plt.plot([],[],animated=True)
+
+    def update(time):
+        plt.cla()
+        ax.set_xlim(x_range[0], x_range[1])
+        ax.set_ylim(y_range[0], y_range[1])
+        ax.set_title('T = %6.2f' % time)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+
+        temp = puff.loc[puff['T'] == time]
+        out = circles(temp['X'], temp['Y'], temp['sigmaY'], alpha=0.5,
+                      edgecolor='none')
+        return out
+    
+    anim = FuncAnimation(fig, update, frames=puff['T'].unique(), interval=50, 
+                         blit=False, repeat=repeat)
+
+    plt.show()
+    
+    return anim
+
+
 def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
                      z_range=(None, None), legend=False,
                      colors=None, markers=None):
@@ -302,116 +410,3 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
     if legend:
         ax.legend()
     fig.show()
-
-# Animation function is no longer working
-# Use convex hull or xsection on individual timesteps
-# def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
-#     """
-#     Plots the horizontal movement of puffs from a GaussianPuff simulation
-#     over time. Each puff is represented as a circle centered at the puff
-#     center location with radius equal to the standard deviation in the
-#     horizontal direction (sigmaY).
-
-#     Parameters
-#     ------------------
-#     puff: pandas DataFrame
-#         The puff DataFrame created by a GaussianPuff object
-#     x_range: tuple (xmin, xmax) (optional)
-#         The x-axis limits for the plot
-#     y_range: tuple (ymin, ymax) (optional)
-#         The y-axis limits for the plot
-#     """
-
-#     def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
-#         """
-#         Make a scatter plot of circles. 
-#         Similar to plt.scatter, but the size of circles are in data scale.
-
-#         Parameters
-#         ----------
-#         x, y : scalar or array_like, shape (n, )
-#             Input data
-#         s : scalar or array_like, shape (n, ) 
-#             Radius of circles.
-#         c : color or sequence of color, optional, default : 'b'
-#             `c` can be a single color format string, or a sequence of color
-#             specifications of length `N`, or a sequence of `N` numbers to be
-#             mapped to colors using the `cmap` and `norm` specified via kwargs.
-#             Note that `c` should not be a single numeric RGB or RGBA sequence 
-#             because that is indistinguishable from an array of values
-#             to be colormapped. (If you insist, use `color` instead.)  
-#             `c` can be a 2-D array in which the rows are RGB or RGBA, however. 
-#         vmin, vmax : scalar, optional, default: None
-#             `vmin` and `vmax` are used in conjunction with `norm` to normalize
-#             luminance data.  If either are `None`, the min and max of the
-#             color array is used.
-#         kwargs : `~matplotlib.collections.Collection` properties
-#             Eg. alpha, edgecolor(ec), facecolor(fc), linewidth(lw),
-#             linestyle(ls), norm, cmap, transform, etc.
-
-#         Returns
-#         -------
-#         paths : `~matplotlib.collections.PathCollection`
-#         """
-
-#         if np.isscalar(c):
-#             kwargs.setdefault('color', c)
-#             c = None
-
-#         if 'fc' in kwargs:
-#             kwargs.setdefault('facecolor', kwargs.pop('fc'))
-#         if 'ec' in kwargs:
-#             kwargs.setdefault('edgecolor', kwargs.pop('ec'))
-#         if 'ls' in kwargs:
-#             kwargs.setdefault('linestyle', kwargs.pop('ls'))
-#         if 'lw' in kwargs:
-#             kwargs.setdefault('linewidth', kwargs.pop('lw'))
-#         # You can set `facecolor` with an array for each patch,
-#         # while you can only set `facecolors` with a value for all.
-
-#         zipped = np.broadcast(x, y, s)
-#         patches = [Circle((x_, y_), s_)
-#                    for x_, y_, s_ in zipped]
-#         collection = PatchCollection(patches, **kwargs)
-#         if c is not None:
-#             c = np.broadcast_to(c, zipped.shape).ravel()
-#             collection.set_array(c)
-#             collection.set_clim(vmin, vmax)
-
-#         ax = plt.gca()
-#         ax.add_collection(collection)
-#         ax.autoscale_view()
-#         plt.draw_if_interactive()
-#         if c is not None:
-#             plt.sci(collection)
-#         return collection
-    
-#     if plt is None:
-#         raise ImportError('matplotlib is required for graphics')
-
-#     from matplotlib.patches import Circle, Ellipse, Rectangle
-#     from matplotlib.collections import PatchCollection
-#     from matplotlib.animation import FuncAnimation
-
-#     fig, ax = plt.subplots()
-#     # ln, = plt.plot([],[],animated=True)
-
-#     def update(time):
-#         plt.cla()
-#         ax.set_xlim(x_range[0], x_range[1])
-#         ax.set_ylim(y_range[0], y_range[1])
-#         ax.set_title('T = %6.2f' % time)
-#         ax.set_xlabel('X')
-#         ax.set_ylabel('Y')
-
-#         temp = puff.loc[puff['T'] == time]
-#         out = circles(temp['X'], temp['Y'], temp['sigmaY'], alpha=0.5,
-#                       edgecolor='none')
-#         return out
-    
-#     ani = FuncAnimation(fig, update, frames=puff['T'].unique())
-
-#     # Need a coder like ffmpeg installed in order to save
-#     # ani.save('puff.mp4')
-
-#     plt.show()

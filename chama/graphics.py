@@ -7,6 +7,7 @@ The graphics module contains graphic functions.
 
     signal_convexhull
     signal_xsection
+    animate_puffs
     sensor_locations
 """
 from __future__ import print_function, division

@@ -5,5 +5,5 @@ numpy
 scipy
 
 # Optional
-nose
+pytest
 matplotlib

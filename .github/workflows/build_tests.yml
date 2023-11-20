@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# This workflow will install Python dependencies, run tests and coverage
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: build
@@ -10,17 +10,23 @@ on:
   pull_request:
     branches:
     - '**'
-
+  schedule:
+    - cron: '0 0 1 * *'
+    
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python --version
@@ -32,42 +38,41 @@ jobs:
         python setup.py bdist_wheel
         ls dist/*
     - name: Save wheel
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: wheel
-        path: dist/chama*.whl
+        name: chama_${{ matrix.python-version }}_${{ matrix.os }}.whl
+        path: dist/chama*
 
-  #test:
-  #  name: Import test
-  #  needs: build
-  #  runs-on: ${{ matrix.os }}
-  #  strategy:
-  #    matrix:
-  #      python-version: [3.7, 3.8, 3.9]
-  #      os: [ubuntu-latest]    
-  #  steps:
-  #  - name: Set up Python 
-  #    uses: actions/setup-python@v2
-  #    with:
-  #      python-version: ${{ matrix.python-version }}
-  #  - name: Download wheel
-  #    uses: actions/download-artifact@v2
-  #    with:
-  #      name: wheel
-  #  - name: Install chama
-  #    run: |
-  #      python -m pip install --upgrade pip
-  #      pip install wheel
-  #      pip install --find-links=. chama
-  #  - name: Import test
-  #    run: |
-  #      python -c "import chama"
-
-  linux:
+  import:
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        os: [ubuntu-latest]
+    steps:
+    - name: Set up Python 
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Download wheel
+      uses: actions/download-artifact@v3
+      with:
+        name: chama_${{ matrix.python-version }}_${{ matrix.os }}.whl
+    - name: Install chama
+      run: |
+        python -m pip install --upgrade pip
+        pip install wheel pyomo pandas numpy scipy
+        pip install --no-index --pre --find-links=. chama
+    - name: Import chama
+      run: |
+        python -c "import chama"
+
+  pytest_coverage:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
@@ -84,37 +89,38 @@ jobs:
         pip install -r requirements.txt
         conda install -y -c conda-forge glpk
         pip install coverage coveralls wntr
-        python setup.py develop
-    - name: Run Tests
+        python -m pip install -e .
+    - name: Run tests and coverage
       run: |
         export PATH=/usr/share/miniconda/bin:$PATH
         coverage erase
-        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m nose -v --nologcapture --with-doctest --doctest-extension=.rst --traverse-namespace documentation/*.rst chama
+        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" -m pytest --doctest-modules --doctest-glob="*.rst" chama
+        coverage run --context=${{ matrix.os }}.py${{ matrix.python-version }} --source=chama --omit="*/tests/*" --append -m pytest --doctest-glob="*.rst" documentation
       env:
         COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
     - name: Save coverage
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: coverage
         path: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
 
-  coverage:
-    needs: [ linux ]
+  coverage_reports:
+    needs: [ pytest_coverage ]
     runs-on: ubuntu-latest
     steps:
     - name: Set up Python 
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.9
     - uses: actions/checkout@v2
     - name: Install coverage
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install coveralls
-        python setup.py develop
-    - name: Download coverage artifacts from test matrix
-      uses: actions/download-artifact@v2
+        python -m pip install -e .
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v3
       with:
         name: coverage
     - name: Setup coverage and combine reports
@@ -133,34 +139,34 @@ jobs:
         coverage json --pretty-print
         coverage html --show-contexts
     - name: Save coverage JSON
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: coverage
         path: coverage.json
     - name: Save coverage html
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: coverage
         path: htmlcov
 
   coveralls:
-    needs: [ linux ]
+    needs: [ pytest_coverage ]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
     - name: Set up Python 
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.9
     - uses: actions/checkout@v2
     - name: Install coverage
       run: |
         python -m pip install --upgrade pip
         pip install coveralls
         pip install -r requirements.txt
-        python setup.py develop
+        python -m pip install -e .
     - name: Download coverage artifacts from test matrix
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage
     - name: Setup coverage and combine reports

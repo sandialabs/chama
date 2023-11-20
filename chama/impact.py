@@ -153,10 +153,13 @@ def detection_time_to_impact(detection_time, impact_data):
     impact_data.interpolate(inplace=True)
     
     det_damage = detection_time.copy()
-    det_damage['T'] = impact_data.lookup(detection_time['T'],
-                                         detection_time['Scenario'])
-    det_damage.rename(columns={'T': 'Impact'}, inplace=True)
-
+    times = detection_time['T']
+    scenarios = detection_time['Scenario']
+    impact_vals = impact_data.to_numpy()[impact_data.index.get_indexer(times), 
+                                         impact_data.columns.get_indexer(scenarios)]
+    det_damage['Impact'] = impact_vals
+    del det_damage['T']
+    
     return det_damage
 
 

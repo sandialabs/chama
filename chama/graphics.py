@@ -14,20 +14,19 @@ from __future__ import print_function, division
 try:
     import matplotlib.pyplot as plt
     from matplotlib import ticker
-    from mpl_toolkits.mplot3d import Axes3D
-    from matplotlib.patches import Circle, Ellipse, Rectangle
+    from matplotlib.patches import Circle
     from matplotlib.collections import PatchCollection
     from matplotlib.animation import FuncAnimation
 except:
-    pass
-    
-from scipy.spatial import ConvexHull  
+    plt = None
+
+from scipy.spatial import ConvexHull
 import numpy as np
 from chama.sensors import Mobile
 
 
-def signal_convexhull(signal, scenarios, threshold, timesteps=None,  
-                      colormap=plt.cm.viridis, 
+def signal_convexhull(signal, scenarios, threshold, timesteps=None,
+                      colormap=None,
                       x_range=(None, None), y_range=(None, None),
                       z_range=(None, None)):
     """
@@ -54,6 +53,11 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     z_range: tuple (optional)
         The z-axis limits for the plot
     """
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    if colormap is None:
+        colormap = plt.get_cmap('viridis')
+        
     t_col = 'T'
     x_col = 'X'
     y_col = 'Y'
@@ -69,20 +73,15 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
     for scenario in scenarios:
         i = 0
         for timestep in timesteps:
+            color = colormap(i)
+            i += 1 / float(len(timesteps))
+            
+            signal_t = signal[signal[t_col] == timestep]
+            conc_filter = signal_t[scenario] > threshold
+            
+            data = signal_t[[x_col, y_col, z_col]][conc_filter]
+            data = data.values
             try:
-                color = colormap(i)
-                i += 1 / float(len(timesteps))
-                
-                signal_t = signal[signal[t_col] == timestep]
-                conc_filter = signal_t[scenario] > threshold
-                
-                # plot points
-                # data = signal_t[[x_col,y_col,z_col,scenario]][conc_filter]
-                # data = data.as_matrix()
-                # ax.scatter(data[:,0], data[:,1], data[:,2], c=data[:,3],s=30)
-                
-                data = signal_t[[x_col, y_col, z_col]][conc_filter]
-                data = data.as_matrix()
                 hull = ConvexHull(data)
                 ax.plot_trisurf(data[:, 0], data[:, 1], data[:, 2],
                                 triangles=hull.simplices,
@@ -90,8 +89,8 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
                                 shade=False,
                                 color=color)
             except:
-                pass
-
+                print('Convex Hull not created for scenario %s timestep %d' % (scenario, timestep))
+                      
     ax.set_xlabel(x_col)
     ax.set_ylabel(y_col)
     ax.set_zlabel(z_col)
@@ -104,7 +103,7 @@ def signal_convexhull(signal, scenarios, threshold, timesteps=None,
 
 def signal_xsection(signal, signal_name, threshold=None, timesteps=None, 
                     x_value=None, y_value=None, z_value=None, log_flag=False,
-                    colormap=plt.cm.viridis, alpha=0.7, N=5,
+                    colormap=None, alpha=0.7, N=5,
                     x_range=(None, None), y_range=(None, None), 
                     z_range=(None, None)):
     """
@@ -147,7 +146,11 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     z_range: tuple (optional)
         The z-axis limits for the plot
     """
-
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    if colormap is None:
+        colormap = plt.get_cmap('viridis')
+        
     t_col = 'T'
     x_col = 'X'
     y_col = 'Y'
@@ -238,7 +241,7 @@ def signal_xsection(signal, signal_name, threshold=None, timesteps=None,
     fig.show()
 
 
-def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
+def animate_puffs(puff, x_range=(None, None), y_range=(None, None), repeat=True):
     """
     Plots the horizontal movement of puffs from a GaussianPuff simulation
     over time. Each puff is represented as a circle centered at the puff
@@ -253,6 +256,8 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         The x-axis limits for the plot
     y_range: tuple (ymin, ymax) (optional)
         The y-axis limits for the plot
+    repeat : bool, optional
+        If True, the animation will repeat
     """
 
     def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
@@ -304,7 +309,7 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
 
         zipped = np.broadcast(x, y, s)
         patches = [Circle((x_, y_), s_)
-                   for x_, y_, s_ in zipped]
+                    for x_, y_, s_ in zipped]
         collection = PatchCollection(patches, **kwargs)
         if c is not None:
             c = np.broadcast_to(c, zipped.shape).ravel()
@@ -318,6 +323,17 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         if c is not None:
             plt.sci(collection)
         return collection
+    
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+    
+    buffer = puff['sigmaY'].max() + puff['sigmaY'].max()/5
+    xmin = min([v for v in [puff['X'].min() - buffer, x_range[0]] if v is not None])
+    xmax = max([v for v in [puff['X'].max() + buffer, x_range[1]] if v is not None])
+    ymin = min([v for v in [puff['Y'].min() - buffer, y_range[0]] if v is not None])
+    ymax = max([v for v in [puff['Y'].max() + buffer, y_range[1]] if v is not None])
+    x_range = (xmin, xmax)
+    y_range = (ymin, ymax)
 
     fig, ax = plt.subplots()
     # ln, = plt.plot([],[],animated=True)
@@ -334,13 +350,13 @@ def animate_puffs(puff, x_range=(None, None), y_range=(None, None)):
         out = circles(temp['X'], temp['Y'], temp['sigmaY'], alpha=0.5,
                       edgecolor='none')
         return out
-
-    ani = FuncAnimation(fig, update, frames=puff['T'].unique())
-
-    # Need a coder like ffmpeg installed in order to save
-    # ani.save('puff.mp4')
+    
+    anim = FuncAnimation(fig, update, frames=puff['T'].unique(), interval=50, 
+                         blit=False, repeat=repeat)
 
     plt.show()
+    
+    return anim
 
 
 def sensor_locations(sensors, x_range=(None, None), y_range=(None, None), 
@@ -371,7 +387,9 @@ def sensor_locations(sensors, x_range=(None, None), y_range=(None, None),
         sensor. The key:value pairs are {'sensor name' : String
         representing the marker to be passed to the plot function)
     """
-    
+    if plt is None:
+        raise ImportError('matplotlib is required for graphics')
+        
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 

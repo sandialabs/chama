@@ -18,9 +18,9 @@ To install the development branch of Chama from source using git::
 
 	git clone https://github.com/sandialabs/chama
 	cd chama
-	python setup.py install
+	python -m pip install .
 
-Developers should build Chama using the setup.py 'develop' option.
+Developers should build Chama using ``python -m pip install -e .``
 
 Dependencies
 --------------

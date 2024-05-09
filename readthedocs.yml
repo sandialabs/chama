@@ -1,5 +1,0 @@
-conda:
-    file: documentation/environment.yml
-python:
-    version: 3.9
-    setup_py_install: true

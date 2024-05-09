@@ -5,5 +5,11 @@ numpy
 scipy
 
 # Optional
-pytest
 matplotlib
+
+# Documentation
+sphinx
+sphinx_rtd_theme
+
+# Testing
+pytest

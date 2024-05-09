@@ -3,6 +3,7 @@ pyomo
 pandas
 numpy
 scipy
+setuptools
 
 # Optional
 matplotlib

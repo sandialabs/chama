@@ -34,6 +34,7 @@ Required Python package dependencies include:
   http://www.numpy.org.
 * Scipy [VaCV11]_: Used to support efficient routines for numerical analysis, 
   http://www.scipy.org.
+* Setuptools: used to install the chama package, https://setuptools.pypa.io/
   
 Optional Python package dependencies include:
 

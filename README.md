@@ -3,7 +3,7 @@
 
 [![build](https://github.com/sandialabs/chama/workflows/build/badge.svg)](https://github.com/sandialabs/chama/actions/workflows/build_tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/sandialabs/chama/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/chama?branch=main)
-[![Documentation Status](https://readthedocs.org/projects/chama/badge/?version=latest)](http://chama.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://github.com/sandialabs/chama/actions/workflows/build_docs.yml/badge.svg)](https://github.com/sandialabs/chama/actions/workflows/build_docs.yml)
 [![Downloads](https://pepy.tech/badge/chama)](https://pepy.tech/project/chama)
 
 Continuous or regularly scheduled monitoring has the potential to quickly 
@@ -19,7 +19,7 @@ The software was developed to design sensor networks for water distribution netw
 but the methods are general and 
 can be applied to a wide range of applications.
 
-For more information, go to http://chama.readthedocs.io
+For more information, go to https://sandialabs.github.io/chama/
 
 Citing Chama
 -----------------

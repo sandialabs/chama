@@ -43,7 +43,7 @@ jobs:
         name: chama_${{ matrix.python-version }}_${{ matrix.os }}.whl
         path: dist/chama*
 
-  import:
+  install_import:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
